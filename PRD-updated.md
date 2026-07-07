@@ -15,3 +15,13 @@ Requirements learned during implementation that extend or refine `PRD.md`.
 - Progress should cover pipeline stages, per-ruleset agents, and per-file scope.
 - LLM thinking/reasoning should stream to the terminal when the provider supports it.
 - Verbosity flags (`--quiet`, `--verbose`) should control how much is shown.
+
+## 2026-07-07 — Ruleset batch context caps
+
+- Per-ruleset agents batch all matching files in one LLM call; this should remain the
+  default.
+- Add configurable caps to split oversized batches: `maxAgentDiffKb` (combined diff
+  size per agent call) and `maxFilesPerAgent` (optional file-count limit, 0 = unlimited).
+- `maxDiffKb` remains the per-file ingest skip threshold; `maxAgentDiffKb` governs how
+  many ingested files are packed into a single agent prompt.
+- When splitting, CLI should report sub-batch progress (e.g. `java-general batch 2/3`).

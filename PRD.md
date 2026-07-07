@@ -103,12 +103,45 @@ keep the developer informed throughout the pipeline.
 - User can identify which agent/file is running if a review stalls.
 - Streaming mode works with Ollama; degrades gracefully for non-streaming providers.
 
+### Ruleset batching and context caps
+
+Per-ruleset agents batch all matching files into a single LLM call by default (e.g. six
+`*.java` files → one `java-general` call). This is efficient but can exceed the model
+context window on large commits.
+
+**Batching policy**
+- Group reviewable files by matched ruleset (current behaviour).
+- Before calling the LLM, estimate prompt size: ruleset instructions + combined diffs.
+- When the batch exceeds configured caps, split into multiple sub-batches for the same
+  agent (e.g. `java-general` batch 1/2, batch 2/2).
+- Sub-batch boundaries prefer keeping related files together where possible; fall back to
+  greedy packing by file order when over cap.
+
+**Configurable limits** (in `config.json`)
+
+| Field | Purpose | Default |
+|-------|---------|---------|
+| `maxDiffKb` | Per-file ingest cap; files over this are skipped | `512` |
+| `maxAgentDiffKb` | Max combined diff KB sent per ruleset agent call | `256` |
+| `maxFilesPerAgent` | Optional file-count cap per agent call (0 = unlimited) | `0` |
+| `maxTokens` | Model generation token limit | `8000` |
+
+`maxAgentDiffKb` is the primary context cap for batching. `maxFilesPerAgent` is a
+secondary guard for many small files. Both are user-configurable.
+
+**CLI feedback when splitting**
+- Report sub-batch index (e.g. `Reviewing: java-general (batch 2/3, 4 files)`).
+- Tie into Enhanced CLI progress reporting (§5).
+
 ### Configuration (`config.json`)
 ```json
 {
   "model": { "provider": "ollama", "name": "qwen3", "temperature": 0.2 },
-  "rulesDir": "~/.code-review/rules",
-  "maxTokens": 8000
+  "rulesDir": "~/.grok/rules",
+  "maxTokens": 8000,
+  "maxDiffKb": 512,
+  "maxAgentDiffKb": 256,
+  "maxFilesPerAgent": 0
 }
 ```
 
@@ -134,6 +167,7 @@ paths:
 ## 7. Open Items / Future Phases
 
 - Enhanced CLI experience with live progress and streaming thinking (see §5).
+- Configurable ruleset batch context caps (`maxAgentDiffKb`, `maxFilesPerAgent`).
 - Additional classification methods beyond path globs.
 - Full repo review, MCP integration, signed prompts, etc.
 
