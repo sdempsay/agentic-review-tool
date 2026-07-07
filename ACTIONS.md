@@ -2,7 +2,8 @@
 
 ## 2026-07-07
 
-- Copied `~/.grok/rules` into repo `rules/` (java-general, pom-tidy, xml-formatter, maven reference); default `rulesDir` is `rules`; removed legacy java-formatting rule
+- Removed `pom-tidy` review rule; `mvn tidy:pom` is a build step, not LLM review
+- Copied `~/.grok/rules` into repo `rules/` (java-general, xml-formatter, maven reference); default `rulesDir` is `rules`; removed legacy java-formatting rule
 - Implemented task 19 OpenRouter provider via `langchain4j-open-ai`; `model.apiKey` / `OPENROUTER_API_KEY`; `ModelHealthChecker` for `/models`; `LlmTokenLedger` token usage per call and in review report (Ollama + OpenRouter)
 - Removed TODO items 21 (auto-fix) and 22 (GitLab MCP); custom GitLab MCP not in scope for this tracker
 - Removed `.github/workflows/ci.yml` (GitHub Actions); no in-repo CI — use `mvn verify` locally

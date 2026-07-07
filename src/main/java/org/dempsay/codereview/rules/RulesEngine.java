@@ -18,7 +18,6 @@ public final class RulesEngine {
 
   private static final List<String> BUNDLED_RULE_RESOURCES = List.of(
       "/rules/java-general.md",
-      "/rules/pom-tidy.md",
       "/rules/xml-formatter.md"
   );
 
