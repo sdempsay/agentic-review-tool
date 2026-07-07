@@ -2,6 +2,8 @@
 
 ## 2026-07-07
 
+- Added project `AGENTS.md` with mandatory exceptional error-handling rules, reference classes, and try/catch allowlist
+- Refactored `OllamaModelInspector` to exceptional pattern (`fetchContextTokens` / `resolveContextTokens` with `wasError()` fallback)
 - Implemented ruleset batch splitting (task 27): `maxAgentDiffKb` / `maxFilesPerAgent` in config; `RulesetBatchSplitter` splits agent calls with batch labels
 - Implemented enhanced CLI progress and streaming (task 26): pipeline stage timing, per-agent status, `--quiet`/`--verbose`, `StreamingLlmClient` with Ollama streaming to stderr
 - Implemented follow-up chat orchestrator (task 16): `ReviewChatLoop`, `ReviewChatOrchestrator`, file-based delegation to ruleset agents with diff + question; `--chat` / `--no-chat`
