@@ -32,3 +32,6 @@ Requirements learned during implementation that extend or refine `PRD.md`.
 - Chat context = completed report (agent reviews + summary), not full raw diffs.
 - Default on when stdin is a TTY; `--no-chat` for CI/scripting.
 - Fits task 16; uses existing `ChatModel` + conversation history (langchain4j).
+- Chat is an orchestrator, not just a summarizer: when follow-ups need deeper analysis,
+  re-invoke the matching ruleset agent with the file diff + question + prior finding.
+- Routing reuses classification from the original run; ingest data retained for the session.

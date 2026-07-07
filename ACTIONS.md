@@ -2,6 +2,7 @@
 
 ## 2026-07-07
 
+- Refined task 16 chat design: orchestrator delegates to ruleset agents with file diff + question when follow-up needs deeper analysis
 - Documented follow-up chat agent requirement in `PRD.md` (task 16): interactive Q&A on review report after pipeline completes
 - Added Markdown report export via `--output` (task 17): `MarkdownReportBuilder`, `ReportExporter`; includes ingest, classification, and review sections
 - Implemented **Summarize** stage (task 15): `LlmSummarizeService` aggregates agent findings into health score, recommendation, summary, and top actions; `ReviewReportComposer` outputs agent reviews + summary sections

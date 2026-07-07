@@ -86,11 +86,24 @@ Commercial code review tools using frontier models incur high costs due to large
 - `--no-chat` — Skip chat; print report and exit (for CI/scripting).
 
 **Context strategy**
-- Include agent findings, summary (health score, recommendation, top actions), file
-  list, and classification — not full raw diffs (keeps context smaller; diffs already
-  informed the review).
-- If the user asks about a specific file, the agent answers from review findings; a
-  future enhancement could re-inject that file's diff on demand.
+- The chat agent starts with the completed report (agent findings, summary, file list,
+  classification) — enough for high-level follow-ups.
+- When the user drills into a specific file, rule, or finding, the chat agent should
+  be able to **re-invoke the relevant ruleset review agent** with expanded context:
+  - The ruleset's prompt (e.g. `java-general`)
+  - That file's diff (re-loaded from ingest, not from memory)
+  - The original finding + the user's follow-up question
+- Routing uses the existing classification map: a question about `Foo.java` delegates to
+  whichever ruleset agents matched that file; unmatched files go to the `general` agent.
+- The chat agent acts as an **orchestrator** — it answers directly when the report
+  suffices, delegates to a specialist when deeper analysis is needed.
+
+**Example**
+```
+You> Look closer at indentation in AetherBuilderProcessor — is it really wrong?
+```
+→ Chat orchestrator re-invokes `java-general` with that file's diff + question.
+→ Returns the specialist's deeper analysis, framed as a chat reply.
 
 **Non-goals**
 - Persistent chat sessions across CLI invocations.
