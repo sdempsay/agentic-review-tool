@@ -2,6 +2,7 @@
 
 ## 2026-07-07
 
+- Implemented task 20d repo summarize: `RepoHotspotAnalyzer` directory coverage stats; `SummarizePromptBuilder` FULL_FILE mode adds repository coverage, Hotspot Areas, and Cross-Cutting Findings sections; fixture tests under `src/test/resources/fixtures/repo-summarize/`
 - Implemented task 20c `RepoCommand` end-to-end CLI: aligned orchestration with `DiffCommand` (dry-run shows classification only; full review default); `RepoScopeDescriber` for report scope with `--path` / `--include-ext` / `--exclude-ext`; `RepoCommandTest` subprocess E2E for dry-run report export
 - Implemented task 20b full-file review prompts: `ReviewContentMode`, fenced file content in prompts, planner batch caps by mode; `LlmReviewService` + `RepoCommand --dry-run=false` run repo LLM review
 - Implemented task 20a repo ingest: `RepoIngestService`, `RepoPathFilter`, `RepoIngestRequest`, `code-review repo` (classification-only); tracked + untracked via `git ls-files --others --exclude-standard`; default `.md`/`.json` exclusions; `--path` / `--include-ext` / `--exclude-ext`

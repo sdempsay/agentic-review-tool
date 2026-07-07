@@ -1,0 +1,10 @@
+=== java-general ===
+- RepoCommand.java: duplicated orchestration with DiffCommand; extract shared pipeline helper.
+- LlmReviewService.java: missing progress callback when summarize stage fails.
+
+=== java-formatting ===
+- DiffCommand.java: inconsistent indentation in runDryRun chain.
+- SummarizePromptBuilder.java: long method could be split for readability.
+
+=== general-fallback ===
+- README.md: stale usage examples for code-review repo.

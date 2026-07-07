@@ -46,4 +46,25 @@ public class SummarizePromptBuilderTest {
     assertTrue(prompt.contains("Reviewable files: 1"));
     assertFalse(prompt.contains("Reviewable diffs"));
   }
+
+  @Test
+  public void buildUsesRepositorySummarizeFixture() throws Exception {
+    final String prompt = SummarizePromptBuilder.build(
+        RepoSummarizeFixture.agentResults(),
+        RepoSummarizeFixture.changedFiles(),
+        ReviewContentMode.FULL_FILE
+    );
+
+    assertTrue(prompt.contains("repository review summarizer"));
+    assertTrue(prompt.contains("## Repository Coverage"));
+    assertTrue(prompt.contains("`src/main`: 4 reviewable files"));
+    assertTrue(prompt.contains("`src/test`: 2 reviewable files"));
+    assertTrue(prompt.contains("### java-general"));
+    assertTrue(prompt.contains("duplicated orchestration"));
+    assertTrue(prompt.contains("### Hotspot Areas"));
+    assertTrue(prompt.contains("### Cross-Cutting Findings"));
+    assertTrue(prompt.contains("overall codebase health"));
+    assertTrue(prompt.contains("### Top Actions"));
+    assertFalse(prompt.contains("overall change health"));
+  }
 }
