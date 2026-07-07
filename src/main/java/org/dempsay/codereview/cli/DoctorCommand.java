@@ -43,6 +43,14 @@ public class DoctorCommand implements Runnable {
   }
 
   private static void printBatchCapInfo(final AppConfig config) {
+    if (config.model().isOpenRouter()) {
+      System.out.printf(
+          "Batch caps: maxAgentDiffKb=%d (soft and hard; OpenRouter has no num_ctx probe)%n",
+          config.maxAgentDiffKb()
+      );
+      return;
+    }
+
     final int contextTokens = OllamaModelInspector.resolveContextTokens(config.model());
     if (contextTokens > 0) {
       System.out.printf(

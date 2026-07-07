@@ -1,5 +1,6 @@
 package org.dempsay.codereview.model;
 
+import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
@@ -30,9 +31,10 @@ public final class StreamingLlmClient {
 
     progress.llmStarted(label);
     final ChatModel chatModel = ChatModelFactory.create(model, maxTokens);
-    final String response = chatModel.chat(prompt);
+    final ChatResponse response = chatModel.chat(UserMessage.from(prompt));
+    progress.recordTokenUsage(label, LlmTokenUsageExtractor.from(response));
     progress.streamFinished();
-    return response;
+    return ChatResponseText.extract(response);
   }
 
   private static String streamComplete(
@@ -47,6 +49,7 @@ public final class StreamingLlmClient {
     final StringBuilder responseBuilder = new StringBuilder();
     final CountDownLatch latch = new CountDownLatch(1);
     final AtomicReference<Throwable> error = new AtomicReference<>();
+    final AtomicReference<ChatResponse> completedResponse = new AtomicReference<>();
 
     streamingModel.chat(prompt, new StreamingChatResponseHandler() {
       @Override
@@ -62,6 +65,7 @@ public final class StreamingLlmClient {
 
       @Override
       public void onCompleteResponse(final ChatResponse response) {
+        completedResponse.set(response);
         if (responseBuilder.isEmpty()) {
           final String text = ChatResponseText.extract(response);
           progress.streamToken(text);
@@ -78,6 +82,7 @@ public final class StreamingLlmClient {
     });
 
     awaitCompletion(latch, model);
+    progress.recordTokenUsage(label, LlmTokenUsageExtractor.from(completedResponse.get()));
     progress.streamFinished();
 
     if (error.get() != null) {

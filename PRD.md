@@ -169,6 +169,7 @@ context window on large commits.
 | `maxFilesPerAgent` | Optional file-count cap per agent call (0 = unlimited) | `0` |
 | `maxTokens` | Model generation token limit | `8000` |
 | `repoExcludeExtensions` | Extra file extensions skipped by `code-review repo` (merged with built-in `.md`/`.json`) | `[]` |
+| `model.apiKey` | API key for `openrouter` (or `${ENV_VAR}` reference); falls back to `OPENROUTER_API_KEY` | — |
 
 `maxAgentDiffKb` is the primary context cap for batching. `maxFilesPerAgent` is a
 secondary guard for many small files. Both are user-configurable.
@@ -180,7 +181,12 @@ secondary guard for many small files. Both are user-configurable.
 ### Configuration (`config.json`)
 ```json
 {
-  "model": { "provider": "ollama", "name": "qwen3", "temperature": 0.2 },
+  "model": {
+    "provider": "ollama",
+    "name": "qwen3",
+    "temperature": 0.2,
+    "baseUrl": "http://localhost:11434"
+  },
   "rulesDir": "~/.grok/rules",
   "maxTokens": 8000,
   "maxDiffKb": 512,
@@ -189,6 +195,22 @@ secondary guard for many small files. Both are user-configurable.
   "repoExcludeExtensions": [".xml", ".yaml"]
 }
 ```
+
+**OpenRouter example** (`provider: "openrouter"` uses langchain4j OpenAI-compatible client):
+
+```json
+{
+  "model": {
+    "provider": "openrouter",
+    "name": "anthropic/claude-sonnet-4",
+    "temperature": 0.2,
+    "apiKey": "${OPENROUTER_API_KEY}"
+  }
+}
+```
+
+Set `OPENROUTER_API_KEY` in the environment, or put the key in `model.apiKey`. Reviews print a
+`--- Token Usage ---` section with per-call and total input/output tokens for provider comparison.
 
 ### Rules Example (`rules/java-general.md`)
 ```markdown

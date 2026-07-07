@@ -29,7 +29,7 @@ Task tracker for the Code Review Pipeline MVP (`PRD.md`).
 
 | ID | Task | Status | Notes |
 |----|------|--------|-------|
-| 19 | OpenRouter model provider | pending | Mentioned in PRD overview; not in MVP config example |
+| 19 | OpenRouter model provider + token usage reporting | complete | `langchain4j-open-ai`; `LlmTokenLedger`; per-call + total tokens in report |
 | 20 | Full repository review (`code-review repo`) | complete | Phase 2 slices 20a–20e |
 | 20a | **Repo ingest** — `RepoIngestService`, tracked + untracked via `git ls-files` / `--others --exclude-standard`, default ext filter | complete | `code-review repo`; `RepoPathFilter`; default skip `.md`/`.json` |
 | 20b | **Review** — full-file `ReviewPromptBuilder` mode + wire `LlmReviewService` | complete | `ReviewContentMode.FULL_FILE`; repo review via `--dry-run=false` |

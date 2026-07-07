@@ -145,7 +145,7 @@ public class ReviewPromptBuilderTest {
   public void buildPromptHandlesNoReviewableDiffs() {
     final String response = LlmReviewService.reviewRequired(
         new org.dempsay.codereview.config.AppConfig(
-            new org.dempsay.codereview.config.ModelConfig("ollama", "qwen3", 0.2, null, 0),
+            new org.dempsay.codereview.config.ModelConfig("ollama", "qwen3", 0.2, null, 0, null),
             java.nio.file.Path.of("/tmp"),
             8000,
             512,

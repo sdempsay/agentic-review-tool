@@ -14,7 +14,7 @@ public class AgentBatchLimitsTest {
   @Test
   public void forRulesetUsesSoftTargetAndLargeHardCapFromOllamaContext() {
     final AppConfig config = new AppConfig(
-        new ModelConfig("ollama", "qwen3", 0.2, null, 0),
+        new ModelConfig("ollama", "qwen3", 0.2, null, 0, null),
         Path.of("/tmp"),
         8000,
         512,

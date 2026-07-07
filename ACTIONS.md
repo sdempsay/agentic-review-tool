@@ -2,6 +2,7 @@
 
 ## 2026-07-07
 
+- Implemented task 19 OpenRouter provider via `langchain4j-open-ai`; `model.apiKey` / `OPENROUTER_API_KEY`; `ModelHealthChecker` for `/models`; `LlmTokenLedger` token usage per call and in review report (Ollama + OpenRouter)
 - Removed TODO items 21 (auto-fix) and 22 (GitLab MCP); custom GitLab MCP not in scope for this tracker
 - Removed `.github/workflows/ci.yml` (GitHub Actions); no in-repo CI — use `mvn verify` locally
 - Implemented task 20e `repoExcludeExtensions` config: `AppConfig` + `ConfigLoader`; merged into `RepoIngestRequest` default deny list with `.md`/`.json` and `--exclude-ext`; updated `PRD.md` §3 and repo config table

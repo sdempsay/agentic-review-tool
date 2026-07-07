@@ -89,7 +89,8 @@ public final class ConfigLoader {
         requiredText(modelNode, "name"),
         modelNode.path("temperature").asDouble(0.2),
         optionalText(modelNode, "baseUrl"),
-        modelNode.path("timeoutSeconds").asInt(0)
+        modelNode.path("timeoutSeconds").asInt(0),
+        optionalText(modelNode, "apiKey")
     );
     final String rulesDir = requiredText(root, "rulesDir");
     final int maxTokens = root.path("maxTokens").asInt(8000);

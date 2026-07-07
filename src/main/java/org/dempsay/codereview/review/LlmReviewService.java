@@ -65,8 +65,9 @@ public final class LlmReviewService {
     progress.stageStart("Summarize");
     final String summary = LlmSummarizeService.summarizeRequired(config, agentResults, changedFiles, progress, contentMode);
     progress.stageComplete("Summarize", summarizeStageStart);
+    progress.printTokenSummary(config.model());
 
-    return ReviewReportComposer.compose(agentResults, summary);
+    return ReviewReportComposer.compose(agentResults, summary, progress.tokenLedger(), config.model());
   }
 
   private static List<ReviewResult> runAgentReviews(

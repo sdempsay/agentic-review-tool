@@ -26,12 +26,18 @@ public final class ModelHealthChecker {
   }
 
   public static HealthReport checkRequired(final ModelConfig model) throws Exception {
-    if (!"ollama".equalsIgnoreCase(model.provider())) {
-      throw new IllegalArgumentException(
-          "Health check is only supported for the ollama provider (got: " + model.provider() + ")"
-      );
+    if (model.isOllama()) {
+      return checkOllamaRequired(model);
     }
+    if (model.isOpenRouter()) {
+      return checkOpenRouterRequired(model);
+    }
+    throw new IllegalArgumentException(
+        "Health check is only supported for ollama and openrouter providers (got: " + model.provider() + ")"
+    );
+  }
 
+  private static HealthReport checkOllamaRequired(final ModelConfig model) throws Exception {
     final URI tagsUri = URI.create(model.resolveBaseUrl() + "/api/tags");
     final HttpRequest request = HttpRequest.newBuilder(tagsUri)
         .timeout(Duration.ofSeconds(10))
@@ -71,6 +77,50 @@ public final class ModelHealthChecker {
         model.name(),
         model.resolveBaseUrl(),
         "Ollama is reachable and model is available"
+    );
+  }
+
+  private static HealthReport checkOpenRouterRequired(final ModelConfig model) throws Exception {
+    final String apiKey = ChatModelFactory.requireApiKey(model);
+    final URI modelsUri = URI.create(model.resolveBaseUrl() + "/models");
+    final HttpRequest request = HttpRequest.newBuilder(modelsUri)
+        .timeout(Duration.ofSeconds(10))
+        .header("Authorization", "Bearer " + apiKey)
+        .GET()
+        .build();
+    final HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+    if (response.statusCode() != 200) {
+      throw new IllegalStateException(
+          "OpenRouter health check failed: HTTP " + response.statusCode() + " from " + modelsUri
+      );
+    }
+
+    final JsonNode root = MAPPER.readTree(response.body());
+    final JsonNode models = root.path("data");
+    if (!models.isArray()) {
+      throw new IllegalStateException("OpenRouter /models response did not include a data array");
+    }
+
+    boolean modelAvailable = false;
+    for (final JsonNode entry : models) {
+      final String modelId = entry.path("id").asText("");
+      if (modelId.equals(model.name())) {
+        modelAvailable = true;
+        break;
+      }
+    }
+
+    if (!modelAvailable) {
+      throw new IllegalStateException(
+          "OpenRouter is reachable but model '" + model.name() + "' was not found in /models"
+      );
+    }
+
+    return new HealthReport(
+        model.provider(),
+        model.name(),
+        model.resolveBaseUrl(),
+        "OpenRouter is reachable and model is available"
     );
   }
 

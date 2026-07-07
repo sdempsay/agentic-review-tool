@@ -72,6 +72,32 @@ public class ConfigLoaderTest {
   }
 
   @Test
+  public void loadOpenRouterApiKeyFromConfig() throws Exception {
+    final Path config = Files.createTempFile("code-review-openrouter-config", ".json");
+    Files.writeString(
+        config,
+        """
+        {
+          "model": {
+            "provider": "openrouter",
+            "name": "anthropic/claude-sonnet-4",
+            "temperature": 0.2,
+            "apiKey": "sk-or-test"
+          },
+          "rulesDir": "~/custom-rules"
+        }
+        """
+    );
+
+    final AppConfig appConfig = ExceptionalSupport.response(ConfigLoader.load(config));
+
+    assertEquals("openrouter", appConfig.model().provider());
+    assertEquals("anthropic/claude-sonnet-4", appConfig.model().name());
+    assertEquals("sk-or-test", appConfig.model().apiKey());
+    assertEquals("https://openrouter.ai/api/v1", appConfig.model().resolveBaseUrl());
+  }
+
+  @Test
   public void loadBundledDefaultsWhenNoExplicitPathAndNoUserConfig() {
     final AppConfig appConfig = ExceptionalSupport.response(ConfigLoader.load(null));
 

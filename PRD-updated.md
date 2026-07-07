@@ -87,6 +87,14 @@ Users can widen scope with `--path` or `--include-ext`. Additional skips via
 `repoExcludeExtensions` in `config.json` extends the default deny list (`.md`, `.json`)
 without CLI flags. Values merge with `--exclude-ext` when no `--include-ext` is set.
 
+## 2026-07-07 — OpenRouter provider + token usage (task 19)
+
+- `provider: "openrouter"` uses `langchain4j-open-ai` against `https://openrouter.ai/api/v1`
+- API key via `model.apiKey` or `OPENROUTER_API_KEY` env var (`${OPENROUTER_API_KEY}` supported)
+- `doctor` validates OpenRouter `/models` and configured model id
+- `LlmTokenLedger` records input/output/total tokens per LLM call (Ollama + OpenRouter)
+- Review output appends `--- Token Usage ---` with per-call breakdown and totals for comparison
+
 ### Ingest behaviour
 
 - Read full file content (not a git diff); represent as `ChangedFile` with

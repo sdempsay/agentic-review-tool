@@ -1,10 +1,13 @@
 package org.dempsay.codereview.cli;
 
+import dev.langchain4j.model.output.TokenUsage;
 import java.util.List;
-
+import org.dempsay.codereview.config.ModelConfig;
+import org.dempsay.codereview.model.LlmTokenLedger;
 public final class ReviewProgress {
 
   private final CliVerbosity verbosity;
+  private final LlmTokenLedger tokenLedger = new LlmTokenLedger();
 
   public ReviewProgress(final CliVerbosity verbosity) {
     this.verbosity = verbosity;
@@ -122,6 +125,32 @@ public final class ReviewProgress {
       return;
     }
     System.err.println();
+  }
+
+  public LlmTokenLedger tokenLedger() {
+    return tokenLedger;
+  }
+
+  public void recordTokenUsage(final String label, final TokenUsage usage) {
+    tokenLedger.record(label, usage);
+    if (!isVerbose() || tokenLedger.calls().isEmpty()) {
+      return;
+    }
+    final LlmTokenLedger.CallUsage last = tokenLedger.calls().get(tokenLedger.calls().size() - 1);
+    log(String.format(
+        "[Tokens] %s: %d in / %d out / %d total",
+        last.label(),
+        last.inputTokens(),
+        last.outputTokens(),
+        last.totalTokens()
+    ));
+  }
+
+  public void printTokenSummary(final ModelConfig model) {
+    if (isQuiet()) {
+      return;
+    }
+    log(tokenLedger.formatProgressSummary(model));
   }
 
   private static void log(final String message) {

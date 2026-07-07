@@ -80,7 +80,7 @@ public class RulesetReviewPlannerTest {
     final Rule javaRule = new Rule("java-general", null, List.of("**/*.java"), "Java rules");
     final ChangedFile large = ChangedFile.included("src/A.java", ChangeType.MODIFIED, "a".repeat(5_000));
     final org.dempsay.codereview.config.AppConfig config = new org.dempsay.codereview.config.AppConfig(
-        new org.dempsay.codereview.config.ModelConfig("ollama", "qwen3", 0.2, null, 0),
+        new org.dempsay.codereview.config.ModelConfig("ollama", "qwen3", 0.2, null, 0, null),
         Path.of("/tmp"),
         8000,
         512,
