@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.dempsay.codereview.support.ExceptionalSupport;
+import org.dempsay.utils.exceptional.api.ExceptionalListener;
 import org.dempsay.utils.exceptional.api.ExceptionalResource;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
@@ -24,7 +25,14 @@ public final class RulesEngine {
   }
 
   public static ExceptionalResponse<List<Rule>> load(final Path rulesDir) {
-    return ExceptionalSupport.supply(() -> loadRequired(rulesDir));
+    return load(rulesDir, null);
+  }
+
+  public static ExceptionalResponse<List<Rule>> load(
+      final Path rulesDir,
+      final ExceptionalListener listener
+  ) {
+    return ExceptionalSupport.supply(() -> loadRequired(rulesDir), listener);
   }
 
   public static List<Rule> loadRequired(final Path rulesDir) throws IOException {
@@ -47,6 +55,9 @@ public final class RulesEngine {
           .sorted(Comparator.comparing(path -> path.getFileName().toString()))
           .toList();
       for (final Path ruleFile : ruleFiles) {
+        if (!hasRuleFrontmatter(ruleFile)) {
+          continue;
+        }
         rules.add(loadRule(ruleFile));
       }
     }
@@ -96,6 +107,12 @@ public final class RulesEngine {
       throw new IllegalStateException("Bundled rule is missing: " + resourcePath);
     }
     return input;
+  }
+
+  private static boolean hasRuleFrontmatter(final Path ruleFile) throws IOException {
+    final String content = Files.readString(ruleFile);
+    final String normalized = content.startsWith("\uFEFF") ? content.substring(1) : content;
+    return normalized.startsWith("---");
   }
 
   private static String stripExtension(final String fileName) {

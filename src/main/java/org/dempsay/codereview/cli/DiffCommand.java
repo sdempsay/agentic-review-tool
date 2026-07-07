@@ -57,7 +57,7 @@ public class DiffCommand implements Runnable {
 
   private ExceptionalResponse<Boolean> runLlmReview(final FailureCapture failures) {
     return ConfigLoader.load(configPath)
-        .chain((listener, config) -> RulesEngine.load(config.rulesDir())
+        .chain((listener, config) -> RulesEngine.load(config.rulesDir(), listener)
             .chain((rulesListener, rules) -> GitIngestService.ingest(buildIngestRequest(config))
                 .chain((ingestListener, changedFiles) -> {
                   IngestSummaryRenderer.render(changedFiles);
@@ -74,7 +74,7 @@ public class DiffCommand implements Runnable {
 
   private ExceptionalResponse<Boolean> runDryRun(final FailureCapture failures) {
     return ConfigLoader.load(configPath)
-        .chain((listener, config) -> RulesEngine.load(config.rulesDir())
+        .chain((listener, config) -> RulesEngine.load(config.rulesDir(), listener)
             .chain((rulesListener, rules) -> GitIngestService.ingest(buildIngestRequest(config))
                 .chain((ingestListener, changedFiles) -> {
                   renderClassification(rules, changedFiles);

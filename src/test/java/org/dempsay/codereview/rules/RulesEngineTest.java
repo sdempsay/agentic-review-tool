@@ -42,10 +42,25 @@ public class RulesEngineTest {
   }
 
   @Test
-  public void rejectMalformedRuleFile() throws Exception {
-    final Path rulesDir = Files.createTempDirectory("code-review-bad-rules");
-    Files.writeString(rulesDir.resolve("broken.md"), "# missing frontmatter");
+  public void skipInstructionalDocsWithoutFrontmatter() throws Exception {
+    final Path rulesDir = Files.createTempDirectory("code-review-mixed-rules");
+    Files.writeString(rulesDir.resolve("maven.md"), "# Maven instructions without path globs");
+    Files.writeString(
+        rulesDir.resolve("java.md"),
+        """
+        ---
+        paths:
+          - "**/*.java"
+        ---
 
-    assertTrue(RulesEngine.load(rulesDir).wasError());
+        Java rules
+        """
+    );
+
+    final var rules = ExceptionalSupport.response(RulesEngine.load(rulesDir));
+
+    assertEquals(1, rules.size());
+    assertEquals("java", rules.get(0).id());
+    assertEquals("Java rules", rules.get(0).promptBody());
   }
 }
