@@ -66,6 +66,43 @@ Commercial code review tools using frontier models incur high costs due to large
 - Interactive results viewer.
 - Option to save full report to Markdown.
 
+### Enhanced CLI Experience (Post-MVP)
+
+The current CLI prints ingest/classification output, then blocks silently while each
+ruleset agent calls the LLM (multi-minute runs are common). A richer terminal UI should
+keep the developer informed throughout the pipeline.
+
+**Goals**
+- Make long reviews feel responsive and debuggable.
+- Surface per-stage and per-file progress without waiting for the final aggregate.
+- Optionally expose model reasoning ("thinking") when the provider supports streaming.
+
+**Planned capabilities**
+- **Pipeline progress** — Show current stage (Ingest → Classify → Review → Summarize)
+  with timestamps and elapsed time.
+- **Per-agent status** — When a ruleset sub-agent starts, report agent name, matched
+  file count, and which files are in scope (e.g. `Reviewing: java-general (6 files)`).
+- **Per-file progress** — As each file enters review, emit a concise status line
+  (path, change type, applicable rules). Useful when one agent covers many files.
+- **Streaming output** — Stream LLM tokens to the terminal as they arrive (thinking
+  traces, interim analysis, final findings). Fall back to batch output when streaming
+  is unavailable.
+- **Verbosity controls** — `--quiet` (errors + summary only), default (progress +
+  findings), `--verbose` (classification detail + streamed thinking).
+- **Activity indicator** — Spinner or progress bar during LLM calls so a silent hang
+  is never mistaken for a crash.
+
+**Non-goals (for this enhancement)**
+- Full-screen TUI framework (e.g. curses) — keep plain terminal + ANSI unless needs
+  prove otherwise.
+- Persisting streamed thinking to disk by default — optional `--output` capture only.
+
+**Success criteria**
+- A `diff` run against a typical multi-file commit shows continuous progress within
+  the first second of each stage.
+- User can identify which agent/file is running if a review stalls.
+- Streaming mode works with Ollama; degrades gracefully for non-streaming providers.
+
 ### Configuration (`config.json`)
 ```json
 {
@@ -96,6 +133,7 @@ paths:
 
 ## 7. Open Items / Future Phases
 
+- Enhanced CLI experience with live progress and streaming thinking (see §5).
 - Additional classification methods beyond path globs.
 - Full repo review, MCP integration, signed prompts, etc.
 

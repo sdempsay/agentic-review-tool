@@ -2,6 +2,7 @@
 
 ## 2026-07-07
 
+- Added Enhanced CLI Experience requirements to `PRD.md` (live progress, per-agent/file status, streaming thinking); captured in `PRD-updated.md` and `TODO.md` task 26
 - Fixed rules loading failure when `~/.grok/rules/maven.md` (no YAML frontmatter) is present — skip instructional docs without `paths` globs; wire error listener into rules load for clearer CLI errors
 - Implemented per-ruleset specialized review sub-agents (task 14): `RulesetReviewPlanner` groups files by rule, one LLM call per ruleset via `ReviewPromptBuilder.buildForRuleset`, general fallback for unmatched files, `ReviewAggregator` combines output
 - Wired classified rules into LLM review prompt (task 13): `DiffCommand` loads rules, shows classification, `ReviewPromptBuilder` injects matched rule bodies; default `rulesDir` set to `~/.grok/rules`

@@ -36,3 +36,4 @@ Task tracker for the Code Review Pipeline MVP (`PRD.md`).
 | 23 | Advanced RAG over codebase | pending | Out of scope for MVP |
 | 24 | Classification beyond path globs | pending | Content analysis, commit messages, etc. |
 | 25 | Digitally signed prompts | pending | Security/auditability future item |
+| 26 | Enhanced CLI — live progress, per-agent/file status, streaming thinking | pending | Post-MVP; see PRD §5 |
