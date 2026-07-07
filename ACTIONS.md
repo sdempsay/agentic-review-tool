@@ -2,6 +2,7 @@
 
 ## 2026-07-07
 
+- Fixed `pom-security.md` path globs: Java `**/pom.xml` does not match root `pom.xml`; added explicit `pom.xml` glob
 - Added TODO 28 (low priority): MCP service for Maven dependency CVE lookup
 - Added `pom-security.md` review rule for `pom.xml` (curated version floors, parent policy; not a live CVE scanner)
 - Added `rules/guardrails/*.md` with `ReviewGuardrailsLoader`; wired into review, summarize, and chat prompts via `ReviewPromptSupplements`

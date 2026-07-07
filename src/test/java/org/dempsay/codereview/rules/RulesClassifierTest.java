@@ -38,6 +38,18 @@ public class RulesClassifierTest {
   }
 
   @Test
+  public void matchesRootPomXmlAgainstPomSecurityGlob() {
+    final List<Rule> rules = List.of(
+        new Rule("pom-security", Path.of("pom-security.md"), List.of("pom.xml", "**/pom.xml"), "body")
+    );
+
+    final List<Rule> matched = RulesClassifier.classifyFile(rules, "pom.xml");
+
+    assertEquals(1, matched.size());
+    assertEquals("pom-security", matched.get(0).id());
+  }
+
+  @Test
   public void nonMatchingFilesReturnEmptyRuleList() {
     final List<Rule> rules = List.of(
         new Rule("java-general", Path.of("java-general.md"), List.of("**/*.java"), "body")
