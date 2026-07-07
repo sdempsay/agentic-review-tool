@@ -41,3 +41,4 @@ Task tracker for the Code Review Pipeline MVP (`PRD.md`).
 | 25 | Digitally signed prompts | pending | Security/auditability future item |
 | 26 | Enhanced CLI — live progress, per-agent/file status, streaming thinking | complete | `--quiet` / `--verbose`; stderr progress + Ollama streaming |
 | 27 | Ruleset batch splitting with configurable `maxAgentDiffKb` / `maxFilesPerAgent` | complete | Soft cap (`maxAgentDiffKb`) + hard cap (Ollama `num_ctx`); `OllamaModelInspector`, `AgentBatchLimits` |
+| 28 | MCP service — Maven dependency CVE lookup | pending | **Low priority.** Accept GAV coordinates (or `pom.xml` deps), return known CVEs; complements `pom-security.md` curated floors |

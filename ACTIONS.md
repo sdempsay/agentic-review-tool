@@ -2,6 +2,7 @@
 
 ## 2026-07-07
 
+- Added TODO 28 (low priority): MCP service for Maven dependency CVE lookup
 - Added `pom-security.md` review rule for `pom.xml` (curated version floors, parent policy; not a live CVE scanner)
 - Added `rules/guardrails/*.md` with `ReviewGuardrailsLoader`; wired into review, summarize, and chat prompts via `ReviewPromptSupplements`
 - Added `review-output-format.md` (rules dir override + bundled); `ReviewOutputFormatLoader` appends to ruleset/general review prompts
