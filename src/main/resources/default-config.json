@@ -6,7 +6,7 @@
     "baseUrl": "http://localhost:11434",
     "timeoutSeconds": 300
   },
-  "rulesDir": "~/.code-review/rules",
+  "rulesDir": "~/.grok/rules",
   "maxTokens": 8000,
   "maxDiffKb": 512
 }

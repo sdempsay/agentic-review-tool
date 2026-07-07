@@ -48,7 +48,7 @@ public class ConfigLoaderTest {
 
     assertEquals("ollama", appConfig.model().provider());
     assertEquals("qwen3.6-35b-mlx-256k:latest", appConfig.model().name());
-    assertTrue(appConfig.rulesDir().endsWith(".code-review/rules"));
+    assertTrue(appConfig.rulesDir().endsWith(".grok/rules"));
     assertEquals(8000, appConfig.maxTokens());
     assertEquals(512, appConfig.maxDiffKb());
   }

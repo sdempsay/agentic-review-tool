@@ -2,6 +2,7 @@
 
 ## 2026-07-07
 
+- Wired classified rules into LLM review prompt (task 13): `DiffCommand` loads rules, shows classification, `ReviewPromptBuilder` injects matched rule bodies; default `rulesDir` set to `~/.grok/rules`
 - Created `TODO.md` task tracker from `PRD.md` and current implementation state
 - Committed initial MVP implementation (ingest, classify, review scaffold, config, doctor, CI)
 - Reviewed agent rules setup: confirmed global `~/.grok/AGENTS.md` loads via `grok inspect`; removed §6 Communication (caveman style) to avoid conflict with Cursor user rules
