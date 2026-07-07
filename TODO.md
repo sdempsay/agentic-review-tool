@@ -7,7 +7,7 @@ Task tracker for the Code Review Pipeline MVP (`PRD.md`).
 | ID | Task | Status | Notes |
 |----|------|--------|-------|
 | 1 | Project scaffold (`pom.xml`, shade JAR, `CodeReviewApplication`) | complete | langchain4j 1.17.2, picocli, Jackson, SnakeYAML |
-| 2 | CI workflow (build + test + checkstyle) | complete | `.github/workflows/ci.yml` |
+| 2 | CI workflow (build + test + checkstyle) | cancelled | Removed; verify locally with `mvn verify` |
 | 3 | CLI root command (`code-review`) | complete | Subcommands: `diff`, `doctor` |
 | 4 | Configuration loading (`config.json`, bundled defaults) | complete | `~/.code-review/config.json` fallback |
 | 5 | **Ingest** — git diff ingestion | complete | Staged, uncommitted, `--base` ref; size limits |

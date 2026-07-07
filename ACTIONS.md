@@ -2,6 +2,7 @@
 
 ## 2026-07-07
 
+- Removed `.github/workflows/ci.yml` (GitHub Actions); no in-repo CI — use `mvn verify` locally
 - Implemented task 20e `repoExcludeExtensions` config: `AppConfig` + `ConfigLoader`; merged into `RepoIngestRequest` default deny list with `.md`/`.json` and `--exclude-ext`; updated `PRD.md` §3 and repo config table
 - Implemented task 20d repo summarize: `RepoHotspotAnalyzer` directory coverage stats; `SummarizePromptBuilder` FULL_FILE mode adds repository coverage, Hotspot Areas, and Cross-Cutting Findings sections; fixture tests under `src/test/resources/fixtures/repo-summarize/`
 - Implemented task 20c `RepoCommand` end-to-end CLI: aligned orchestration with `DiffCommand` (dry-run shows classification only; full review default); `RepoScopeDescriber` for report scope with `--path` / `--include-ext` / `--exclude-ext`; `RepoCommandTest` subprocess E2E for dry-run report export
