@@ -4,7 +4,8 @@ Requirements learned during implementation that extend or refine `PRD.md`.
 
 ## 2026-07-07 — Rules directory
 
-- Default `rulesDir` is `~/.grok/rules`, not `~/.code-review/rules`.
+- Default `rulesDir` is `rules` (relative to the working directory). Override in `~/.code-review/config.json` as needed.
+- Review rules live in `rules/` (copied from `~/.grok/rules`); `rules/maven.md` is instructional only (no `paths` frontmatter).
 - Instructional docs in the rules directory (e.g. `maven.md` without YAML `paths`
   frontmatter) must be skipped — only path-gloved `*.md` files are review rules.
 

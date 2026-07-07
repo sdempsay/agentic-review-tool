@@ -187,7 +187,7 @@ secondary guard for many small files. Both are user-configurable.
     "temperature": 0.2,
     "baseUrl": "http://localhost:11434"
   },
-  "rulesDir": "~/.grok/rules",
+  "rulesDir": "rules",
   "maxTokens": 8000,
   "maxDiffKb": 512,
   "maxAgentDiffKb": 256,

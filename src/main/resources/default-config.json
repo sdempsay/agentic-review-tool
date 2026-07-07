@@ -6,7 +6,7 @@
     "baseUrl": "http://localhost:11434",
     "timeoutSeconds": 300
   },
-  "rulesDir": "~/.grok/rules",
+  "rulesDir": "rules",
   "maxTokens": 8000,
   "maxDiffKb": 512,
   "maxAgentDiffKb": 256,

@@ -6,7 +6,7 @@ Project-specific rules for agents working in this repository. Global rules in `~
 
 - Read `TODO.md` for task status
 - Read `PRD.md` and `PRD-updated.md` for requirements
-- Read `~/.grok/rules/maven.md` (this project has `pom.xml`)
+- Read `rules/maven.md` (this project has `pom.xml`)
 
 ## Exceptional error handling (mandatory)
 

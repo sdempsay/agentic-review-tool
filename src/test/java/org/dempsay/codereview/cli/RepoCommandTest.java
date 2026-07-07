@@ -147,7 +147,7 @@ public class RepoCommandTest {
   private static Path copyBundledRules() throws Exception {
     final Path rulesDir = Files.createTempDirectory("code-review-repo-rules");
     copyResource("/rules/java-general.md", rulesDir.resolve("java-general.md"));
-    copyResource("/rules/java-formatting.md", rulesDir.resolve("java-formatting.md"));
+    copyResource("/rules/pom-tidy.md", rulesDir.resolve("pom-tidy.md"));
     return rulesDir;
   }
 
