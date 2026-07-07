@@ -151,7 +151,8 @@ public class ReviewPromptBuilderTest {
             512
         ),
         List.of(),
-        List.of(ChangedFile.skipped("image.png", ChangeType.ADDED, "Binary file"))
+        List.of(ChangedFile.skipped("image.png", ChangeType.ADDED, "Binary file")),
+        org.dempsay.codereview.cli.ReviewProgress.create(org.dempsay.codereview.cli.CliVerbosity.QUIET)
     );
 
     assertTrue(response.contains("No reviewable diffs found"));

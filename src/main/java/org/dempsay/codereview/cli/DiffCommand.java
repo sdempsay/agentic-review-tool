@@ -69,6 +69,18 @@ public class DiffCommand implements Runnable {
   )
   private boolean noChat;
 
+  @Option(
+      names = "--quiet",
+      description = "Suppress progress output; print errors and final report only"
+  )
+  private boolean quiet;
+
+  @Option(
+      names = "--verbose",
+      description = "Show detailed per-file progress and streamed model thinking"
+  )
+  private boolean verbose;
+
   @Override
   public void run() {
     final FailureCapture failures = new FailureCapture();
@@ -77,34 +89,58 @@ public class DiffCommand implements Runnable {
   }
 
   private ExceptionalResponse<Boolean> runLlmReview(final FailureCapture failures) {
+    final ReviewProgress progress = ReviewProgress.create(CliVerbosity.fromFlags(quiet, verbose));
     return ConfigLoader.load(configPath)
         .chain((listener, config) -> RulesEngine.load(config.rulesDir(), listener)
-            .chain((rulesListener, rules) -> GitIngestService.ingest(buildIngestRequest(config))
-                .chain((ingestListener, changedFiles) -> {
-                  final Map<String, List<Rule>> classification = classify(rules, changedFiles);
-                  IngestSummaryRenderer.render(changedFiles);
-                  DryRunRenderer.render(classification);
-                  return LlmReviewService.review(config, rules, changedFiles)
-                      .chain((reviewListener, reviewText) -> {
-                        System.out.println();
-                        System.out.println(reviewText);
-                        return runChatIfEnabled(config, rules, changedFiles, classification, reviewText)
-                            .chain((chatListener, ignored) ->
-                                writeReportIfRequested(reviewText, changedFiles, classification, ingestListener),
-                                reviewListener);
-                      }, ingestListener);
-                }, rulesListener), listener), failures.listener());
+            .chain((rulesListener, rules) -> {
+              final long ingestStageStart = System.currentTimeMillis();
+              progress.stageStart("Ingest");
+              return GitIngestService.ingest(buildIngestRequest(config))
+                  .chain((ingestListener, changedFiles) -> {
+                    progress.stageComplete("Ingest", ingestStageStart);
+                    final long classifyStageStart = System.currentTimeMillis();
+                    progress.stageStart("Classify");
+                    final Map<String, List<Rule>> classification = classify(rules, changedFiles);
+                    progress.stageComplete("Classify", classifyStageStart);
+
+                    if (!progress.isQuiet()) {
+                      IngestSummaryRenderer.render(changedFiles);
+                      DryRunRenderer.render(classification);
+                    }
+
+                    return LlmReviewService.review(config, rules, changedFiles, progress)
+                        .chain((reviewListener, reviewText) -> {
+                          System.out.println();
+                          System.out.println(reviewText);
+                          return runChatIfEnabled(config, rules, changedFiles, classification, reviewText)
+                              .chain((chatListener, ignored) ->
+                                  writeReportIfRequested(reviewText, changedFiles, classification, ingestListener),
+                                  reviewListener);
+                        }, ingestListener);
+                  }, rulesListener);
+            }, listener), failures.listener());
   }
 
   private ExceptionalResponse<Boolean> runDryRun(final FailureCapture failures) {
+    final ReviewProgress progress = ReviewProgress.create(CliVerbosity.fromFlags(quiet, verbose));
     return ConfigLoader.load(configPath)
         .chain((listener, config) -> RulesEngine.load(config.rulesDir(), listener)
-            .chain((rulesListener, rules) -> GitIngestService.ingest(buildIngestRequest(config))
-                .chain((ingestListener, changedFiles) -> {
-                  final Map<String, List<Rule>> classification = classify(rules, changedFiles);
-                  DryRunRenderer.render(classification);
-                  return writeReportIfRequested(null, changedFiles, classification, ingestListener);
-                }, rulesListener), listener), failures.listener());
+            .chain((rulesListener, rules) -> {
+              final long ingestStageStart = System.currentTimeMillis();
+              progress.stageStart("Ingest");
+              return GitIngestService.ingest(buildIngestRequest(config))
+                  .chain((ingestListener, changedFiles) -> {
+                    progress.stageComplete("Ingest", ingestStageStart);
+                    final long classifyStageStart = System.currentTimeMillis();
+                    progress.stageStart("Classify");
+                    final Map<String, List<Rule>> classification = classify(rules, changedFiles);
+                    progress.stageComplete("Classify", classifyStageStart);
+                    if (!progress.isQuiet()) {
+                      DryRunRenderer.render(classification);
+                    }
+                    return writeReportIfRequested(null, changedFiles, classification, ingestListener);
+                  }, rulesListener);
+            }, listener), failures.listener());
   }
 
   private ExceptionalResponse<Boolean> runChatIfEnabled(

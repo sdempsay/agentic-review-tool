@@ -2,6 +2,7 @@
 
 ## 2026-07-07
 
+- Implemented enhanced CLI progress and streaming (task 26): pipeline stage timing, per-agent status, `--quiet`/`--verbose`, `StreamingLlmClient` with Ollama streaming to stderr
 - Implemented follow-up chat orchestrator (task 16): `ReviewChatLoop`, `ReviewChatOrchestrator`, file-based delegation to ruleset agents with diff + question; `--chat` / `--no-chat`
 - Refined task 16 chat design: orchestrator delegates to ruleset agents with file diff + question when follow-up needs deeper analysis
 - Documented follow-up chat agent requirement in `PRD.md` (task 16): interactive Q&A on review report after pipeline completes

@@ -4,6 +4,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import org.dempsay.codereview.config.ModelConfig;
 import org.junit.Test;
 
@@ -16,6 +17,16 @@ public class ChatModelFactoryTest {
     final ChatModel chatModel = ChatModelFactory.create(model, 4096);
 
     assertNotNull(chatModel);
+  }
+
+  @Test
+  public void createOllamaStreamingChatModel() {
+    final ModelConfig model = new ModelConfig("ollama", "qwen3", 0.2, "http://localhost:11434", 120);
+
+    assertTrue(ChatModelFactory.supportsStreaming(model));
+    final StreamingChatModel streamingModel = ChatModelFactory.createStreaming(model, 4096);
+
+    assertNotNull(streamingModel);
   }
 
   @Test(expected = IllegalArgumentException.class)
