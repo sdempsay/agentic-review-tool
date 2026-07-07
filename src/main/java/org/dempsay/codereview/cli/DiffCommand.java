@@ -1,5 +1,6 @@
 package org.dempsay.codereview.cli;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +10,7 @@ import org.dempsay.codereview.ingest.ChangedFile;
 import org.dempsay.codereview.ingest.GitIngestService;
 import org.dempsay.codereview.ingest.IngestRequest;
 import org.dempsay.codereview.review.LlmReviewService;
+import org.dempsay.codereview.review.ReviewSessionContext;
 import org.dempsay.codereview.rules.Rule;
 import org.dempsay.codereview.rules.RulesClassifier;
 import org.dempsay.codereview.rules.RulesEngine;
@@ -55,6 +57,18 @@ public class DiffCommand implements Runnable {
   )
   private Path outputPath;
 
+  @Option(
+      names = "--chat",
+      description = "Enable follow-up chat after review (default when stdin is a TTY)"
+  )
+  private Boolean chat;
+
+  @Option(
+      names = "--no-chat",
+      description = "Skip follow-up chat after review"
+  )
+  private boolean noChat;
+
   @Override
   public void run() {
     final FailureCapture failures = new FailureCapture();
@@ -74,7 +88,10 @@ public class DiffCommand implements Runnable {
                       .chain((reviewListener, reviewText) -> {
                         System.out.println();
                         System.out.println(reviewText);
-                        return writeReportIfRequested(reviewText, changedFiles, classification, ingestListener);
+                        return runChatIfEnabled(config, rules, changedFiles, classification, reviewText)
+                            .chain((chatListener, ignored) ->
+                                writeReportIfRequested(reviewText, changedFiles, classification, ingestListener),
+                                reviewListener);
                       }, ingestListener);
                 }, rulesListener), listener), failures.listener());
   }
@@ -88,6 +105,25 @@ public class DiffCommand implements Runnable {
                   DryRunRenderer.render(classification);
                   return writeReportIfRequested(null, changedFiles, classification, ingestListener);
                 }, rulesListener), listener), failures.listener());
+  }
+
+  private ExceptionalResponse<Boolean> runChatIfEnabled(
+      final AppConfig config,
+      final List<Rule> rules,
+      final List<ChangedFile> changedFiles,
+      final Map<String, List<Rule>> classification,
+      final String reviewText
+  ) {
+    if (!ReviewChatLoop.shouldEnable(chat, noChat)) {
+      return ExceptionalResponse.success(Boolean.TRUE);
+    }
+
+    try {
+      ReviewChatLoop.run(new ReviewSessionContext(config, rules, changedFiles, classification, reviewText));
+      return ExceptionalResponse.success(Boolean.TRUE);
+    } catch (IOException exception) {
+      throw new IllegalStateException("Follow-up chat failed: " + exception.getMessage(), exception);
+    }
   }
 
   private ExceptionalResponse<Boolean> writeReportIfRequested(

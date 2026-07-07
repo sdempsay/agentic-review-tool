@@ -24,6 +24,45 @@ public final class ReviewPromptBuilder {
     return prompt.toString();
   }
 
+  public static String buildFollowUp(
+      final Rule rule,
+      final ChangedFile file,
+      final String question,
+      final String reportText
+  ) {
+    final StringBuilder prompt = new StringBuilder();
+    prompt.append("You are the \"").append(rule.id()).append("\" review agent.");
+    prompt.append(System.lineSeparator());
+    prompt.append("Answer the follow-up question using the ruleset instructions and the file diff.");
+    prompt.append(System.lineSeparator()).append(System.lineSeparator());
+    prompt.append("## Ruleset Instructions").append(System.lineSeparator()).append(System.lineSeparator());
+    prompt.append(rule.promptBody().trim()).append(System.lineSeparator()).append(System.lineSeparator());
+    prompt.append("## Prior Review Report").append(System.lineSeparator()).append(System.lineSeparator());
+    prompt.append(reportText.trim()).append(System.lineSeparator()).append(System.lineSeparator());
+    prompt.append("## Follow-up Question").append(System.lineSeparator()).append(System.lineSeparator());
+    prompt.append(question.trim()).append(System.lineSeparator()).append(System.lineSeparator());
+    appendChangedFiles(prompt, Map.of(), List.of(file));
+    return prompt.toString();
+  }
+
+  public static String buildGeneralFollowUp(
+      final ChangedFile file,
+      final String question,
+      final String reportText
+  ) {
+    final StringBuilder prompt = new StringBuilder();
+    prompt.append("You are the general code review agent.");
+    prompt.append(System.lineSeparator());
+    prompt.append("Answer the follow-up question using the file diff and prior review context.");
+    prompt.append(System.lineSeparator()).append(System.lineSeparator());
+    prompt.append("## Prior Review Report").append(System.lineSeparator()).append(System.lineSeparator());
+    prompt.append(reportText.trim()).append(System.lineSeparator()).append(System.lineSeparator());
+    prompt.append("## Follow-up Question").append(System.lineSeparator()).append(System.lineSeparator());
+    prompt.append(question.trim()).append(System.lineSeparator()).append(System.lineSeparator());
+    appendChangedFiles(prompt, Map.of(), List.of(file));
+    return prompt.toString();
+  }
+
   public static String buildGeneralFallback(final List<ChangedFile> changedFiles) {
     final StringBuilder prompt = new StringBuilder();
     prompt.append("You are a general code review agent.");

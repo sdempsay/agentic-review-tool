@@ -84,6 +84,28 @@ public class ReviewPromptBuilderTest {
   }
 
   @Test
+  public void buildFollowUpIncludesRulesQuestionAndDiff() {
+    final Rule javaRule = new Rule(
+        "java-general",
+        Path.of("java-general.md"),
+        List.of("**/*.java"),
+        "Check indentation."
+    );
+    final String prompt = ReviewPromptBuilder.buildFollowUp(
+        javaRule,
+        ChangedFile.included("src/App.java", ChangeType.MODIFIED, "+line"),
+        "Is the indentation really wrong?",
+        "Prior finding: indentation issue"
+    );
+
+    assertTrue(prompt.contains("java-general"));
+    assertTrue(prompt.contains("Check indentation."));
+    assertTrue(prompt.contains("Is the indentation really wrong?"));
+    assertTrue(prompt.contains("Prior finding: indentation issue"));
+    assertTrue(prompt.contains("+line"));
+  }
+
+  @Test
   public void buildGeneralFallbackUsesGenericInstructions() {
     final String prompt = ReviewPromptBuilder.buildGeneralFallback(
         List.of(ChangedFile.included("README.md", ChangeType.MODIFIED, "+docs"))
