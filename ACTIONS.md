@@ -2,6 +2,7 @@
 
 ## 2026-07-07
 
+- Refactored `GitIngestService` to compose git/file I/O via `.chain()` and `ExceptionalResource` (no `ExceptionalSupport.response()` bridges)
 - Fixed diff-review nits: EOF newlines on 7 Java files; extracted `final String content` in `GitIngestService.ingestUntrackedFile`
 - Refactored I/O and service layers to exceptional contract: removed public `*Required` methods and `throws` declarations; `GitRunner` returns `ExceptionalResponse`; `ReviewChatLoop.run` returns `ExceptionalResponse<Void>`; CLI chat wired via `.chain()`
 - Fixed `pom-security.md` path globs: Java `**/pom.xml` does not match root `pom.xml`; added explicit `pom.xml` glob
