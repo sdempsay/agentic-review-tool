@@ -33,7 +33,7 @@ Task tracker for the Code Review Pipeline MVP (`PRD.md`).
 | 20 | Full repository review (`code-review repo`) | pending | Phase 2; tracked + untracked (gitignore-safe); default skip `.md`/`.json` |
 | 20a | **Repo ingest** — `RepoIngestService`, tracked + untracked via `git ls-files` / `--others --exclude-standard`, default ext filter | complete | `code-review repo`; `RepoPathFilter`; default skip `.md`/`.json` |
 | 20b | **Review** — full-file `ReviewPromptBuilder` mode + wire `LlmReviewService` | complete | `ReviewContentMode.FULL_FILE`; repo review via `--dry-run=false` |
-| 20c | **CLI** — `RepoCommand` end-to-end, `--path` / `--exclude-ext`, report export | pending | Mirror `DiffCommand` orchestration |
+| 20c | **CLI** — `RepoCommand` end-to-end, `--path` / `--exclude-ext`, report export | complete | Mirrors `DiffCommand`; default full review; `RepoScopeDescriber`; CLI tests |
 | 20d | **Summarize** — repo-level health, hotspots, cross-cutting findings | pending | Two-pass rollup optional |
 | 20e | **Config** — `repoExcludeExtensions` in `config.json`; update `PRD.md` §3 | pending | Extend default deny list beyond `.md`, `.json` |
 | 21 | Auto-fix suggestions | pending | Out of scope for MVP |
