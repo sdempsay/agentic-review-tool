@@ -38,6 +38,15 @@ public final class LlmReviewService {
     }
 
     final ChatModel chatModel = ChatModelFactory.create(config.model(), config.maxTokens());
+    final List<ReviewResult> agentResults = runAgentReviews(chatModel, tasks);
+    final String summary = LlmSummarizeService.summarizeRequired(config, agentResults, changedFiles);
+    return ReviewReportComposer.compose(agentResults, summary);
+  }
+
+  private static List<ReviewResult> runAgentReviews(
+      final ChatModel chatModel,
+      final List<RulesetReviewTask> tasks
+  ) {
     final List<ReviewResult> results = new ArrayList<>();
     for (final RulesetReviewTask task : tasks) {
       final String prompt = task.isGeneralFallback()
@@ -45,6 +54,6 @@ public final class LlmReviewService {
           : ReviewPromptBuilder.buildForRuleset(task.rule(), task.files());
       results.add(new ReviewResult(task.agentName(), chatModel.chat(prompt)));
     }
-    return ReviewAggregator.aggregate(results);
+    return results;
   }
 }

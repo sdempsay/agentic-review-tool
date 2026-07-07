@@ -65,7 +65,6 @@ public class DiffCommand implements Runnable {
                   return LlmReviewService.review(config, rules, changedFiles)
                       .chain((reviewListener, reviewText) -> {
                         System.out.println();
-                        System.out.println("--- LLM Review ---");
                         System.out.println(reviewText);
                         return ExceptionalResponse.success(Boolean.TRUE);
                       }, ingestListener);
