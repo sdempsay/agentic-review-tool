@@ -1,0 +1,12 @@
+{
+  "model": {
+    "provider": "ollama",
+    "name": "qwen3.6-35b-mlx-256k:latest",
+    "temperature": 0.2,
+    "baseUrl": "http://localhost:11434",
+    "timeoutSeconds": 300
+  },
+  "rulesDir": "~/.code-review/rules",
+  "maxTokens": 8000,
+  "maxDiffKb": 512
+}

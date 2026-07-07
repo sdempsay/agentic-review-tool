@@ -1,0 +1,26 @@
+package org.dempsay.codereview.model;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import dev.langchain4j.model.chat.ChatModel;
+import org.dempsay.codereview.config.ModelConfig;
+import org.junit.Test;
+
+public class ChatModelFactoryTest {
+
+  @Test
+  public void createOllamaChatModel() {
+    final ModelConfig model = new ModelConfig("ollama", "qwen3", 0.2, "http://localhost:11434", 120);
+
+    final ChatModel chatModel = ChatModelFactory.create(model, 4096);
+
+    assertNotNull(chatModel);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void rejectUnsupportedProvider() {
+    final ModelConfig model = new ModelConfig("openai", "gpt-4", 0.2, null, 0);
+    ChatModelFactory.create(model, 4096);
+  }
+}

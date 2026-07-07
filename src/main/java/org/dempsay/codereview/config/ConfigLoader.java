@@ -1,0 +1,120 @@
+package org.dempsay.codereview.config;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import org.dempsay.codereview.support.ExceptionalSupport;
+import org.dempsay.utils.exceptional.api.ExceptionalResource;
+import org.dempsay.utils.exceptional.api.ExceptionalResponse;
+
+public final class ConfigLoader {
+
+  private static final ObjectMapper MAPPER = new ObjectMapper();
+  private static final Path DEFAULT_USER_CONFIG =
+      Paths.get(System.getProperty("user.home"), ".code-review", "config.json");
+
+  private ConfigLoader() {
+  }
+
+  public static ExceptionalResponse<AppConfig> load(final Path explicitConfigPath) {
+    return ExceptionalSupport.supply(() -> loadRequired(explicitConfigPath));
+  }
+
+  public static AppConfig loadRequired(final Path explicitConfigPath) throws IOException {
+    final Path configPath = resolveConfigPath(explicitConfigPath);
+    final JsonNode root = readConfig(configPath);
+    return toAppConfig(root);
+  }
+
+  public static String describeSource(final Path explicitConfigPath) {
+    if (explicitConfigPath != null) {
+      return explicitConfigPath.toAbsolutePath().toString();
+    }
+    if (Files.isRegularFile(DEFAULT_USER_CONFIG)) {
+      return DEFAULT_USER_CONFIG.toAbsolutePath().toString();
+    }
+    return "bundled classpath:/default-config.json (rebuild with mvn package after edits)";
+  }
+
+  private static Path resolveConfigPath(final Path explicitConfigPath) {
+    if (explicitConfigPath != null) {
+      return explicitConfigPath;
+    }
+    if (Files.isRegularFile(DEFAULT_USER_CONFIG)) {
+      return DEFAULT_USER_CONFIG;
+    }
+    return null;
+  }
+
+  private static JsonNode readConfig(final Path configPath) throws IOException {
+    if (configPath != null) {
+      final ExceptionalResponse<JsonNode> response = ExceptionalResource.of(
+          () -> Files.newBufferedReader(configPath),
+          MAPPER::readTree
+      ).execute();
+      if (response.wasError()) {
+        throw new IOException("Failed to read config from " + configPath);
+      }
+      return response.response();
+    }
+
+    final ExceptionalResponse<JsonNode> response = ExceptionalResource.of(
+        ConfigLoader::openDefaultConfigStream,
+        MAPPER::readTree
+    ).execute();
+    if (response.wasError()) {
+      throw new IllegalStateException("Bundled default-config.json is missing or unreadable");
+    }
+    return response.response();
+  }
+
+  private static InputStream openDefaultConfigStream() {
+    final InputStream input = ConfigLoader.class.getResourceAsStream("/default-config.json");
+    if (input == null) {
+      throw new IllegalStateException("Bundled default-config.json is missing from the classpath");
+    }
+    return input;
+  }
+
+  private static AppConfig toAppConfig(final JsonNode root) {
+    final JsonNode modelNode = root.path("model");
+    final ModelConfig model = new ModelConfig(
+        requiredText(modelNode, "provider"),
+        requiredText(modelNode, "name"),
+        modelNode.path("temperature").asDouble(0.2),
+        optionalText(modelNode, "baseUrl"),
+        modelNode.path("timeoutSeconds").asInt(0)
+    );
+    final String rulesDir = requiredText(root, "rulesDir");
+    final int maxTokens = root.path("maxTokens").asInt(8000);
+    final int maxDiffKb = root.path("maxDiffKb").asInt(512);
+    return new AppConfig(model, expandHome(rulesDir), maxTokens, maxDiffKb);
+  }
+
+  private static String optionalText(final JsonNode node, final String field) {
+    final JsonNode value = node.path(field);
+    return value.isTextual() ? value.asText() : null;
+  }
+
+  private static String requiredText(final JsonNode node, final String field) {
+    final JsonNode value = node.path(field);
+    if (!value.isTextual() || value.asText().isBlank()) {
+      throw new IllegalArgumentException("Config field '" + field + "' is required");
+    }
+    return value.asText();
+  }
+
+  static Path expandHome(final String path) {
+    if (path.startsWith("~/")) {
+      return Paths.get(System.getProperty("user.home"), path.substring(2));
+    }
+    if ("~".equals(path)) {
+      return Paths.get(System.getProperty("user.home"));
+    }
+    return Paths.get(path);
+  }
+}
