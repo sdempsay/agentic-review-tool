@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.dempsay.codereview.config.AppConfig;
 import org.dempsay.codereview.ingest.ChangedFile;
 import org.dempsay.codereview.rules.Rule;
 
@@ -28,20 +29,50 @@ public final class RulesetReviewPlanner {
       final int maxAgentDiffKb,
       final int maxFilesPerAgent
   ) {
+    return plan(rules, classification, changedFiles, null, 0, maxAgentDiffKb, maxFilesPerAgent);
+  }
+
+  public static List<RulesetReviewTask> plan(
+      final List<Rule> rules,
+      final Map<String, List<Rule>> classification,
+      final List<ChangedFile> changedFiles,
+      final AppConfig config,
+      final int contextTokens
+  ) {
+    return plan(
+        rules,
+        classification,
+        changedFiles,
+        config,
+        contextTokens,
+        config.maxAgentDiffKb(),
+        config.maxFilesPerAgent()
+    );
+  }
+
+  private static List<RulesetReviewTask> plan(
+      final List<Rule> rules,
+      final Map<String, List<Rule>> classification,
+      final List<ChangedFile> changedFiles,
+      final AppConfig config,
+      final int contextTokens,
+      final int maxAgentDiffKb,
+      final int maxFilesPerAgent
+  ) {
     final List<RulesetReviewTask> tasks = new ArrayList<>();
     final Set<String> filesWithRules = new HashSet<>();
 
     for (final Rule rule : rules) {
       final List<ChangedFile> filesForRule = collectFilesForRule(rule, classification, changedFiles);
       if (!filesForRule.isEmpty()) {
-        addBatchedRuleTasks(tasks, rule, filesForRule, maxAgentDiffKb, maxFilesPerAgent);
+        addBatchedRuleTasks(tasks, rule, filesForRule, config, contextTokens, maxAgentDiffKb, maxFilesPerAgent);
         filesForRule.stream().map(ChangedFile::path).forEach(filesWithRules::add);
       }
     }
 
     final List<ChangedFile> unmatchedFiles = collectUnmatchedFiles(changedFiles, filesWithRules);
     if (!unmatchedFiles.isEmpty()) {
-      addBatchedGeneralTasks(tasks, unmatchedFiles, maxAgentDiffKb, maxFilesPerAgent);
+      addBatchedGeneralTasks(tasks, unmatchedFiles, config, contextTokens, maxAgentDiffKb, maxFilesPerAgent);
     }
 
     return List.copyOf(tasks);
@@ -51,25 +82,64 @@ public final class RulesetReviewPlanner {
       final List<RulesetReviewTask> tasks,
       final Rule rule,
       final List<ChangedFile> filesForRule,
+      final AppConfig config,
+      final int contextTokens,
       final int maxAgentDiffKb,
       final int maxFilesPerAgent
   ) {
-    final List<List<ChangedFile>> batches = RulesetBatchSplitter.split(filesForRule, maxAgentDiffKb, maxFilesPerAgent);
+    final AgentBatchLimits limits = resolveLimits(config, contextTokens, maxAgentDiffKb, maxFilesPerAgent, rule, false);
+    final List<RulesetBatchSplitter.BatchChunk> batches = RulesetBatchSplitter.split(filesForRule, limits);
     for (int index = 0; index < batches.size(); index++) {
-      tasks.add(RulesetReviewTask.forRule(rule, batches.get(index), index + 1, batches.size()));
+      final RulesetBatchSplitter.BatchChunk batch = batches.get(index);
+      tasks.add(RulesetReviewTask.forRule(
+          rule,
+          batch.files(),
+          index + 1,
+          batches.size(),
+          batch.exceedsContextCap()
+      ));
     }
   }
 
   private static void addBatchedGeneralTasks(
       final List<RulesetReviewTask> tasks,
       final List<ChangedFile> unmatchedFiles,
+      final AppConfig config,
+      final int contextTokens,
       final int maxAgentDiffKb,
       final int maxFilesPerAgent
   ) {
-    final List<List<ChangedFile>> batches = RulesetBatchSplitter.split(unmatchedFiles, maxAgentDiffKb, maxFilesPerAgent);
+    final AgentBatchLimits limits = resolveLimits(config, contextTokens, maxAgentDiffKb, maxFilesPerAgent, null, true);
+    final List<RulesetBatchSplitter.BatchChunk> batches = RulesetBatchSplitter.split(unmatchedFiles, limits);
     for (int index = 0; index < batches.size(); index++) {
-      tasks.add(RulesetReviewTask.generalFallback(batches.get(index), index + 1, batches.size()));
+      final RulesetBatchSplitter.BatchChunk batch = batches.get(index);
+      tasks.add(RulesetReviewTask.generalFallback(
+          batch.files(),
+          index + 1,
+          batches.size(),
+          batch.exceedsContextCap()
+      ));
     }
+  }
+
+  private static AgentBatchLimits resolveLimits(
+      final AppConfig config,
+      final int contextTokens,
+      final int maxAgentDiffKb,
+      final int maxFilesPerAgent,
+      final Rule rule,
+      final boolean general
+  ) {
+    if (config != null && contextTokens > 0) {
+      return general
+          ? AgentBatchLimits.forGeneral(config, contextTokens)
+          : AgentBatchLimits.forRuleset(config, contextTokens, rule);
+    }
+    return AgentBatchLimits.fromLegacyCaps(
+        maxAgentDiffKb,
+        maxFilesPerAgent,
+        general ? PromptBudgetEstimator.generalOverheadBytes() : PromptBudgetEstimator.rulesetOverheadBytes(rule)
+    );
   }
 
   private static List<ChangedFile> collectFilesForRule(

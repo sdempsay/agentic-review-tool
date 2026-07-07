@@ -76,6 +76,32 @@ public class RulesetReviewPlannerTest {
   }
 
   @Test
+  public void planKeepsSingleOversizedFileWhenHardCapAllowsIt() {
+    final Rule javaRule = new Rule("java-general", null, List.of("**/*.java"), "Java rules");
+    final ChangedFile large = ChangedFile.included("src/A.java", ChangeType.MODIFIED, "a".repeat(5_000));
+    final org.dempsay.codereview.config.AppConfig config = new org.dempsay.codereview.config.AppConfig(
+        new org.dempsay.codereview.config.ModelConfig("ollama", "qwen3", 0.2, null, 0),
+        Path.of("/tmp"),
+        8000,
+        512,
+        1,
+        0
+    );
+
+    final List<RulesetReviewTask> tasks = RulesetReviewPlanner.plan(
+        List.of(javaRule),
+        Map.of("src/A.java", List.of(javaRule)),
+        List.of(large),
+        config,
+        262144
+    );
+
+    assertEquals(1, tasks.size());
+    assertEquals("java-general", tasks.get(0).agentName());
+    assertEquals(List.of(large), tasks.get(0).files());
+  }
+
+  @Test
   public void planReturnsEmptyWhenNoReviewableDiffs() {
     final Rule javaRule = new Rule("java-general", null, List.of("**/*.java"), "Java rules");
 

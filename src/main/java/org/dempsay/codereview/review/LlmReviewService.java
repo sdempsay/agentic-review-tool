@@ -6,6 +6,7 @@ import java.util.Map;
 import org.dempsay.codereview.cli.ReviewProgress;
 import org.dempsay.codereview.config.AppConfig;
 import org.dempsay.codereview.ingest.ChangedFile;
+import org.dempsay.codereview.model.OllamaModelInspector;
 import org.dempsay.codereview.model.StreamingLlmClient;
 import org.dempsay.codereview.rules.Rule;
 import org.dempsay.codereview.rules.RulesClassifier;
@@ -37,12 +38,18 @@ public final class LlmReviewService {
 
     final List<String> filePaths = changedFiles.stream().map(ChangedFile::path).toList();
     final Map<String, List<Rule>> classification = RulesClassifier.classify(rules, filePaths);
+    final int contextTokens = OllamaModelInspector.resolveContextTokens(config.model());
+    if (contextTokens <= 0 && !progress.isQuiet()) {
+      progress.batchCapFallback(config.maxAgentDiffKb());
+    } else if (contextTokens > 0 && !progress.isQuiet()) {
+      progress.batchCapResolved(contextTokens, config.maxAgentDiffKb());
+    }
     final List<RulesetReviewTask> tasks = RulesetReviewPlanner.plan(
         rules,
         classification,
         changedFiles,
-        config.maxAgentDiffKb(),
-        config.maxFilesPerAgent()
+        config,
+        contextTokens
     );
     if (tasks.isEmpty()) {
       progress.stageComplete("Review", reviewStageStart);
@@ -70,6 +77,9 @@ public final class LlmReviewService {
       final long agentStart = System.currentTimeMillis();
       final List<String> scopedFiles = task.files().stream().map(ChangedFile::path).toList();
       progress.agentStart(task.agentName(), scopedFiles.size(), scopedFiles);
+      if (task.exceedsContextCap()) {
+        progress.agentContextWarning(task.agentName());
+      }
 
       final String prompt = task.isGeneralFallback()
           ? ReviewPromptBuilder.buildGeneralFallback(task.files())

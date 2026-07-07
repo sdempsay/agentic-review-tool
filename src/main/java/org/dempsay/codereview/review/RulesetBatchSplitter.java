@@ -9,34 +9,44 @@ public final class RulesetBatchSplitter {
   private RulesetBatchSplitter() {
   }
 
-  public static List<List<ChangedFile>> split(
+  public record BatchChunk(List<ChangedFile> files, boolean exceedsContextCap) {
+
+    public BatchChunk {
+      files = List.copyOf(files);
+    }
+  }
+
+  public static List<BatchChunk> split(
       final List<ChangedFile> files,
-      final int maxAgentDiffKb,
-      final int maxFilesPerAgent
+      final AgentBatchLimits limits
   ) {
     if (files.isEmpty()) {
       return List.of();
     }
-    if (maxAgentDiffKb <= 0 && maxFilesPerAgent <= 0) {
-      return List.of(List.copyOf(files));
+    if (!limits.hasSoftCap() && !limits.hasHardCap() && limits.maxFilesPerAgent() <= 0) {
+      return List.of(singleChunk(files, limits));
     }
 
-    final int maxDiffBytes = maxAgentDiffKb > 0 ? maxAgentDiffKb * 1024 : Integer.MAX_VALUE;
-    final int maxFiles = maxFilesPerAgent > 0 ? maxFilesPerAgent : Integer.MAX_VALUE;
+    final int softTarget = limits.hasSoftCap() ? limits.softDiffBytes() : Integer.MAX_VALUE;
+    final int hardLimit = limits.hasHardCap() ? limits.hardDiffBytes() : Integer.MAX_VALUE;
+    final int maxFiles = limits.maxFilesPerAgent() > 0 ? limits.maxFilesPerAgent() : Integer.MAX_VALUE;
 
-    final List<List<ChangedFile>> batches = new ArrayList<>();
+    final List<BatchChunk> batches = new ArrayList<>();
     List<ChangedFile> currentBatch = new ArrayList<>();
     int currentBytes = 0;
 
     for (final ChangedFile file : files) {
       final int fileBytes = file.diff().length();
-      final boolean mustFlush = !currentBatch.isEmpty()
-          && (currentBatch.size() >= maxFiles || currentBytes + fileBytes > maxDiffBytes);
+      if (!currentBatch.isEmpty()) {
+        final boolean exceedsFiles = currentBatch.size() >= maxFiles;
+        final boolean exceedsHard = currentBytes + fileBytes > hardLimit;
+        final boolean exceedsSoft = currentBytes + fileBytes > softTarget;
 
-      if (mustFlush) {
-        batches.add(List.copyOf(currentBatch));
-        currentBatch = new ArrayList<>();
-        currentBytes = 0;
+        if (exceedsHard || exceedsFiles || exceedsSoft) {
+          batches.add(toChunk(currentBatch, currentBytes, limits));
+          currentBatch = new ArrayList<>();
+          currentBytes = 0;
+        }
       }
 
       currentBatch.add(file);
@@ -44,8 +54,30 @@ public final class RulesetBatchSplitter {
     }
 
     if (!currentBatch.isEmpty()) {
-      batches.add(List.copyOf(currentBatch));
+      batches.add(toChunk(currentBatch, currentBytes, limits));
     }
     return List.copyOf(batches);
+  }
+
+  public static List<List<ChangedFile>> split(
+      final List<ChangedFile> files,
+      final int maxAgentDiffKb,
+      final int maxFilesPerAgent
+  ) {
+    final AgentBatchLimits limits = AgentBatchLimits.fromLegacyCaps(maxAgentDiffKb, maxFilesPerAgent, 0);
+    return split(files, limits).stream().map(BatchChunk::files).toList();
+  }
+
+  private static BatchChunk singleChunk(final List<ChangedFile> files, final AgentBatchLimits limits) {
+    final int diffBytes = files.stream().mapToInt(file -> file.diff().length()).sum();
+    return new BatchChunk(files, limits.exceedsHardCap(diffBytes));
+  }
+
+  private static BatchChunk toChunk(
+      final List<ChangedFile> files,
+      final int diffBytes,
+      final AgentBatchLimits limits
+  ) {
+    return new BatchChunk(List.copyOf(files), limits.exceedsHardCap(diffBytes));
   }
 }

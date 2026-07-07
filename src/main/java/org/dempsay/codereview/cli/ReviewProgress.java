@@ -56,6 +56,39 @@ public final class ReviewProgress {
     }
   }
 
+  public void batchCapResolved(final int contextTokens, final int softDiffKb) {
+    if (isQuiet()) {
+      return;
+    }
+    log(String.format(
+        "[Pipeline] Ollama num_ctx=%d tokens; soft batch target=%d KB diffs",
+        contextTokens,
+        softDiffKb
+    ));
+  }
+
+  public void batchCapFallback(final int softDiffKb) {
+    if (isQuiet()) {
+      return;
+    }
+    if (softDiffKb > 0) {
+      log(String.format(
+          "[Pipeline] Ollama num_ctx unavailable; using %d KB as soft and hard diff cap",
+          softDiffKb
+      ));
+    }
+  }
+
+  public void agentContextWarning(final String agentName) {
+    if (isQuiet()) {
+      return;
+    }
+    log(String.format(
+        "[Review] %s — batch may exceed model context; review may truncate",
+        agentName
+    ));
+  }
+
   public void agentComplete(final String agentName, final long startedAtMs) {
     if (isQuiet()) {
       return;

@@ -3,6 +3,7 @@
 ## 2026-07-07
 
 - Added project `AGENTS.md` with mandatory exceptional error-handling rules, reference classes, and try/catch allowlist
+- Implemented soft/hard batch caps: `maxAgentDiffKb` soft target, Ollama `num_ctx` hard limit via `OllamaModelInspector`; `AgentBatchLimits`, `PromptBudgetEstimator`; context warnings in `ReviewProgress` and `doctor`
 - Refactored `OllamaModelInspector` to exceptional pattern (`fetchContextTokens` / `resolveContextTokens` with `wasError()` fallback)
 - Implemented ruleset batch splitting (task 27): `maxAgentDiffKb` / `maxFilesPerAgent` in config; `RulesetBatchSplitter` splits agent calls with batch labels
 - Implemented enhanced CLI progress and streaming (task 26): pipeline stage timing, per-agent status, `--quiet`/`--verbose`, `StreamingLlmClient` with Ollama streaming to stderr
