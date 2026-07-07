@@ -1,5 +1,6 @@
 package org.dempsay.codereview.cli;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,8 @@ import org.dempsay.codereview.config.ConfigLoader;
 import org.dempsay.codereview.ingest.ChangedFile;
 import org.dempsay.codereview.ingest.RepoIngestRequest;
 import org.dempsay.codereview.ingest.RepoIngestService;
+import org.dempsay.codereview.review.LlmReviewService;
+import org.dempsay.codereview.review.ReviewSessionContext;
 import org.dempsay.codereview.rules.Rule;
 import org.dempsay.codereview.rules.RulesClassifier;
 import org.dempsay.codereview.rules.RulesEngine;
@@ -32,7 +35,7 @@ public class RepoCommand implements Runnable {
 
   @Option(
       names = "--dry-run",
-      description = "Classify repository files against loaded rules without calling the LLM (default until task 20c)",
+      description = "Classify repository files without calling the LLM",
       defaultValue = "true"
   )
   private boolean dryRun;
@@ -57,9 +60,21 @@ public class RepoCommand implements Runnable {
 
   @Option(
       names = "--output",
-      description = "Write the classification report to this Markdown file path"
+      description = "Write the full report to this Markdown file path"
   )
   private Path outputPath;
+
+  @Option(
+      names = "--chat",
+      description = "Enable follow-up chat after review (default when stdin is a TTY)"
+  )
+  private Boolean chat;
+
+  @Option(
+      names = "--no-chat",
+      description = "Skip follow-up chat after review"
+  )
+  private boolean noChat;
 
   @Option(
       names = "--quiet",
@@ -76,38 +91,82 @@ public class RepoCommand implements Runnable {
   @Override
   public void run() {
     final FailureCapture failures = new FailureCapture();
-    final ExceptionalResponse<Boolean> outcome = runRepoPipeline(failures);
+    final ExceptionalResponse<Boolean> outcome = dryRun ? runDryRun(failures) : runLlmReview(failures);
     failures.failIfError(outcome);
   }
 
-  private ExceptionalResponse<Boolean> runRepoPipeline(final FailureCapture failures) {
-    if (!dryRun) {
-      System.err.println("Full repo LLM review is not yet implemented (task 20c). Running classification only.");
-    }
-
+  private ExceptionalResponse<Boolean> runLlmReview(final FailureCapture failures) {
     final ReviewProgress progress = ReviewProgress.create(CliVerbosity.fromFlags(quiet, verbose));
     return ConfigLoader.load(configPath)
         .chain((listener, config) -> RulesEngine.load(config.rulesDir(), listener)
-            .chain((rulesListener, rules) -> {
-              final long ingestStageStart = System.currentTimeMillis();
-              progress.stageStart("Ingest");
-              return RepoIngestService.ingest(buildIngestRequest(config))
-                  .chain((ingestListener, changedFiles) -> {
-                    progress.stageComplete("Ingest", ingestStageStart);
-                    final long classifyStageStart = System.currentTimeMillis();
-                    progress.stageStart("Classify");
-                    final Map<String, List<Rule>> classification = classify(rules, changedFiles);
-                    progress.stageComplete("Classify", classifyStageStart);
-                    if (!progress.isQuiet()) {
-                      IngestSummaryRenderer.render(changedFiles);
-                      DryRunRenderer.render(classification);
-                    }
-                    return writeReportIfRequested(changedFiles, classification, ingestListener);
-                  }, rulesListener);
-            }, listener), failures.listener());
+            .chain((rulesListener, rules) -> ingestAndClassify(config, rules, progress)
+                .chain((ingestListener, context) -> LlmReviewService.review(config, rules, context.changedFiles(), progress)
+                    .chain((reviewListener, reviewText) -> {
+                      System.out.println();
+                      System.out.println(reviewText);
+                      return runChatIfEnabled(config, rules, context.changedFiles(), context.classification(), reviewText)
+                          .chain((chatListener, ignored) ->
+                              writeReportIfRequested(reviewText, context.changedFiles(), context.classification(), ingestListener),
+                              reviewListener);
+                    }, ingestListener),
+                rulesListener),
+            listener), failures.listener());
+  }
+
+  private ExceptionalResponse<Boolean> runDryRun(final FailureCapture failures) {
+    final ReviewProgress progress = ReviewProgress.create(CliVerbosity.fromFlags(quiet, verbose));
+    return ConfigLoader.load(configPath)
+        .chain((listener, config) -> RulesEngine.load(config.rulesDir(), listener)
+            .chain((rulesListener, rules) -> ingestAndClassify(config, rules, progress)
+                .chain((ingestListener, context) ->
+                    writeReportIfRequested(null, context.changedFiles(), context.classification(), ingestListener),
+                    rulesListener),
+            listener), failures.listener());
+  }
+
+  private ExceptionalResponse<IngestContext> ingestAndClassify(
+      final AppConfig config,
+      final List<Rule> rules,
+      final ReviewProgress progress
+  ) {
+    final long ingestStageStart = System.currentTimeMillis();
+    progress.stageStart("Ingest");
+    return RepoIngestService.ingest(buildIngestRequest(config))
+        .chain((ingestListener, changedFiles) -> {
+          progress.stageComplete("Ingest", ingestStageStart);
+          final long classifyStageStart = System.currentTimeMillis();
+          progress.stageStart("Classify");
+          final Map<String, List<Rule>> classification = classify(rules, changedFiles);
+          progress.stageComplete("Classify", classifyStageStart);
+          if (!progress.isQuiet()) {
+            IngestSummaryRenderer.render(changedFiles);
+            DryRunRenderer.render(classification);
+          }
+          return ExceptionalResponse.success(new IngestContext(changedFiles, classification));
+        });
+  }
+
+  private ExceptionalResponse<Boolean> runChatIfEnabled(
+      final AppConfig config,
+      final List<Rule> rules,
+      final List<ChangedFile> changedFiles,
+      final Map<String, List<Rule>> classification,
+      final String reviewText
+  ) {
+    if (!ReviewChatLoop.shouldEnable(chat, noChat)) {
+      return ExceptionalResponse.success(Boolean.TRUE);
+    }
+
+    try {
+      ReviewChatLoop.run(new ReviewSessionContext(config, rules, changedFiles, classification, reviewText));
+      return ExceptionalResponse.success(Boolean.TRUE);
+    } catch (IOException exception) {
+      throw new IllegalStateException("Follow-up chat failed: " + exception.getMessage(), exception);
+    }
   }
 
   private ExceptionalResponse<Boolean> writeReportIfRequested(
+      final String reviewText,
       final List<ChangedFile> changedFiles,
       final Map<String, List<Rule>> classification,
       final ExceptionalListener listener
@@ -120,7 +179,7 @@ public class RepoCommand implements Runnable {
         "repository (tracked + untracked)",
         changedFiles,
         classification,
-        null
+        reviewText
     );
     return ReportExporter.write(outputPath, markdown, listener)
         .chain((writeListener, writtenPath) -> {
@@ -142,5 +201,8 @@ public class RepoCommand implements Runnable {
   private static Map<String, List<Rule>> classify(final List<Rule> rules, final List<ChangedFile> changedFiles) {
     final List<String> filePaths = changedFiles.stream().map(ChangedFile::path).toList();
     return RulesClassifier.classify(rules, filePaths);
+  }
+
+  private record IngestContext(List<ChangedFile> changedFiles, Map<String, List<Rule>> classification) {
   }
 }

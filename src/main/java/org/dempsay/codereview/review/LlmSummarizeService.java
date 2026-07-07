@@ -28,7 +28,17 @@ public final class LlmSummarizeService {
       final List<ChangedFile> changedFiles,
       final ReviewProgress progress
   ) {
-    final String prompt = SummarizePromptBuilder.build(agentResults, changedFiles);
+    return summarizeRequired(config, agentResults, changedFiles, progress, ReviewContentMode.resolve(changedFiles));
+  }
+
+  public static String summarizeRequired(
+      final AppConfig config,
+      final List<ReviewResult> agentResults,
+      final List<ChangedFile> changedFiles,
+      final ReviewProgress progress,
+      final ReviewContentMode contentMode
+  ) {
+    final String prompt = SummarizePromptBuilder.build(agentResults, changedFiles, contentMode);
     return StreamingLlmClient.complete(
         config.model(),
         config.maxTokens(),

@@ -15,11 +15,28 @@ public record AgentBatchLimits(
       final int contextTokens,
       final Rule rule
   ) {
-    return build(config, contextTokens, PromptBudgetEstimator.rulesetOverheadBytes(rule));
+    return forRuleset(config, contextTokens, rule, ReviewContentMode.DIFF);
+  }
+
+  public static AgentBatchLimits forRuleset(
+      final AppConfig config,
+      final int contextTokens,
+      final Rule rule,
+      final ReviewContentMode contentMode
+  ) {
+    return build(config, contextTokens, PromptBudgetEstimator.rulesetOverheadBytes(rule, contentMode));
   }
 
   public static AgentBatchLimits forGeneral(final AppConfig config, final int contextTokens) {
-    return build(config, contextTokens, PromptBudgetEstimator.generalOverheadBytes());
+    return forGeneral(config, contextTokens, ReviewContentMode.DIFF);
+  }
+
+  public static AgentBatchLimits forGeneral(
+      final AppConfig config,
+      final int contextTokens,
+      final ReviewContentMode contentMode
+  ) {
+    return build(config, contextTokens, PromptBudgetEstimator.generalOverheadBytes(contentMode));
   }
 
   public static AgentBatchLimits fromLegacyCaps(

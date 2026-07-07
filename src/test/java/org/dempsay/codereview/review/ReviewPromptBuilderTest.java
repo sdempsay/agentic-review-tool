@@ -157,6 +157,39 @@ public class ReviewPromptBuilderTest {
         org.dempsay.codereview.cli.ReviewProgress.create(org.dempsay.codereview.cli.CliVerbosity.QUIET)
     );
 
-    assertTrue(response.contains("No reviewable diffs found"));
+    assertTrue(response.contains("No reviewable files found"));
+  }
+
+  @Test
+  public void buildForRulesetFullFileModeUsesRepositorySectionAndFencedContent() {
+    final Rule javaRule = new Rule(
+        "java-general",
+        Path.of("java-general.md"),
+        List.of("**/*.java"),
+        "Check Java style."
+    );
+    final String prompt = ReviewPromptBuilder.buildForRuleset(
+        javaRule,
+        List.of(ChangedFile.included("src/App.java", ChangeType.EXISTING, "class App {}")),
+        ReviewContentMode.FULL_FILE
+    );
+
+    assertTrue(prompt.contains("full file contents"));
+    assertTrue(prompt.contains("## Repository Files"));
+    assertTrue(prompt.contains("```"));
+    assertTrue(prompt.contains("class App {}"));
+    assertFalse(prompt.contains("## Changed Files"));
+  }
+
+  @Test
+  public void buildGeneralFallbackFullFileModeUsesRepositoryWording() {
+    final String prompt = ReviewPromptBuilder.buildGeneralFallback(
+        List.of(ChangedFile.included("pom.xml", ChangeType.EXISTING, "<project/>")),
+        ReviewContentMode.FULL_FILE
+    );
+
+    assertTrue(prompt.contains("full file contents"));
+    assertTrue(prompt.contains("## Repository Files"));
+    assertTrue(prompt.contains("<project/>"));
   }
 }

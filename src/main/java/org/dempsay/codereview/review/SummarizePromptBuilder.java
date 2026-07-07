@@ -9,6 +9,14 @@ public final class SummarizePromptBuilder {
   }
 
   public static String build(final List<ReviewResult> agentResults, final List<ChangedFile> changedFiles) {
+    return build(agentResults, changedFiles, ReviewContentMode.resolve(changedFiles));
+  }
+
+  public static String build(
+      final List<ReviewResult> agentResults,
+      final List<ChangedFile> changedFiles,
+      final ReviewContentMode contentMode
+  ) {
     final StringBuilder prompt = new StringBuilder();
     prompt.append(
         "You are a code review summarizer. Synthesize the specialized agent findings below into an"
@@ -16,19 +24,28 @@ public final class SummarizePromptBuilder {
     prompt.append(" overall assessment.");
     prompt.append(System.lineSeparator()).append(System.lineSeparator());
 
-    appendChangeStats(prompt, changedFiles);
+    appendChangeStats(prompt, changedFiles, contentMode);
     appendAgentFindings(prompt, agentResults);
     appendOutputFormat(prompt);
     return prompt.toString();
   }
 
-  private static void appendChangeStats(final StringBuilder prompt, final List<ChangedFile> changedFiles) {
+  private static void appendChangeStats(
+      final StringBuilder prompt,
+      final List<ChangedFile> changedFiles,
+      final ReviewContentMode contentMode
+  ) {
     final long reviewable = changedFiles.stream().filter(ChangedFile::hasDiff).count();
     final long skipped = changedFiles.size() - reviewable;
 
     prompt.append("## Change Stats").append(System.lineSeparator());
-    prompt.append("- Files changed: ").append(changedFiles.size()).append(System.lineSeparator());
-    prompt.append("- Reviewable diffs: ").append(reviewable).append(System.lineSeparator());
+    if (contentMode == ReviewContentMode.FULL_FILE) {
+      prompt.append("- Files in scope: ").append(changedFiles.size()).append(System.lineSeparator());
+      prompt.append("- Reviewable files: ").append(reviewable).append(System.lineSeparator());
+    } else {
+      prompt.append("- Files changed: ").append(changedFiles.size()).append(System.lineSeparator());
+      prompt.append("- Reviewable diffs: ").append(reviewable).append(System.lineSeparator());
+    }
     prompt.append("- Skipped: ").append(skipped).append(System.lineSeparator()).append(System.lineSeparator());
   }
 

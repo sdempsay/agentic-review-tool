@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.dempsay.codereview.ingest.ChangeType;
 import org.dempsay.codereview.ingest.ChangedFile;
 import org.dempsay.codereview.rules.Rule;
 
@@ -13,14 +14,26 @@ public final class ReviewPromptBuilder {
   }
 
   public static String buildForRuleset(final Rule rule, final List<ChangedFile> changedFiles) {
+    return buildForRuleset(rule, changedFiles, ReviewContentMode.resolve(changedFiles));
+  }
+
+  public static String buildForRuleset(
+      final Rule rule,
+      final List<ChangedFile> changedFiles,
+      final ReviewContentMode contentMode
+  ) {
     final StringBuilder prompt = new StringBuilder();
     prompt.append("You are a specialized code review agent for the \"").append(rule.id()).append("\" ruleset.");
     prompt.append(System.lineSeparator());
-    prompt.append("Review only the files below using the ruleset instructions.");
+    if (contentMode == ReviewContentMode.FULL_FILE) {
+      prompt.append("Review the full file contents below using the ruleset instructions.");
+    } else {
+      prompt.append("Review only the files below using the ruleset instructions.");
+    }
     prompt.append(System.lineSeparator()).append(System.lineSeparator());
     prompt.append("## Ruleset Instructions").append(System.lineSeparator()).append(System.lineSeparator());
     prompt.append(rule.promptBody().trim()).append(System.lineSeparator()).append(System.lineSeparator());
-    appendChangedFiles(prompt, Map.of(), changedFiles);
+    appendFiles(prompt, Map.of(), changedFiles, contentMode);
     return prompt.toString();
   }
 
@@ -30,10 +43,15 @@ public final class ReviewPromptBuilder {
       final String question,
       final String reportText
   ) {
+    final ReviewContentMode contentMode = file.changeType() == ChangeType.EXISTING
+        ? ReviewContentMode.FULL_FILE
+        : ReviewContentMode.DIFF;
     final StringBuilder prompt = new StringBuilder();
     prompt.append("You are the \"").append(rule.id()).append("\" review agent.");
     prompt.append(System.lineSeparator());
-    prompt.append("Answer the follow-up question using the ruleset instructions and the file diff.");
+    prompt.append("Answer the follow-up question using the ruleset instructions and the ")
+        .append(fileContextLabel(contentMode))
+        .append(".");
     prompt.append(System.lineSeparator()).append(System.lineSeparator());
     prompt.append("## Ruleset Instructions").append(System.lineSeparator()).append(System.lineSeparator());
     prompt.append(rule.promptBody().trim()).append(System.lineSeparator()).append(System.lineSeparator());
@@ -41,7 +59,7 @@ public final class ReviewPromptBuilder {
     prompt.append(reportText.trim()).append(System.lineSeparator()).append(System.lineSeparator());
     prompt.append("## Follow-up Question").append(System.lineSeparator()).append(System.lineSeparator());
     prompt.append(question.trim()).append(System.lineSeparator()).append(System.lineSeparator());
-    appendChangedFiles(prompt, Map.of(), List.of(file));
+    appendFiles(prompt, Map.of(), List.of(file), contentMode);
     return prompt.toString();
   }
 
@@ -50,38 +68,63 @@ public final class ReviewPromptBuilder {
       final String question,
       final String reportText
   ) {
+    final ReviewContentMode contentMode = file.changeType() == ChangeType.EXISTING
+        ? ReviewContentMode.FULL_FILE
+        : ReviewContentMode.DIFF;
     final StringBuilder prompt = new StringBuilder();
     prompt.append("You are the general code review agent.");
     prompt.append(System.lineSeparator());
-    prompt.append("Answer the follow-up question using the file diff and prior review context.");
+    prompt.append("Answer the follow-up question using the ")
+        .append(fileContextLabel(contentMode))
+        .append(" and prior review context.");
     prompt.append(System.lineSeparator()).append(System.lineSeparator());
     prompt.append("## Prior Review Report").append(System.lineSeparator()).append(System.lineSeparator());
     prompt.append(reportText.trim()).append(System.lineSeparator()).append(System.lineSeparator());
     prompt.append("## Follow-up Question").append(System.lineSeparator()).append(System.lineSeparator());
     prompt.append(question.trim()).append(System.lineSeparator()).append(System.lineSeparator());
-    appendChangedFiles(prompt, Map.of(), List.of(file));
+    appendFiles(prompt, Map.of(), List.of(file), contentMode);
     return prompt.toString();
   }
 
   public static String buildGeneralFallback(final List<ChangedFile> changedFiles) {
+    return buildGeneralFallback(changedFiles, ReviewContentMode.resolve(changedFiles));
+  }
+
+  public static String buildGeneralFallback(
+      final List<ChangedFile> changedFiles,
+      final ReviewContentMode contentMode
+  ) {
     final StringBuilder prompt = new StringBuilder();
     prompt.append("You are a general code review agent.");
     prompt.append(System.lineSeparator());
-    prompt.append("No specialized rules matched these files. Review the diffs for correctness and clarity.");
+    if (contentMode == ReviewContentMode.FULL_FILE) {
+      prompt.append(
+          "No specialized rules matched these files. Review the full file contents for correctness and clarity."
+      );
+    } else {
+      prompt.append("No specialized rules matched these files. Review the diffs for correctness and clarity.");
+    }
     prompt.append(System.lineSeparator()).append(System.lineSeparator());
-    appendChangedFiles(prompt, Map.of(), changedFiles);
+    appendFiles(prompt, Map.of(), changedFiles, contentMode);
     return prompt.toString();
   }
 
   public static String build(final Map<String, List<Rule>> classification, final List<ChangedFile> changedFiles) {
+    final ReviewContentMode contentMode = ReviewContentMode.resolve(changedFiles);
     final StringBuilder prompt = new StringBuilder();
-    prompt.append(
-        "You are a code reviewer. Apply the review rules below when reviewing each file's diff."
-    );
+    if (contentMode == ReviewContentMode.FULL_FILE) {
+      prompt.append(
+          "You are a code reviewer. Apply the review rules below when reviewing each file's full content."
+      );
+    } else {
+      prompt.append(
+          "You are a code reviewer. Apply the review rules below when reviewing each file's diff."
+      );
+    }
     prompt.append(System.lineSeparator()).append(System.lineSeparator());
 
     appendUniqueRules(prompt, classification, changedFiles);
-    appendChangedFiles(prompt, classification, changedFiles);
+    appendFiles(prompt, classification, changedFiles, contentMode);
     return prompt.toString();
   }
 
@@ -118,12 +161,16 @@ public final class ReviewPromptBuilder {
     return uniqueRules;
   }
 
-  private static void appendChangedFiles(
+  private static void appendFiles(
       final StringBuilder prompt,
       final Map<String, List<Rule>> classification,
-      final List<ChangedFile> changedFiles
+      final List<ChangedFile> changedFiles,
+      final ReviewContentMode contentMode
   ) {
-    prompt.append("## Changed Files").append(System.lineSeparator()).append(System.lineSeparator());
+    final String sectionTitle = contentMode == ReviewContentMode.FULL_FILE
+        ? "## Repository Files"
+        : "## Changed Files";
+    prompt.append(sectionTitle).append(System.lineSeparator()).append(System.lineSeparator());
 
     for (final ChangedFile file : changedFiles) {
       prompt.append("=== ").append(file.path()).append(" [").append(file.changeType()).append("] ===");
@@ -131,9 +178,18 @@ public final class ReviewPromptBuilder {
 
       if (file.included() && file.hasDiff()) {
         appendApplicableRules(prompt, classification.getOrDefault(file.path(), List.of()));
-        prompt.append(file.diff());
+        if (contentMode == ReviewContentMode.FULL_FILE) {
+          prompt.append("```").append(System.lineSeparator());
+          prompt.append(file.diff());
+          if (!file.diff().endsWith(System.lineSeparator())) {
+            prompt.append(System.lineSeparator());
+          }
+          prompt.append("```");
+        } else {
+          prompt.append(file.diff());
+        }
       } else {
-        prompt.append("(skipped: ").append(file.skipReason() == null ? "no diff" : file.skipReason()).append(")");
+        prompt.append("(skipped: ").append(file.skipReason() == null ? "no content" : file.skipReason()).append(")");
       }
       prompt.append(System.lineSeparator()).append(System.lineSeparator());
     }
@@ -145,5 +201,9 @@ public final class ReviewPromptBuilder {
     }
     final String ruleIds = matchedRules.stream().map(Rule::id).collect(Collectors.joining(", "));
     prompt.append("Applicable rules: ").append(ruleIds).append(System.lineSeparator());
+  }
+
+  private static String fileContextLabel(final ReviewContentMode contentMode) {
+    return contentMode == ReviewContentMode.FULL_FILE ? "file content" : "file diff";
   }
 }

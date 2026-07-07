@@ -33,6 +33,7 @@ public final class LlmReviewService {
       final List<ChangedFile> changedFiles,
       final ReviewProgress progress
   ) {
+    final ReviewContentMode contentMode = ReviewContentMode.resolve(changedFiles);
     final long reviewStageStart = System.currentTimeMillis();
     progress.stageStart("Review");
 
@@ -49,19 +50,20 @@ public final class LlmReviewService {
         classification,
         changedFiles,
         config,
-        contextTokens
+        contextTokens,
+        contentMode
     );
     if (tasks.isEmpty()) {
       progress.stageComplete("Review", reviewStageStart);
-      return "No reviewable diffs found.";
+      return "No reviewable files found.";
     }
 
-    final List<ReviewResult> agentResults = runAgentReviews(config, tasks, progress);
+    final List<ReviewResult> agentResults = runAgentReviews(config, tasks, progress, contentMode);
     progress.stageComplete("Review", reviewStageStart);
 
     final long summarizeStageStart = System.currentTimeMillis();
     progress.stageStart("Summarize");
-    final String summary = LlmSummarizeService.summarizeRequired(config, agentResults, changedFiles, progress);
+    final String summary = LlmSummarizeService.summarizeRequired(config, agentResults, changedFiles, progress, contentMode);
     progress.stageComplete("Summarize", summarizeStageStart);
 
     return ReviewReportComposer.compose(agentResults, summary);
@@ -70,7 +72,8 @@ public final class LlmReviewService {
   private static List<ReviewResult> runAgentReviews(
       final AppConfig config,
       final List<RulesetReviewTask> tasks,
-      final ReviewProgress progress
+      final ReviewProgress progress,
+      final ReviewContentMode contentMode
   ) {
     final List<ReviewResult> results = new ArrayList<>();
     for (final RulesetReviewTask task : tasks) {
@@ -82,8 +85,8 @@ public final class LlmReviewService {
       }
 
       final String prompt = task.isGeneralFallback()
-          ? ReviewPromptBuilder.buildGeneralFallback(task.files())
-          : ReviewPromptBuilder.buildForRuleset(task.rule(), task.files());
+          ? ReviewPromptBuilder.buildGeneralFallback(task.files(), contentMode)
+          : ReviewPromptBuilder.buildForRuleset(task.rule(), task.files(), contentMode);
       final String findings = StreamingLlmClient.complete(
           config.model(),
           config.maxTokens(),

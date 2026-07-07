@@ -1,5 +1,6 @@
 package org.dempsay.codereview.review;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -31,5 +32,18 @@ public class SummarizePromptBuilderTest {
     assertTrue(prompt.contains("### Health Score"));
     assertTrue(prompt.contains("APPROVE_WITH_NITS"));
     assertTrue(prompt.contains("### Top Actions"));
+  }
+
+  @Test
+  public void buildUsesRepositoryStatsForFullFileMode() {
+    final String prompt = SummarizePromptBuilder.build(
+        List.of(new ReviewResult("java-general", "Looks good")),
+        List.of(ChangedFile.included("src/App.java", ChangeType.EXISTING, "class App {}")),
+        ReviewContentMode.FULL_FILE
+    );
+
+    assertTrue(prompt.contains("Files in scope: 1"));
+    assertTrue(prompt.contains("Reviewable files: 1"));
+    assertFalse(prompt.contains("Reviewable diffs"));
   }
 }

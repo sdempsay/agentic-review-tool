@@ -12,11 +12,19 @@ public final class PromptBudgetEstimator {
   }
 
   public static int rulesetOverheadBytes(final Rule rule) {
-    return ReviewPromptBuilder.buildForRuleset(rule, List.of()).length();
+    return rulesetOverheadBytes(rule, ReviewContentMode.DIFF);
+  }
+
+  public static int rulesetOverheadBytes(final Rule rule, final ReviewContentMode contentMode) {
+    return ReviewPromptBuilder.buildForRuleset(rule, List.of(), contentMode).length();
   }
 
   public static int generalOverheadBytes() {
-    return ReviewPromptBuilder.buildGeneralFallback(List.of()).length();
+    return generalOverheadBytes(ReviewContentMode.DIFF);
+  }
+
+  public static int generalOverheadBytes(final ReviewContentMode contentMode) {
+    return ReviewPromptBuilder.buildGeneralFallback(List.of(), contentMode).length();
   }
 
   /**
