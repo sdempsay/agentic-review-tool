@@ -105,7 +105,7 @@ Checkstyle is configured in the parent POM
 Core rules:
 - No tabs
 - No trailing whitespace
-- No whitespace before parens (`if (` invalid, use `if(`)
+- Space before opening parens on control keywords (`if (`, `for (`, `while (`)
 - Modifier order: `public protected private abstract static final transient volatile synchronized native strictfp`
 - No star imports
 - Empty methods or constructors should be in the form of `<ReturnType if needed> method(<parameters if needed) { }`
