@@ -5,9 +5,8 @@ Requirements learned during implementation that extend or refine `PRD.md`.
 ## 2026-07-07 — Rules directory
 
 - Default `rulesDir` is `rules` (relative to the working directory). Override in `~/.code-review/config.json` as needed.
-- Review rules live in `rules/` (copied from `~/.grok/rules`); `pom-tidy` omitted (build step, not review). `rules/maven.md` is instructional only (no `paths` frontmatter).
-- Instructional docs in the rules directory (e.g. `maven.md` without YAML `paths`
-  frontmatter) must be skipped — only path-gloved `*.md` files are review rules.
+- Review rules live in `rules/` (copied from `~/.grok/rules`); `pom-tidy` and `maven.md` omitted from repo (`pom-tidy` is a build step; `maven.md` stays in `~/.grok/rules` for agents via `AGENTS.md`).
+- Instructional docs without YAML `paths` frontmatter must be skipped — only path-gloved `*.md` files are review rules.
 
 ## 2026-07-07 — Enhanced CLI experience
 

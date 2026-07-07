@@ -2,6 +2,7 @@
 
 ## 2026-07-07
 
+- Pointed `AGENTS.md` at `~/.grok/rules/maven.md`; removed local `rules/maven.md` (not a review rule)
 - Removed `pom-tidy` review rule; `mvn tidy:pom` is a build step, not LLM review
 - Copied `~/.grok/rules` into repo `rules/` (java-general, xml-formatter, maven reference); default `rulesDir` is `rules`; removed legacy java-formatting rule
 - Implemented task 19 OpenRouter provider via `langchain4j-open-ai`; `model.apiKey` / `OPENROUTER_API_KEY`; `ModelHealthChecker` for `/models`; `LlmTokenLedger` token usage per call and in review report (Ollama + OpenRouter)
