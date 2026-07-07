@@ -37,4 +37,4 @@ Task tracker for the Code Review Pipeline MVP (`PRD.md`).
 | 24 | Classification beyond path globs | pending | Content analysis, commit messages, etc. |
 | 25 | Digitally signed prompts | pending | Security/auditability future item |
 | 26 | Enhanced CLI — live progress, per-agent/file status, streaming thinking | complete | `--quiet` / `--verbose`; stderr progress + Ollama streaming |
-| 27 | Ruleset batch splitting with configurable `maxAgentDiffKb` / `maxFilesPerAgent` | pending | Split agent calls when batch exceeds context cap; see PRD §5 |
+| 27 | Ruleset batch splitting with configurable `maxAgentDiffKb` / `maxFilesPerAgent` | complete | `RulesetBatchSplitter`; batch labels in agent progress |

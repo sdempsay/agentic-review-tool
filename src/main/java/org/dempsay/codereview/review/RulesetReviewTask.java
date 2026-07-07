@@ -4,18 +4,38 @@ import java.util.List;
 import org.dempsay.codereview.ingest.ChangedFile;
 import org.dempsay.codereview.rules.Rule;
 
-public record RulesetReviewTask(Rule rule, List<ChangedFile> files) {
+public record RulesetReviewTask(Rule rule, List<ChangedFile> files, int batchIndex, int batchCount) {
 
   public RulesetReviewTask {
     files = List.copyOf(files);
+    if (batchIndex < 1 || batchCount < 1 || batchIndex > batchCount) {
+      throw new IllegalArgumentException("Invalid batch coordinates: " + batchIndex + "/" + batchCount);
+    }
   }
 
   public static RulesetReviewTask forRule(final Rule rule, final List<ChangedFile> files) {
-    return new RulesetReviewTask(rule, files);
+    return forRule(rule, files, 1, 1);
+  }
+
+  public static RulesetReviewTask forRule(
+      final Rule rule,
+      final List<ChangedFile> files,
+      final int batchIndex,
+      final int batchCount
+  ) {
+    return new RulesetReviewTask(rule, files, batchIndex, batchCount);
   }
 
   public static RulesetReviewTask generalFallback(final List<ChangedFile> files) {
-    return new RulesetReviewTask(null, files);
+    return generalFallback(files, 1, 1);
+  }
+
+  public static RulesetReviewTask generalFallback(
+      final List<ChangedFile> files,
+      final int batchIndex,
+      final int batchCount
+  ) {
+    return new RulesetReviewTask(null, files, batchIndex, batchCount);
   }
 
   public boolean isGeneralFallback() {
@@ -23,6 +43,10 @@ public record RulesetReviewTask(Rule rule, List<ChangedFile> files) {
   }
 
   public String agentName() {
-    return rule == null ? "general" : rule.id();
+    final String base = rule == null ? "general" : rule.id();
+    if (batchCount <= 1) {
+      return base;
+    }
+    return base + " (batch " + batchIndex + "/" + batchCount + ")";
   }
 }

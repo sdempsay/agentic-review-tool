@@ -37,7 +37,13 @@ public final class LlmReviewService {
 
     final List<String> filePaths = changedFiles.stream().map(ChangedFile::path).toList();
     final Map<String, List<Rule>> classification = RulesClassifier.classify(rules, filePaths);
-    final List<RulesetReviewTask> tasks = RulesetReviewPlanner.plan(rules, classification, changedFiles);
+    final List<RulesetReviewTask> tasks = RulesetReviewPlanner.plan(
+        rules,
+        classification,
+        changedFiles,
+        config.maxAgentDiffKb(),
+        config.maxFilesPerAgent()
+    );
     if (tasks.isEmpty()) {
       progress.stageComplete("Review", reviewStageStart);
       return "No reviewable diffs found.";

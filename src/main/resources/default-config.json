@@ -8,5 +8,7 @@
   },
   "rulesDir": "~/.grok/rules",
   "maxTokens": 8000,
-  "maxDiffKb": 512
+  "maxDiffKb": 512,
+  "maxAgentDiffKb": 256,
+  "maxFilesPerAgent": 0
 }

@@ -55,6 +55,27 @@ public class RulesetReviewPlannerTest {
   }
 
   @Test
+  public void planSplitsOversizedRulesetIntoBatches() {
+    final Rule javaRule = new Rule("java-general", null, List.of("**/*.java"), "Java rules");
+    final ChangedFile first = ChangedFile.included("src/A.java", ChangeType.MODIFIED, "a".repeat(600));
+    final ChangedFile second = ChangedFile.included("src/B.java", ChangeType.MODIFIED, "b".repeat(600));
+
+    final List<RulesetReviewTask> tasks = RulesetReviewPlanner.plan(
+        List.of(javaRule),
+        Map.of("src/A.java", List.of(javaRule), "src/B.java", List.of(javaRule)),
+        List.of(first, second),
+        1,
+        0
+    );
+
+    assertEquals(2, tasks.size());
+    assertEquals("java-general (batch 1/2)", tasks.get(0).agentName());
+    assertEquals("java-general (batch 2/2)", tasks.get(1).agentName());
+    assertEquals(List.of(first), tasks.get(0).files());
+    assertEquals(List.of(second), tasks.get(1).files());
+  }
+
+  @Test
   public void planReturnsEmptyWhenNoReviewableDiffs() {
     final Rule javaRule = new Rule("java-general", null, List.of("**/*.java"), "Java rules");
 

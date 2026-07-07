@@ -148,7 +148,9 @@ public class ReviewPromptBuilderTest {
             new org.dempsay.codereview.config.ModelConfig("ollama", "qwen3", 0.2, null, 0),
             java.nio.file.Path.of("/tmp"),
             8000,
-            512
+            512,
+            256,
+            0
         ),
         List.of(),
         List.of(ChangedFile.skipped("image.png", ChangeType.ADDED, "Binary file")),

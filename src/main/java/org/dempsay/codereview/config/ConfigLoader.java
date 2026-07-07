@@ -92,7 +92,9 @@ public final class ConfigLoader {
     final String rulesDir = requiredText(root, "rulesDir");
     final int maxTokens = root.path("maxTokens").asInt(8000);
     final int maxDiffKb = root.path("maxDiffKb").asInt(512);
-    return new AppConfig(model, expandHome(rulesDir), maxTokens, maxDiffKb);
+    final int maxAgentDiffKb = root.path("maxAgentDiffKb").asInt(256);
+    final int maxFilesPerAgent = root.path("maxFilesPerAgent").asInt(0);
+    return new AppConfig(model, expandHome(rulesDir), maxTokens, maxDiffKb, maxAgentDiffKb, maxFilesPerAgent);
   }
 
   private static String optionalText(final JsonNode node, final String field) {

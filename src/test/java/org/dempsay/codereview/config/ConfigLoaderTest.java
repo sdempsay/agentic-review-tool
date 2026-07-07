@@ -40,6 +40,8 @@ public class ConfigLoaderTest {
     assertEquals(Path.of(System.getProperty("user.home"), "custom-rules"), appConfig.rulesDir());
     assertEquals(4096, appConfig.maxTokens());
     assertEquals(512, appConfig.maxDiffKb());
+    assertEquals(256, appConfig.maxAgentDiffKb());
+    assertEquals(0, appConfig.maxFilesPerAgent());
   }
 
   @Test
@@ -51,6 +53,8 @@ public class ConfigLoaderTest {
     assertTrue(appConfig.rulesDir().endsWith(".grok/rules"));
     assertEquals(8000, appConfig.maxTokens());
     assertEquals(512, appConfig.maxDiffKb());
+    assertEquals(256, appConfig.maxAgentDiffKb());
+    assertEquals(0, appConfig.maxFilesPerAgent());
   }
 
   @Test
