@@ -25,3 +25,10 @@ Requirements learned during implementation that extend or refine `PRD.md`.
 - `maxDiffKb` remains the per-file ingest skip threshold; `maxAgentDiffKb` governs how
   many ingested files are packed into a single agent prompt.
 - When splitting, CLI should report sub-batch progress (e.g. `java-general batch 2/3`).
+
+## 2026-07-07 — Follow-up chat on review
+
+- After the report, user wants an interactive chat agent to ask follow-up questions.
+- Chat context = completed report (agent reviews + summary), not full raw diffs.
+- Default on when stdin is a TTY; `--no-chat` for CI/scripting.
+- Fits task 16; uses existing `ChatModel` + conversation history (langchain4j).

@@ -65,6 +65,36 @@ Commercial code review tools using frontier models incur high costs due to large
 - `code-review diff [options]` — Main command.
 - Interactive results viewer.
 - Option to save full report to Markdown.
+- **Follow-up chat** — After the review report, an optional interactive Q&A session
+  lets the developer ask clarifying questions about findings, trade-offs, or specific
+  files. The chat agent receives the completed report (agent reviews + summary) as
+  context and maintains conversation history for the session.
+
+#### Follow-up chat (task 16)
+
+**Flow**
+1. Pipeline completes (Ingest → Classify → Review → Summarize).
+2. Report prints to terminal; optionally saved via `--output`.
+3. If interactive mode is enabled and stdin is a TTY, enter a REPL:
+   `Ask questions about this review (exit to end).`
+4. Each user message is sent to the LLM with the report as system context plus prior
+   turns in the session.
+5. Session ends on `exit`, `quit`, or EOF.
+
+**CLI flags**
+- `--chat` — Enable follow-up chat after review (default on when stdin is a TTY).
+- `--no-chat` — Skip chat; print report and exit (for CI/scripting).
+
+**Context strategy**
+- Include agent findings, summary (health score, recommendation, top actions), file
+  list, and classification — not full raw diffs (keeps context smaller; diffs already
+  informed the review).
+- If the user asks about a specific file, the agent answers from review findings; a
+  future enhancement could re-inject that file's diff on demand.
+
+**Non-goals**
+- Persistent chat sessions across CLI invocations.
+- Applying fixes or committing changes from chat.
 
 ### Enhanced CLI Experience (Post-MVP)
 

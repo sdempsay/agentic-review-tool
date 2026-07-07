@@ -21,7 +21,7 @@ Task tracker for the Code Review Pipeline MVP (`PRD.md`).
 | 13 | **Review** — wire classified rules into LLM prompt | complete | Loads `~/.grok/rules`, classifies, injects into prompt |
 | 14 | **Review** — per-ruleset specialized sub-agents | complete | One LLM call per matched ruleset + general fallback |
 | 15 | **Summarize** — aggregate findings, health score, recommendation | complete | Summarizer agent: health score, recommendation, top actions |
-| 16 | Interactive terminal results viewer | pending | **Next task** — MVP CLI output enhancement |
+| 16 | Interactive terminal — follow-up chat agent on review report | pending | **Next task** — REPL after review; `--chat` / `--no-chat`; see PRD §5 |
 | 17 | Markdown report export (`--output`) | complete | Ingest + classification + review; works with `--dry-run` |
 | 18 | Create and maintain `ACTIONS.md` work log | complete | Created 2026-07-07 |
 
