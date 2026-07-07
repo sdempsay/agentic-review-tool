@@ -36,8 +36,6 @@ Task tracker for the Code Review Pipeline MVP (`PRD.md`).
 | 20c | **CLI** — `RepoCommand` end-to-end, `--path` / `--exclude-ext`, report export | complete | Mirrors `DiffCommand`; default full review; `RepoScopeDescriber`; CLI tests |
 | 20d | **Summarize** — repo-level health, hotspots, cross-cutting findings | complete | `RepoHotspotAnalyzer`; repo summarize prompt + fixture tests |
 | 20e | **Config** — `repoExcludeExtensions` in `config.json`; update `PRD.md` §3 | complete | `AppConfig` + `RepoIngestRequest`; merged with `--exclude-ext` |
-| 21 | Auto-fix suggestions | pending | Out of scope for MVP |
-| 22 | GitLab MCP comment posting | pending | Out of scope for MVP |
 | 23 | Advanced RAG over codebase | pending | Out of scope for MVP |
 | 24 | Classification beyond path globs | pending | Content analysis, commit messages, etc. |
 | 25 | Digitally signed prompts | pending | Security/auditability future item |
