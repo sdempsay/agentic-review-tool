@@ -108,8 +108,11 @@ public final class GitIngestService {
       return ChangedFile.skipped(path, ChangeType.ADDED, "Binary file");
     }
 
+    final String content = ExceptionalSupport.response(
+        ExceptionalSupport.supply(() -> Files.readString(filePath))
+    );
     final String diff = diffResult.output().isBlank()
-        ? synthesizeAddedDiff(path, ExceptionalSupport.response(ExceptionalSupport.supply(() -> Files.readString(filePath))))
+        ? synthesizeAddedDiff(path, content)
         : diffResult.output();
 
     if (diff.length() > maxDiffBytes) {
