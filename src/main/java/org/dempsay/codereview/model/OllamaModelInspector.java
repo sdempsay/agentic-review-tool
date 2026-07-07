@@ -27,7 +27,22 @@ public final class OllamaModelInspector {
   }
 
   public static ExceptionalResponse<Integer> fetchContextTokens(final ModelConfig model) {
-    return ExceptionalSupport.supply(() -> fetchContextTokensRequired(model));
+    return ExceptionalSupport.supply(() -> {
+      final URI showUri = URI.create(model.resolveBaseUrl() + "/api/show");
+      final String requestBody = MAPPER.writeValueAsString(Map.of("model", model.name()));
+      final HttpRequest request = HttpRequest.newBuilder(showUri)
+          .timeout(Duration.ofSeconds(10))
+          .header("Content-Type", "application/json")
+          .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+          .build();
+      final HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+      if (response.statusCode() != 200) {
+        throw new IllegalStateException(
+            "Ollama /api/show failed: HTTP " + response.statusCode() + " from " + showUri
+        );
+      }
+      return parseContextTokens(MAPPER.readTree(response.body()));
+    });
   }
 
   /**
@@ -39,23 +54,6 @@ public final class OllamaModelInspector {
     }
     final ExceptionalResponse<Integer> response = fetchContextTokens(model);
     return response.wasError() ? 0 : response.response();
-  }
-
-  public static int fetchContextTokensRequired(final ModelConfig model) throws Exception {
-    final URI showUri = URI.create(model.resolveBaseUrl() + "/api/show");
-    final String requestBody = MAPPER.writeValueAsString(Map.of("model", model.name()));
-    final HttpRequest request = HttpRequest.newBuilder(showUri)
-        .timeout(Duration.ofSeconds(10))
-        .header("Content-Type", "application/json")
-        .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-        .build();
-    final HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
-    if (response.statusCode() != 200) {
-      throw new IllegalStateException(
-          "Ollama /api/show failed: HTTP " + response.statusCode() + " from " + showUri
-      );
-    }
-    return parseContextTokens(MAPPER.readTree(response.body()));
   }
 
   static int parseContextTokens(final JsonNode root) {

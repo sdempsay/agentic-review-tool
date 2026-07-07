@@ -24,50 +24,45 @@ public final class LlmReviewService {
       final List<ChangedFile> changedFiles,
       final ReviewProgress progress
   ) {
-    return ExceptionalSupport.supply(() -> reviewRequired(config, rules, changedFiles, progress));
-  }
+    return ExceptionalSupport.supply(() -> {
+      final ReviewContentMode contentMode = ReviewContentMode.resolve(changedFiles);
+      final long reviewStageStart = System.currentTimeMillis();
+      progress.stageStart("Review");
 
-  public static String reviewRequired(
-      final AppConfig config,
-      final List<Rule> rules,
-      final List<ChangedFile> changedFiles,
-      final ReviewProgress progress
-  ) {
-    final ReviewContentMode contentMode = ReviewContentMode.resolve(changedFiles);
-    final long reviewStageStart = System.currentTimeMillis();
-    progress.stageStart("Review");
+      final List<String> filePaths = changedFiles.stream().map(ChangedFile::path).toList();
+      final Map<String, List<Rule>> classification = RulesClassifier.classify(rules, filePaths);
+      final int contextTokens = OllamaModelInspector.resolveContextTokens(config.model());
+      if (contextTokens <= 0 && !progress.isQuiet()) {
+        progress.batchCapFallback(config.maxAgentDiffKb());
+      } else if (contextTokens > 0 && !progress.isQuiet()) {
+        progress.batchCapResolved(contextTokens, config.maxAgentDiffKb());
+      }
+      final List<RulesetReviewTask> tasks = RulesetReviewPlanner.plan(
+          rules,
+          classification,
+          changedFiles,
+          config,
+          contextTokens,
+          contentMode
+      );
+      if (tasks.isEmpty()) {
+        progress.stageComplete("Review", reviewStageStart);
+        return "No reviewable files found.";
+      }
 
-    final List<String> filePaths = changedFiles.stream().map(ChangedFile::path).toList();
-    final Map<String, List<Rule>> classification = RulesClassifier.classify(rules, filePaths);
-    final int contextTokens = OllamaModelInspector.resolveContextTokens(config.model());
-    if (contextTokens <= 0 && !progress.isQuiet()) {
-      progress.batchCapFallback(config.maxAgentDiffKb());
-    } else if (contextTokens > 0 && !progress.isQuiet()) {
-      progress.batchCapResolved(contextTokens, config.maxAgentDiffKb());
-    }
-    final List<RulesetReviewTask> tasks = RulesetReviewPlanner.plan(
-        rules,
-        classification,
-        changedFiles,
-        config,
-        contextTokens,
-        contentMode
-    );
-    if (tasks.isEmpty()) {
+      final List<ReviewResult> agentResults = runAgentReviews(config, tasks, progress, contentMode);
       progress.stageComplete("Review", reviewStageStart);
-      return "No reviewable files found.";
-    }
 
-    final List<ReviewResult> agentResults = runAgentReviews(config, tasks, progress, contentMode);
-    progress.stageComplete("Review", reviewStageStart);
+      final long summarizeStageStart = System.currentTimeMillis();
+      progress.stageStart("Summarize");
+      final String summary = ExceptionalSupport.response(
+          LlmSummarizeService.summarize(config, agentResults, changedFiles, progress, contentMode)
+      );
+      progress.stageComplete("Summarize", summarizeStageStart);
+      progress.printTokenSummary(config.model());
 
-    final long summarizeStageStart = System.currentTimeMillis();
-    progress.stageStart("Summarize");
-    final String summary = LlmSummarizeService.summarizeRequired(config, agentResults, changedFiles, progress, contentMode);
-    progress.stageComplete("Summarize", summarizeStageStart);
-    progress.printTokenSummary(config.model());
-
-    return ReviewReportComposer.compose(agentResults, summary, progress.tokenLedger(), config.model());
+      return ReviewReportComposer.compose(agentResults, summary, progress.tokenLedger(), config.model());
+    });
   }
 
   private static List<ReviewResult> runAgentReviews(

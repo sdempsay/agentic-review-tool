@@ -1,6 +1,5 @@
 package org.dempsay.codereview.cli;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.dempsay.codereview.support.ExceptionalSupport;
@@ -21,18 +20,16 @@ public final class ReportExporter {
       final String markdown,
       final ExceptionalListener listener
   ) {
-    return ExceptionalSupport.supply(() -> writeRequired(outputPath, markdown), listener);
-  }
-
-  public static Path writeRequired(final Path outputPath, final String markdown) throws IOException {
-    if (outputPath == null) {
-      throw new IllegalArgumentException("output path is required");
-    }
-    final Path parent = outputPath.toAbsolutePath().getParent();
-    if (parent != null) {
-      Files.createDirectories(parent);
-    }
-    Files.writeString(outputPath, markdown);
-    return outputPath.toAbsolutePath();
+    return ExceptionalSupport.supply(() -> {
+      if (outputPath == null) {
+        throw new IllegalArgumentException("output path is required");
+      }
+      final Path parent = outputPath.toAbsolutePath().getParent();
+      if (parent != null) {
+        Files.createDirectories(parent);
+      }
+      Files.writeString(outputPath, markdown);
+      return outputPath.toAbsolutePath();
+    }, listener);
   }
 }

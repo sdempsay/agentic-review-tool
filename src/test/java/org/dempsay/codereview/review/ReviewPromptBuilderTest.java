@@ -168,19 +168,21 @@ public class ReviewPromptBuilderTest {
 
   @Test
   public void buildPromptHandlesNoReviewableDiffs() {
-    final String response = LlmReviewService.reviewRequired(
-        new org.dempsay.codereview.config.AppConfig(
-            new org.dempsay.codereview.config.ModelConfig("ollama", "qwen3", 0.2, null, 0, null),
-            java.nio.file.Path.of("/tmp"),
-            8000,
-            512,
-            256,
-            0,
-            List.of()
-        ),
-        List.of(),
-        List.of(ChangedFile.skipped("image.png", ChangeType.ADDED, "Binary file")),
-        org.dempsay.codereview.cli.ReviewProgress.create(org.dempsay.codereview.cli.CliVerbosity.QUIET)
+    final String response = org.dempsay.codereview.support.ExceptionalSupport.response(
+        LlmReviewService.review(
+            new org.dempsay.codereview.config.AppConfig(
+                new org.dempsay.codereview.config.ModelConfig("ollama", "qwen3", 0.2, null, 0, null),
+                java.nio.file.Path.of("/tmp"),
+                8000,
+                512,
+                256,
+                0,
+                List.of()
+            ),
+            List.of(),
+            List.of(ChangedFile.skipped("image.png", ChangeType.ADDED, "Binary file")),
+            org.dempsay.codereview.cli.ReviewProgress.create(org.dempsay.codereview.cli.CliVerbosity.QUIET)
+        )
     );
 
     assertTrue(response.contains("No reviewable files found"));

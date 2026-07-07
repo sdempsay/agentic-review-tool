@@ -1,11 +1,11 @@
 package org.dempsay.codereview.review;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.dempsay.codereview.support.ExceptionalSupport;
+import org.dempsay.utils.exceptional.api.ExceptionalResource;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
 /**
@@ -21,21 +21,29 @@ public final class ReviewOutputFormatLoader {
   }
 
   public static ExceptionalResponse<String> load(final Path rulesDir) {
-    return ExceptionalSupport.supply(() -> loadRequired(rulesDir));
+    return ExceptionalSupport.supply(() -> {
+      if (rulesDir != null) {
+        final Path file = rulesDir.resolve(FILE_NAME);
+        if (Files.isRegularFile(file)) {
+          return ExceptionalSupport.response(ExceptionalSupport.supply(() -> Files.readString(file)));
+        }
+      }
+      return ExceptionalSupport.response(loadBundled());
+    });
   }
 
-  public static String loadRequired(final Path rulesDir) throws IOException {
-    if (rulesDir != null) {
-      final Path file = rulesDir.resolve(FILE_NAME);
-      if (Files.isRegularFile(file)) {
-        return Files.readString(file);
-      }
+  private static ExceptionalResponse<String> loadBundled() {
+    return ExceptionalResource.of(
+        () -> openBundledStream(),
+        input -> new String(input.readAllBytes(), StandardCharsets.UTF_8)
+    ).execute();
+  }
+
+  private static InputStream openBundledStream() {
+    final InputStream input = ReviewOutputFormatLoader.class.getResourceAsStream(BUNDLED_RESOURCE);
+    if (input == null) {
+      throw new IllegalStateException("Missing bundled resource: " + BUNDLED_RESOURCE);
     }
-    try (InputStream input = ReviewOutputFormatLoader.class.getResourceAsStream(BUNDLED_RESOURCE)) {
-      if (input == null) {
-        throw new IOException("Missing bundled resource: " + BUNDLED_RESOURCE);
-      }
-      return new String(input.readAllBytes(), StandardCharsets.UTF_8);
-    }
+    return input;
   }
 }

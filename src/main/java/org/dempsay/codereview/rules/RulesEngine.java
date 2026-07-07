@@ -1,6 +1,5 @@
 package org.dempsay.codereview.rules;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,73 +34,76 @@ public final class RulesEngine {
       final Path rulesDir,
       final ExceptionalListener listener
   ) {
-    return ExceptionalSupport.supply(() -> loadRequired(rulesDir), listener);
+    return ExceptionalSupport.supply(() -> {
+      final List<Rule> fromDirectory = loadFromDirectory(rulesDir);
+      if (!fromDirectory.isEmpty()) {
+        return fromDirectory;
+      }
+      return loadBundledRules();
+    }, listener);
   }
 
-  public static List<Rule> loadRequired(final Path rulesDir) throws IOException {
-    final List<Rule> fromDirectory = loadFromDirectory(rulesDir);
-    if (!fromDirectory.isEmpty()) {
-      return fromDirectory;
-    }
-    return loadBundledRules();
-  }
-
-  private static List<Rule> loadFromDirectory(final Path rulesDir) throws IOException {
+  private static List<Rule> loadFromDirectory(final Path rulesDir) {
     if (rulesDir == null || !Files.isDirectory(rulesDir)) {
       return List.of();
     }
 
-    final List<Rule> rules = new ArrayList<>();
-    try (Stream<Path> files = Files.list(rulesDir)) {
-      final List<Path> ruleFiles = files
-          .filter(path -> Files.isRegularFile(path) && path.getFileName().toString().endsWith(".md"))
-          .sorted(Comparator.comparing(path -> path.getFileName().toString()))
-          .toList();
-      for (final Path ruleFile : ruleFiles) {
-        if (!hasRuleFrontmatter(ruleFile)) {
-          continue;
-        }
-        rules.add(loadRule(ruleFile));
+    final List<Path> ruleFiles = ExceptionalSupport.response(ExceptionalSupport.supply(() -> {
+      try (Stream<Path> files = Files.list(rulesDir)) {
+        return files
+            .filter(path -> Files.isRegularFile(path) && path.getFileName().toString().endsWith(".md"))
+            .sorted(Comparator.comparing(path -> path.getFileName().toString()))
+            .toList();
       }
+    }));
+
+    final List<Rule> rules = new ArrayList<>();
+    for (final Path ruleFile : ruleFiles) {
+      if (!hasRuleFrontmatter(ruleFile)) {
+        continue;
+      }
+      rules.add(ExceptionalSupport.response(loadRule(ruleFile)));
     }
     return rules;
   }
 
-  private static List<Rule> loadBundledRules() throws IOException {
+  private static List<Rule> loadBundledRules() {
     final List<Rule> rules = new ArrayList<>();
     for (final String resourcePath : BUNDLED_RULE_RESOURCES) {
-      rules.add(loadRuleFromClasspath(resourcePath));
+      rules.add(ExceptionalSupport.response(loadRuleFromClasspath(resourcePath)));
     }
     return List.copyOf(rules);
   }
 
-  static Rule loadRule(final Path ruleFile) throws IOException {
-    final ExceptionalResponse<String> response = ExceptionalResource.of(
+  static ExceptionalResponse<Rule> loadRule(final Path ruleFile) {
+    return ExceptionalResource.of(
         () -> Files.newBufferedReader(ruleFile),
         reader -> reader.lines().collect(Collectors.joining(System.lineSeparator()))
-    ).execute();
-    if (response.wasError()) {
-      throw new IOException("Failed to read rule file " + ruleFile);
-    }
-    final FrontmatterParser.ParsedRuleDocument document =
-        FrontmatterParser.parseRequired(response.response());
-    final String id = stripExtension(ruleFile.getFileName().toString());
-    return new Rule(id, ruleFile, List.copyOf(document.pathGlobs()), document.promptBody());
+    ).execute()
+        .chain((listener, content) -> {
+          final FrontmatterParser.ParsedRuleDocument document =
+              ExceptionalSupport.response(FrontmatterParser.parse(content));
+          final String id = stripExtension(ruleFile.getFileName().toString());
+          return ExceptionalResponse.success(
+              new Rule(id, ruleFile, List.copyOf(document.pathGlobs()), document.promptBody())
+          );
+        });
   }
 
-  static Rule loadRuleFromClasspath(final String resourcePath) throws IOException {
-    final ExceptionalResponse<String> response = ExceptionalResource.of(
+  static ExceptionalResponse<Rule> loadRuleFromClasspath(final String resourcePath) {
+    return ExceptionalResource.of(
         () -> openBundledRuleStream(resourcePath),
         input -> new String(input.readAllBytes())
-    ).execute();
-    if (response.wasError()) {
-      throw new IOException("Failed to read bundled rule " + resourcePath);
-    }
-    final FrontmatterParser.ParsedRuleDocument document =
-        FrontmatterParser.parseRequired(response.response());
-    final String fileName = Path.of(resourcePath).getFileName().toString();
-    final String id = stripExtension(fileName);
-    return new Rule(id, null, List.copyOf(document.pathGlobs()), document.promptBody());
+    ).execute()
+        .chain((listener, content) -> {
+          final FrontmatterParser.ParsedRuleDocument document =
+              ExceptionalSupport.response(FrontmatterParser.parse(content));
+          final String fileName = Path.of(resourcePath).getFileName().toString();
+          final String id = stripExtension(fileName);
+          return ExceptionalResponse.success(
+              new Rule(id, null, List.copyOf(document.pathGlobs()), document.promptBody())
+          );
+        });
   }
 
   private static InputStream openBundledRuleStream(final String resourcePath) {
@@ -112,8 +114,8 @@ public final class RulesEngine {
     return input;
   }
 
-  private static boolean hasRuleFrontmatter(final Path ruleFile) throws IOException {
-    final String content = Files.readString(ruleFile);
+  private static boolean hasRuleFrontmatter(final Path ruleFile) {
+    final String content = ExceptionalSupport.response(ExceptionalSupport.supply(() -> Files.readString(ruleFile)));
     final String normalized = content.startsWith("\uFEFF") ? content.substring(1) : content;
     return normalized.startsWith("---");
   }

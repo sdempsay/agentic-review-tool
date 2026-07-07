@@ -2,7 +2,6 @@ package org.dempsay.codereview.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,13 +22,11 @@ public final class ConfigLoader {
   }
 
   public static ExceptionalResponse<AppConfig> load(final Path explicitConfigPath) {
-    return ExceptionalSupport.supply(() -> loadRequired(explicitConfigPath));
-  }
-
-  public static AppConfig loadRequired(final Path explicitConfigPath) throws IOException {
-    final Path configPath = resolveConfigPath(explicitConfigPath);
-    final JsonNode root = readConfig(configPath);
-    return toAppConfig(root);
+    return ExceptionalSupport.supply(() -> {
+      final Path configPath = resolveConfigPath(explicitConfigPath);
+      final JsonNode root = ExceptionalSupport.response(readConfig(configPath));
+      return toAppConfig(root);
+    });
   }
 
   public static String describeSource(final Path explicitConfigPath) {
@@ -52,26 +49,18 @@ public final class ConfigLoader {
     return null;
   }
 
-  private static JsonNode readConfig(final Path configPath) throws IOException {
+  private static ExceptionalResponse<JsonNode> readConfig(final Path configPath) {
     if (configPath != null) {
-      final ExceptionalResponse<JsonNode> response = ExceptionalResource.of(
+      return ExceptionalResource.of(
           () -> Files.newBufferedReader(configPath),
           MAPPER::readTree
       ).execute();
-      if (response.wasError()) {
-        throw new IOException("Failed to read config from " + configPath);
-      }
-      return response.response();
     }
 
-    final ExceptionalResponse<JsonNode> response = ExceptionalResource.of(
+    return ExceptionalResource.of(
         ConfigLoader::openDefaultConfigStream,
         MAPPER::readTree
     ).execute();
-    if (response.wasError()) {
-      throw new IllegalStateException("Bundled default-config.json is missing or unreadable");
-    }
-    return response.response();
   }
 
   private static InputStream openDefaultConfigStream() {

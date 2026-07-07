@@ -1,6 +1,5 @@
 package org.dempsay.codereview.ingest;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
@@ -19,33 +18,35 @@ public final class GitIngestService {
   }
 
   public static ExceptionalResponse<List<ChangedFile>> ingest(final IngestRequest request) {
-    return ExceptionalSupport.supply(() -> ingestRequired(request));
+    return ExceptionalSupport.supply(() -> {
+      if (!GitRunner.isGitRepository(request.repoRoot())) {
+        throw new IllegalArgumentException("Not a git repository: " + request.repoRoot().toAbsolutePath());
+      }
+
+      return switch (request.scope()) {
+        case UNCOMMITTED -> ingestUncommitted(request);
+        case STAGED -> ingestFromDiff(request, "diff", "--cached");
+        case BASE -> ingestFromDiff(request, "diff", request.baseRef() + "...HEAD");
+      };
+    });
   }
 
-  public static List<ChangedFile> ingestRequired(final IngestRequest request)
-      throws IOException, InterruptedException {
-    if (!GitRunner.isGitRepository(request.repoRoot())) {
-      throw new IllegalArgumentException("Not a git repository: " + request.repoRoot().toAbsolutePath());
-    }
-
-    return switch (request.scope()) {
-      case UNCOMMITTED -> ingestUncommitted(request);
-      case STAGED -> ingestFromDiff(request, "diff", "--cached");
-      case BASE -> ingestFromDiff(request, "diff", request.baseRef() + "...HEAD");
-    };
-  }
-
-  private static List<ChangedFile> ingestUncommitted(final IngestRequest request)
-      throws IOException, InterruptedException {
+  private static List<ChangedFile> ingestUncommitted(final IngestRequest request) {
     final Map<String, ChangedFile> files = new LinkedHashMap<>();
     final int maxDiffBytes = request.maxDiffKb() * 1024;
 
-    if (GitRunner.hasCommits(request.repoRoot())) {
-      addParsedDiff(files, GitRunner.run(request.repoRoot(), "diff", "HEAD").output(), maxDiffBytes);
+    if (ExceptionalSupport.response(GitRunner.hasCommits(request.repoRoot()))) {
+      addParsedDiff(
+          files,
+          ExceptionalSupport.response(GitRunner.run(request.repoRoot(), "diff", "HEAD")).output(),
+          maxDiffBytes
+      );
     }
 
     final Set<String> untracked = new LinkedHashSet<>(
-        GitRunner.runLines(request.repoRoot(), "ls-files", "--others", "--exclude-standard")
+        ExceptionalSupport.response(
+            GitRunner.runLines(request.repoRoot(), "ls-files", "--others", "--exclude-standard")
+        )
     );
     for (final String path : untracked) {
       if (files.containsKey(path)) {
@@ -60,8 +61,8 @@ public final class GitIngestService {
   private static List<ChangedFile> ingestFromDiff(
       final IngestRequest request,
       final String... gitDiffCommand
-  ) throws IOException, InterruptedException {
-    final GitRunner.GitResult result = GitRunner.run(request.repoRoot(), gitDiffCommand);
+  ) {
+    final GitRunner.GitResult result = ExceptionalSupport.response(GitRunner.run(request.repoRoot(), gitDiffCommand));
     if (result.exitCode() != 0) {
       throw new IllegalStateException(
           "git " + String.join(" ", gitDiffCommand) + " failed with exit code " + result.exitCode()
@@ -87,19 +88,19 @@ public final class GitIngestService {
       final Path repoRoot,
       final String path,
       final int maxDiffBytes
-  ) throws IOException, InterruptedException {
+  ) {
     final Path filePath = repoRoot.resolve(path);
     if (!Files.isRegularFile(filePath)) {
       return ChangedFile.skipped(path, ChangeType.ADDED, "Untracked path is not a regular file");
     }
 
-    final GitRunner.GitResult diffResult = GitRunner.run(
+    final GitRunner.GitResult diffResult = ExceptionalSupport.response(GitRunner.run(
         repoRoot,
         "diff",
         "--no-index",
         DEV_NULL,
         path
-    );
+    ));
     if (diffResult.exitCode() > 1) {
       throw new IllegalStateException("git diff --no-index failed for " + path);
     }
@@ -108,7 +109,7 @@ public final class GitIngestService {
     }
 
     final String diff = diffResult.output().isBlank()
-        ? synthesizeAddedDiff(path, Files.readString(filePath))
+        ? synthesizeAddedDiff(path, ExceptionalSupport.response(ExceptionalSupport.supply(() -> Files.readString(filePath))))
         : diffResult.output();
 
     if (diff.length() > maxDiffBytes) {

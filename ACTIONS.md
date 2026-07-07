@@ -2,6 +2,7 @@
 
 ## 2026-07-07
 
+- Refactored I/O and service layers to exceptional contract: removed public `*Required` methods and `throws` declarations; `GitRunner` returns `ExceptionalResponse`; `ReviewChatLoop.run` returns `ExceptionalResponse<Void>`; CLI chat wired via `.chain()`
 - Fixed `pom-security.md` path globs: Java `**/pom.xml` does not match root `pom.xml`; added explicit `pom.xml` glob
 - Added TODO 28 (low priority): MCP service for Maven dependency CVE lookup
 - Added `pom-security.md` review rule for `pom.xml` (curated version floors, parent policy; not a live CVE scanner)

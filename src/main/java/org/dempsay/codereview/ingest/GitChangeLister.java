@@ -1,9 +1,7 @@
 package org.dempsay.codereview.ingest;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
-import org.dempsay.codereview.support.ExceptionalSupport;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
 public final class GitChangeLister {
@@ -14,11 +12,6 @@ public final class GitChangeLister {
   }
 
   public static ExceptionalResponse<List<ChangedFile>> listUncommittedChanges(final Path repoRoot) {
-    return ExceptionalSupport.supply(() -> listUncommittedChangesRequired(repoRoot));
-  }
-
-  public static List<ChangedFile> listUncommittedChangesRequired(final Path repoRoot)
-      throws IOException, InterruptedException {
-    return GitIngestService.ingestRequired(IngestRequest.uncommitted(repoRoot, DEFAULT_MAX_DIFF_KB));
+    return GitIngestService.ingest(IngestRequest.uncommitted(repoRoot, DEFAULT_MAX_DIFF_KB));
   }
 }

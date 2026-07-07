@@ -1,6 +1,5 @@
 package org.dempsay.codereview.ingest;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -16,30 +15,28 @@ public final class RepoIngestService {
   }
 
   public static ExceptionalResponse<List<ChangedFile>> ingest(final RepoIngestRequest request) {
-    return ExceptionalSupport.supply(() -> ingestRequired(request));
+    return ExceptionalSupport.supply(() -> {
+      if (!GitRunner.isGitRepository(request.repoRoot())) {
+        throw new IllegalArgumentException("Not a git repository: " + request.repoRoot().toAbsolutePath());
+      }
+
+      final List<String> paths = listReviewablePaths(request);
+      final List<ChangedFile> files = new ArrayList<>();
+      final int maxFileBytes = request.maxFileKb() * 1024;
+
+      for (final String relativePath : paths) {
+        files.add(readRepoFile(request.repoRoot(), relativePath, maxFileBytes));
+      }
+      return List.copyOf(files);
+    });
   }
 
-  public static List<ChangedFile> ingestRequired(final RepoIngestRequest request)
-      throws IOException, InterruptedException {
-    if (!GitRunner.isGitRepository(request.repoRoot())) {
-      throw new IllegalArgumentException("Not a git repository: " + request.repoRoot().toAbsolutePath());
-    }
-
-    final List<String> paths = listReviewablePaths(request);
-    final List<ChangedFile> files = new ArrayList<>();
-    final int maxFileBytes = request.maxFileKb() * 1024;
-
-    for (final String relativePath : paths) {
-      files.add(readRepoFile(request.repoRoot(), relativePath, maxFileBytes));
-    }
-    return List.copyOf(files);
-  }
-
-  static List<String> listReviewablePaths(final RepoIngestRequest request)
-      throws IOException, InterruptedException {
+  static List<String> listReviewablePaths(final RepoIngestRequest request) {
     final Set<String> paths = new LinkedHashSet<>();
-    paths.addAll(GitRunner.runLines(request.repoRoot(), "ls-files"));
-    paths.addAll(GitRunner.runLines(request.repoRoot(), "ls-files", "--others", "--exclude-standard"));
+    paths.addAll(ExceptionalSupport.response(GitRunner.runLines(request.repoRoot(), "ls-files")));
+    paths.addAll(ExceptionalSupport.response(
+        GitRunner.runLines(request.repoRoot(), "ls-files", "--others", "--exclude-standard")
+    ));
 
     final List<String> reviewable = new ArrayList<>();
     for (final String path : paths) {
@@ -54,13 +51,13 @@ public final class RepoIngestService {
       final Path repoRoot,
       final String relativePath,
       final int maxFileBytes
-  ) throws IOException {
+  ) {
     final Path filePath = repoRoot.resolve(relativePath);
     if (!Files.isRegularFile(filePath)) {
       return ChangedFile.skipped(relativePath, ChangeType.EXISTING, "Not a regular file");
     }
 
-    final String content = Files.readString(filePath);
+    final String content = ExceptionalSupport.response(ExceptionalSupport.supply(() -> Files.readString(filePath)));
     if (isBinaryContent(content)) {
       return ChangedFile.skipped(relativePath, ChangeType.EXISTING, "Binary file");
     }

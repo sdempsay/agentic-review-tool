@@ -19,39 +19,32 @@ public final class LlmSummarizeService {
       final List<ChangedFile> changedFiles,
       final ReviewProgress progress
   ) {
-    return ExceptionalSupport.supply(() -> summarizeRequired(config, agentResults, changedFiles, progress));
+    return summarize(config, agentResults, changedFiles, progress, ReviewContentMode.resolve(changedFiles));
   }
 
-  public static String summarizeRequired(
-      final AppConfig config,
-      final List<ReviewResult> agentResults,
-      final List<ChangedFile> changedFiles,
-      final ReviewProgress progress
-  ) {
-    return summarizeRequired(config, agentResults, changedFiles, progress, ReviewContentMode.resolve(changedFiles));
-  }
-
-  public static String summarizeRequired(
+  public static ExceptionalResponse<String> summarize(
       final AppConfig config,
       final List<ReviewResult> agentResults,
       final List<ChangedFile> changedFiles,
       final ReviewProgress progress,
       final ReviewContentMode contentMode
   ) {
-    final ReviewPromptSupplements supplements =
-        ExceptionalSupport.response(ReviewPromptSupplements.load(config.rulesDir()));
-    final String prompt = SummarizePromptBuilder.build(
-        agentResults,
-        changedFiles,
-        contentMode,
-        supplements.guardrails()
-    );
-    return StreamingLlmClient.complete(
-        config.model(),
-        config.maxTokens(),
-        prompt,
-        progress,
-        "summarize"
-    ).trim();
+    return ExceptionalSupport.supply(() -> {
+      final ReviewPromptSupplements supplements =
+          ExceptionalSupport.response(ReviewPromptSupplements.load(config.rulesDir()));
+      final String prompt = SummarizePromptBuilder.build(
+          agentResults,
+          changedFiles,
+          contentMode,
+          supplements.guardrails()
+      );
+      return StreamingLlmClient.complete(
+          config.model(),
+          config.maxTokens(),
+          prompt,
+          progress,
+          "summarize"
+      ).trim();
+    });
   }
 }

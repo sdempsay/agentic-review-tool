@@ -1,6 +1,5 @@
 package org.dempsay.codereview.cli;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -160,12 +159,8 @@ public class RepoCommand implements Runnable {
       return ExceptionalResponse.success(Boolean.TRUE);
     }
 
-    try {
-      ReviewChatLoop.run(new ReviewSessionContext(config, rules, changedFiles, classification, reviewText));
-      return ExceptionalResponse.success(Boolean.TRUE);
-    } catch (IOException exception) {
-      throw new IllegalStateException("Follow-up chat failed: " + exception.getMessage(), exception);
-    }
+    return ReviewChatLoop.run(new ReviewSessionContext(config, rules, changedFiles, classification, reviewText))
+        .chain((listener, ignored) -> ExceptionalResponse.success(Boolean.TRUE));
   }
 
   private ExceptionalResponse<Boolean> writeReportIfRequested(

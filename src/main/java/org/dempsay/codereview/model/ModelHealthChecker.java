@@ -22,35 +22,35 @@ public final class ModelHealthChecker {
   }
 
   public static ExceptionalResponse<HealthReport> check(final ModelConfig model) {
-    return ExceptionalSupport.supply(() -> checkRequired(model));
+    return ExceptionalSupport.supply(() -> {
+      if (model.isOllama()) {
+        return checkOllama(model);
+      }
+      if (model.isOpenRouter()) {
+        return checkOpenRouter(model);
+      }
+      throw new IllegalArgumentException(
+          "Health check is only supported for ollama and openrouter providers (got: " + model.provider() + ")"
+      );
+    });
   }
 
-  public static HealthReport checkRequired(final ModelConfig model) throws Exception {
-    if (model.isOllama()) {
-      return checkOllamaRequired(model);
-    }
-    if (model.isOpenRouter()) {
-      return checkOpenRouterRequired(model);
-    }
-    throw new IllegalArgumentException(
-        "Health check is only supported for ollama and openrouter providers (got: " + model.provider() + ")"
-    );
-  }
-
-  private static HealthReport checkOllamaRequired(final ModelConfig model) throws Exception {
+  private static HealthReport checkOllama(final ModelConfig model) {
     final URI tagsUri = URI.create(model.resolveBaseUrl() + "/api/tags");
     final HttpRequest request = HttpRequest.newBuilder(tagsUri)
         .timeout(Duration.ofSeconds(10))
         .GET()
         .build();
-    final HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+    final HttpResponse<String> response = ExceptionalSupport.response(ExceptionalSupport.supply(
+        () -> HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString())
+    ));
     if (response.statusCode() != 200) {
       throw new IllegalStateException(
           "Ollama health check failed: HTTP " + response.statusCode() + " from " + tagsUri
       );
     }
 
-    final JsonNode root = MAPPER.readTree(response.body());
+    final JsonNode root = ExceptionalSupport.response(ExceptionalSupport.supply(() -> MAPPER.readTree(response.body())));
     final JsonNode models = root.path("models");
     if (!models.isArray()) {
       throw new IllegalStateException("Ollama /api/tags response did not include a models array");
@@ -80,7 +80,7 @@ public final class ModelHealthChecker {
     );
   }
 
-  private static HealthReport checkOpenRouterRequired(final ModelConfig model) throws Exception {
+  private static HealthReport checkOpenRouter(final ModelConfig model) {
     final String apiKey = ChatModelFactory.requireApiKey(model);
     final URI modelsUri = URI.create(model.resolveBaseUrl() + "/models");
     final HttpRequest request = HttpRequest.newBuilder(modelsUri)
@@ -88,14 +88,16 @@ public final class ModelHealthChecker {
         .header("Authorization", "Bearer " + apiKey)
         .GET()
         .build();
-    final HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+    final HttpResponse<String> response = ExceptionalSupport.response(ExceptionalSupport.supply(
+        () -> HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString())
+    ));
     if (response.statusCode() != 200) {
       throw new IllegalStateException(
           "OpenRouter health check failed: HTTP " + response.statusCode() + " from " + modelsUri
       );
     }
 
-    final JsonNode root = MAPPER.readTree(response.body());
+    final JsonNode root = ExceptionalSupport.response(ExceptionalSupport.supply(() -> MAPPER.readTree(response.body())));
     final JsonNode models = root.path("data");
     if (!models.isArray()) {
       throw new IllegalStateException("OpenRouter /models response did not include a data array");
