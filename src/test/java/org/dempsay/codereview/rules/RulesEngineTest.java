@@ -36,10 +36,11 @@ public class RulesEngineTest {
   public void fallBackToBundledRulesWhenDirectoryMissing() {
     final var rules = ExceptionalSupport.response(RulesEngine.load(Path.of("/path/that/does/not/exist")));
 
-    assertEquals(4, rules.size());
+    assertEquals(5, rules.size());
     assertTrue(rules.stream().anyMatch(rule -> rule.id().equals("java-formatting")));
     assertTrue(rules.stream().anyMatch(rule -> rule.id().equals("java-exceptional")));
     assertTrue(rules.stream().anyMatch(rule -> rule.id().equals("java-javadoc")));
+    assertTrue(rules.stream().anyMatch(rule -> rule.id().equals("pom-security")));
     assertTrue(rules.stream().anyMatch(rule -> rule.id().equals("xml-formatter")));
   }
 

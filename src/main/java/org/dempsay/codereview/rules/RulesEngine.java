@@ -20,6 +20,7 @@ public final class RulesEngine {
       "/rules/java-exceptional.md",
       "/rules/java-formatting.md",
       "/rules/java-javadoc.md",
+      "/rules/pom-security.md",
       "/rules/xml-formatter.md"
   );
 
