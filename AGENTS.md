@@ -10,59 +10,58 @@ Project-specific rules for agents working in this repository. Global rules in `~
 
 ## Exceptional error handling (mandatory)
 
-This project uses the [exceptional](https://github.com/dempsay/exceptional) library (`org.dempsay.utils:exceptional`). Failures stay explicit until the CLI boundary. See `../exceptional/WhyBeExceptional.md` for rationale.
+This project uses the [exceptional](https://github.com/dempsay/exceptional) library (`org.dempsay.utils:exceptional`). Failures are expressed as `ExceptionalResponse<T>`, not thrown exceptions. Application methods must not declare `throws` or `throw` to callers. See `../exceptional/WhyBeExceptional.md` for rationale. Review rules in `rules/java-exceptional.md` match this contract.
 
 ### Required pattern for I/O and external calls
 
-Every service that can fail (network, filesystem, parsing, git, LLM) must follow the three-layer shape:
+Every service that can fail (network, filesystem, parsing, git, LLM) must follow this shape:
 
-1. **`fooRequired(...)`** — throws `Exception`; contains the real logic
-2. **`foo(...)`** — returns `ExceptionalResponse<T>` via `ExceptionalSupport.supply(() -> fooRequired(...))`
-3. **Callers** — use `.chain()` / `.then()` with `ExceptionalListener`, or check `wasError()` explicitly
+1. **Public methods** — return `ExceptionalResponse<T>` (never `throws`)
+2. **Failing work** — wrap in `ExceptionalSupplier.of(() -> { ... }).execute()`, `ExceptionalResource.of(...)`, or `ExceptionalSupport.supply(() -> { ... })` — JDK calls that throw stay inside the lambda
+3. **Callers** — `.chain()` / `.then()` with `ExceptionalListener`, or `wasError()` / `wasNoError()` at decision points
 
-Canonical references (copy these, do not invent a new pattern):
+Canonical references in this repo (copy these, do not invent a new pattern):
 
 | Layer | Example |
 |-------|---------|
-| Service entry | `ModelHealthChecker.check()`, `OllamaModelInspector.fetchContextTokens()`, `GitIngestService.ingest()` |
-| Required impl | `ModelHealthChecker.checkRequired()`, `ConfigLoader.loadRequired()` |
-| Resource I/O | `ConfigLoader` + `ExceptionalResource.of(...)` |
-| CLI orchestration | `DiffCommand` chains + `FailureCapture.listener()` |
-| Optional fallback | `OllamaModelInspector.resolveContextTokens()` — checks `wasError()`, returns default |
+| Service entry | `GitIngestService.ingest()`, `ModelHealthChecker.check()`, `LlmReviewService.review()` |
+| Resource I/O | `RulesEngine` — `ExceptionalResource.of(...)` for rule files |
+| CLI orchestration | `DiffCommand` / `RepoCommand` — `.chain()` with `FailureCapture.listener()` |
+| Optional fallback | `OllamaModelInspector.resolveContextTokens()` — `wasError()` then default |
 
 ```java
-// Service
 public static ExceptionalResponse<HealthReport> check(final ModelConfig model) {
-  return ExceptionalSupport.supply(() -> checkRequired(model));
+  return ExceptionalSupport.supply(() -> {
+    // HTTP, parse, validate — throws inside lambda are captured
+    return probeHealth(model);
+  });
 }
 
-public static HealthReport checkRequired(final ModelConfig model) throws Exception {
-  // HTTP, parse, validate — throw on failure
+public static ExceptionalResponse<HealthReport> checkAndLog(final ModelConfig model) {
+  return check(model)
+      .chain((listener, report) -> enrich(report), listener);
 }
 
-// Graceful degradation at call site (not in catch)
+// Graceful degradation at call site (not inside catch)
 public static int resolveContextTokens(final ModelConfig model) {
   final ExceptionalResponse<Integer> response = fetchContextTokens(model);
   return response.wasError() ? 0 : response.response();
 }
 ```
 
+At the **application boundary** (`DiffCommand.run()`, `RepoCommand.run()`, etc.), check the final `ExceptionalResponse`, print the captured root cause to stderr, and exit non-zero — without adding `throws` or re-throwing through the stack. Do not surface a generic `"Operation failed"` when the listener captured a real message.
+
+Prefer `ExceptionalResource.of(() -> open(), resource -> use(resource))` over manual `try-with-resources` + catch.
+
 ### Forbidden in `src/main/java`
 
+- **`throws` declarations** on application methods — return `ExceptionalResponse` instead
+- **`throw` for expected failure paths** (I/O, network, parse errors)
 - **`try/catch` for business error handling** — use `ExceptionalResponse` instead
 - **Swallowing exceptions** — `catch (...) { return default; }` belongs at the call site via `wasError()`, never inside a catch block
 - **`catch (Exception)`** — checkstyle `IllegalCatch` rejects this; do not work around it with broad catches
-- **Throwing from CLI lambdas without chaining** — wire `FailureCapture` so the user sees the root cause, not `"Operation failed"`
 
-### Allowed exceptions (do not "fix" these)
-
-| Location | Reason |
-|----------|--------|
-| `RulesEngine`, `GitRunner` | `try-with-resources` only |
-| `StreamingLlmClient.awaitCompletion` | `CountDownLatch.await()` → `InterruptedException` |
-| `DiffCommand.runChatIfEnabled` | `IOException` from stdin REPL |
-
-New `try/catch` blocks require justification in `ACTIONS.md` and must be added to this table.
+Do not add new `try/catch` blocks. Legacy catches are being removed; do not extend them.
 
 ### Tests
 
@@ -72,7 +71,7 @@ New `try/catch` blocks require justification in `ACTIONS.md` and must be added t
 ### Before committing Java changes
 
 1. `mvn verify` (includes checkstyle)
-2. Grep for new catches: `rg 'catch \(' src/main/java` — only allowlisted files above
+2. Grep for new throws/catches: `rg 'throws |throw new|catch \(' src/main/java`
 
 ## Task acceptance
 

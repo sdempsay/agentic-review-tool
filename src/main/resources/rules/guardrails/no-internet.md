@@ -1,0 +1,3 @@
+- Do not search the internet or fetch external URLs.
+- Do not use tools to browse the web or download content.
+- Use only the files and context provided in this prompt.

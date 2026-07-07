@@ -38,7 +38,14 @@ public final class LlmSummarizeService {
       final ReviewProgress progress,
       final ReviewContentMode contentMode
   ) {
-    final String prompt = SummarizePromptBuilder.build(agentResults, changedFiles, contentMode);
+    final ReviewPromptSupplements supplements =
+        ExceptionalSupport.response(ReviewPromptSupplements.load(config.rulesDir()));
+    final String prompt = SummarizePromptBuilder.build(
+        agentResults,
+        changedFiles,
+        contentMode,
+        supplements.guardrails()
+    );
     return StreamingLlmClient.complete(
         config.model(),
         config.maxTokens(),

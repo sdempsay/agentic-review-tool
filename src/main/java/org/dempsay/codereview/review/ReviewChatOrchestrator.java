@@ -11,18 +11,23 @@ import java.util.Optional;
 import org.dempsay.codereview.ingest.ChangedFile;
 import org.dempsay.codereview.model.ChatModelFactory;
 import org.dempsay.codereview.rules.Rule;
+import org.dempsay.codereview.support.ExceptionalSupport;
 
 public final class ReviewChatOrchestrator {
 
   private final ReviewSessionContext session;
   private final ChatModel chatModel;
   private final List<ChatMessage> conversation;
+  private final ReviewPromptSupplements supplements;
 
   public ReviewChatOrchestrator(final ReviewSessionContext session) {
     this.session = session;
     this.chatModel = ChatModelFactory.create(session.config().model(), session.config().maxTokens());
+    this.supplements = ExceptionalSupport.response(ReviewPromptSupplements.load(session.config().rulesDir()));
     this.conversation = new ArrayList<>();
-    this.conversation.add(SystemMessage.from(ReviewChatPromptBuilder.buildOrchestratorSystemPrompt(session.reportText())));
+    this.conversation.add(SystemMessage.from(
+        ReviewChatPromptBuilder.buildOrchestratorSystemPrompt(session.reportText(), supplements.guardrails())
+    ));
   }
 
   public String respond(final String userMessage) {
@@ -59,8 +64,8 @@ public final class ReviewChatOrchestrator {
 
   private String delegate(final DelegationTarget target, final String userMessage) {
     final String prompt = target.generalFallback()
-        ? ReviewPromptBuilder.buildGeneralFollowUp(target.file(), userMessage, session.reportText())
-        : ReviewPromptBuilder.buildFollowUp(target.rule(), target.file(), userMessage, session.reportText());
+        ? ReviewPromptBuilder.buildGeneralFollowUp(target.file(), userMessage, session.reportText(), supplements)
+        : ReviewPromptBuilder.buildFollowUp(target.rule(), target.file(), userMessage, session.reportText(), supplements);
     final String response = chatModel.chat(prompt);
     return "[Delegated to " + target.agentName() + " — `" + target.file().path() + "`]"
         + System.lineSeparator()

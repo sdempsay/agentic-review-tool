@@ -9,6 +9,7 @@ import java.util.Map;
 import org.dempsay.codereview.ingest.ChangeType;
 import org.dempsay.codereview.ingest.ChangedFile;
 import org.dempsay.codereview.rules.Rule;
+import org.dempsay.codereview.support.ExceptionalSupport;
 import org.junit.Test;
 
 public class ReviewPromptBuilderTest {
@@ -81,6 +82,30 @@ public class ReviewPromptBuilderTest {
     assertTrue(prompt.contains("+new line"));
     assertTrue(prompt.contains("pom.xml"));
     assertTrue(prompt.contains("not in scope"));
+  }
+
+  @Test
+  public void buildForRulesetAppendsOutputFormatFromFile() {
+    final Rule javaRule = new Rule(
+        "java-formatting",
+        Path.of("/rules/java-formatting.md"),
+        List.of("**/*.java"),
+        "Check Java indentation."
+    );
+    final ReviewPromptSupplements supplements = ExceptionalSupport.response(ReviewPromptSupplements.load(null));
+    final String prompt = ReviewPromptBuilder.buildForRuleset(
+        javaRule,
+        List.of(ChangedFile.included("src/App.java", ChangeType.MODIFIED, "+line")),
+        ReviewContentMode.DIFF,
+        supplements
+    );
+
+    assertTrue(prompt.contains("## Guardrails"));
+    assertTrue(prompt.contains("no-modify"));
+    assertTrue(prompt.contains("## Output"));
+    assertTrue(prompt.contains("insufficient context"));
+    assertTrue(prompt.indexOf("## Guardrails") < prompt.indexOf("## Ruleset Instructions"));
+    assertTrue(prompt.indexOf("## Output") < prompt.indexOf("## Changed Files"));
   }
 
   @Test

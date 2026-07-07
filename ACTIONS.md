@@ -2,6 +2,23 @@
 
 ## 2026-07-07
 
+- Added `rules/guardrails/*.md` with `ReviewGuardrailsLoader`; wired into review, summarize, and chat prompts via `ReviewPromptSupplements`
+- Added `review-output-format.md` (rules dir override + bundled); `ReviewOutputFormatLoader` appends to ruleset/general review prompts
+- Split local review rules: `java-formatting.md`, `java-exceptional.md`, `java-javadoc.md`; removed `java-general.md`; updated bundled resources and tests
+- Strengthened local `java-general.md` §9 Java 21 conventions (switch expressions, var, sealed types)
+- Expanded local `java-general.md` §8 with equals/hashCode, enum switch, utility-class checks
+- Scoped `java-general.md` §7 Javadoc to new public API in the diff
+- Generalized `java-general.md` §3 internal imports for any project root package
+- Trimmed local `java-general.md`: removed §1 whitespace meta-line, §2 examples, §6 link; §4 Java 21 wording
+- Added `java-general.md` §10 severity tiers (must-fix vs nit) to local review rules
+- Added diff vs full-file scope guidance to local `java-general.md` opener
+- Added `java-general.md` §10 response format to local review rules (finding bullets, Clean list, insufficient context)
+- Split `java-general.md` audiences: local `rules/` = review pipeline (findings, trimmed §8); `~/.grok/rules` = coding agents (apply when editing, §8 checkstyle URL, §6 imperative)
+- Removed Java 8 opt-out from `java-general.md` §9 (local `rules/` + `~/.grok/rules`); Java 21 only
+- Trimmed local `java-general.md` §8 for review pipeline: dropped XML URL and parent-POM note; kept actionable checkstyle-aligned bullets only
+- Updated `java-general.md` §8 Checkstyle URL to `sdempsay/java-checkstyle` `checkstyle-java21.xml` on GitHub (`~/.grok/rules` only)
+- Aligned `AGENTS.md` exceptional handling with `java-general.md` §6: no `throws`/re-throw, `ExceptionalSupplier`/`ExceptionalResource` shape, boundary exits without propagating throws
+- Corrected local `java-general.md` §6: no `throws`/re-throw — failures as `ExceptionalResponse` via `ExceptionalSupplier`/`ExceptionalResource`; synced `rules/` and bundled resources only (not `~/.grok/rules`)
 - Pointed `AGENTS.md` at `~/.grok/rules/maven.md`; removed local `rules/maven.md` (not a review rule)
 - Removed `pom-tidy` review rule; `mvn tidy:pom` is a build step, not LLM review
 - Copied `~/.grok/rules` into repo `rules/` (java-general, xml-formatter, maven reference); default `rulesDir` is `rules`; removed legacy java-formatting rule

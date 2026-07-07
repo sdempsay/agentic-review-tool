@@ -17,8 +17,18 @@ public final class SummarizePromptBuilder {
       final List<ChangedFile> changedFiles,
       final ReviewContentMode contentMode
   ) {
+    return build(agentResults, changedFiles, contentMode, null);
+  }
+
+  public static String build(
+      final List<ReviewResult> agentResults,
+      final List<ChangedFile> changedFiles,
+      final ReviewContentMode contentMode,
+      final String guardrails
+  ) {
     final StringBuilder prompt = new StringBuilder();
     appendIntro(prompt, contentMode);
+    appendGuardrails(prompt, guardrails);
     appendChangeStats(prompt, changedFiles, contentMode);
     if (contentMode == ReviewContentMode.FULL_FILE) {
       appendRepositoryCoverage(prompt, changedFiles);
@@ -121,5 +131,12 @@ public final class SummarizePromptBuilder {
     prompt.append(System.lineSeparator());
     prompt.append("### Top Actions").append(System.lineSeparator());
     prompt.append("Bulleted list of up to 5 highest-priority fixes.");
+  }
+
+  private static void appendGuardrails(final StringBuilder prompt, final String guardrails) {
+    if (guardrails == null || guardrails.isBlank()) {
+      return;
+    }
+    prompt.append(guardrails.trim()).append(System.lineSeparator()).append(System.lineSeparator());
   }
 }

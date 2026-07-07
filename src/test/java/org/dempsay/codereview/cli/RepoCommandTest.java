@@ -40,7 +40,9 @@ public class RepoCommandTest {
     assertTrue(report.contains("# Code Review Report"));
     assertTrue(report.contains("**Scope:** repository (tracked + untracked)"));
     assertTrue(report.contains("`src/App.java`"));
-    assertTrue(report.contains("java-general"));
+    assertTrue(report.contains("java-formatting"));
+    assertTrue(report.contains("java-exceptional"));
+    assertTrue(report.contains("java-javadoc"));
     assertFalse(report.contains("## Review"));
   }
 
@@ -146,7 +148,9 @@ public class RepoCommandTest {
 
   private static Path copyBundledRules() throws Exception {
     final Path rulesDir = Files.createTempDirectory("code-review-repo-rules");
-    copyResource("/rules/java-general.md", rulesDir.resolve("java-general.md"));
+    copyResource("/rules/java-formatting.md", rulesDir.resolve("java-formatting.md"));
+    copyResource("/rules/java-exceptional.md", rulesDir.resolve("java-exceptional.md"));
+    copyResource("/rules/java-javadoc.md", rulesDir.resolve("java-javadoc.md"));
     return rulesDir;
   }
 

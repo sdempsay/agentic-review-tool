@@ -22,6 +22,24 @@ public final class ReviewPromptBuilder {
       final List<ChangedFile> changedFiles,
       final ReviewContentMode contentMode
   ) {
+    return buildForRuleset(rule, changedFiles, contentMode, (ReviewPromptSupplements) null);
+  }
+
+  public static String buildForRuleset(
+      final Rule rule,
+      final List<ChangedFile> changedFiles,
+      final ReviewContentMode contentMode,
+      final String outputFormat
+  ) {
+    return buildForRuleset(rule, changedFiles, contentMode, supplementsFromOutputFormat(outputFormat));
+  }
+
+  public static String buildForRuleset(
+      final Rule rule,
+      final List<ChangedFile> changedFiles,
+      final ReviewContentMode contentMode,
+      final ReviewPromptSupplements supplements
+  ) {
     final StringBuilder prompt = new StringBuilder();
     prompt.append("You are a specialized code review agent for the \"").append(rule.id()).append("\" ruleset.");
     prompt.append(System.lineSeparator());
@@ -31,8 +49,10 @@ public final class ReviewPromptBuilder {
       prompt.append("Review only the files below using the ruleset instructions.");
     }
     prompt.append(System.lineSeparator()).append(System.lineSeparator());
+    appendPromptSection(prompt, guardrailsFrom(supplements));
     prompt.append("## Ruleset Instructions").append(System.lineSeparator()).append(System.lineSeparator());
     prompt.append(rule.promptBody().trim()).append(System.lineSeparator()).append(System.lineSeparator());
+    appendPromptSection(prompt, outputFormatFrom(supplements));
     appendFiles(prompt, Map.of(), changedFiles, contentMode);
     return prompt.toString();
   }
@@ -42,6 +62,16 @@ public final class ReviewPromptBuilder {
       final ChangedFile file,
       final String question,
       final String reportText
+  ) {
+    return buildFollowUp(rule, file, question, reportText, null);
+  }
+
+  public static String buildFollowUp(
+      final Rule rule,
+      final ChangedFile file,
+      final String question,
+      final String reportText,
+      final ReviewPromptSupplements supplements
   ) {
     final ReviewContentMode contentMode = file.changeType() == ChangeType.EXISTING
         ? ReviewContentMode.FULL_FILE
@@ -53,6 +83,7 @@ public final class ReviewPromptBuilder {
         .append(fileContextLabel(contentMode))
         .append(".");
     prompt.append(System.lineSeparator()).append(System.lineSeparator());
+    appendPromptSection(prompt, guardrailsFrom(supplements));
     prompt.append("## Ruleset Instructions").append(System.lineSeparator()).append(System.lineSeparator());
     prompt.append(rule.promptBody().trim()).append(System.lineSeparator()).append(System.lineSeparator());
     prompt.append("## Prior Review Report").append(System.lineSeparator()).append(System.lineSeparator());
@@ -68,6 +99,15 @@ public final class ReviewPromptBuilder {
       final String question,
       final String reportText
   ) {
+    return buildGeneralFollowUp(file, question, reportText, null);
+  }
+
+  public static String buildGeneralFollowUp(
+      final ChangedFile file,
+      final String question,
+      final String reportText,
+      final ReviewPromptSupplements supplements
+  ) {
     final ReviewContentMode contentMode = file.changeType() == ChangeType.EXISTING
         ? ReviewContentMode.FULL_FILE
         : ReviewContentMode.DIFF;
@@ -78,6 +118,7 @@ public final class ReviewPromptBuilder {
         .append(fileContextLabel(contentMode))
         .append(" and prior review context.");
     prompt.append(System.lineSeparator()).append(System.lineSeparator());
+    appendPromptSection(prompt, guardrailsFrom(supplements));
     prompt.append("## Prior Review Report").append(System.lineSeparator()).append(System.lineSeparator());
     prompt.append(reportText.trim()).append(System.lineSeparator()).append(System.lineSeparator());
     prompt.append("## Follow-up Question").append(System.lineSeparator()).append(System.lineSeparator());
@@ -94,6 +135,22 @@ public final class ReviewPromptBuilder {
       final List<ChangedFile> changedFiles,
       final ReviewContentMode contentMode
   ) {
+    return buildGeneralFallback(changedFiles, contentMode, (ReviewPromptSupplements) null);
+  }
+
+  public static String buildGeneralFallback(
+      final List<ChangedFile> changedFiles,
+      final ReviewContentMode contentMode,
+      final String outputFormat
+  ) {
+    return buildGeneralFallback(changedFiles, contentMode, supplementsFromOutputFormat(outputFormat));
+  }
+
+  public static String buildGeneralFallback(
+      final List<ChangedFile> changedFiles,
+      final ReviewContentMode contentMode,
+      final ReviewPromptSupplements supplements
+  ) {
     final StringBuilder prompt = new StringBuilder();
     prompt.append("You are a general code review agent.");
     prompt.append(System.lineSeparator());
@@ -105,6 +162,8 @@ public final class ReviewPromptBuilder {
       prompt.append("No specialized rules matched these files. Review the diffs for correctness and clarity.");
     }
     prompt.append(System.lineSeparator()).append(System.lineSeparator());
+    appendPromptSection(prompt, guardrailsFrom(supplements));
+    appendPromptSection(prompt, outputFormatFrom(supplements));
     appendFiles(prompt, Map.of(), changedFiles, contentMode);
     return prompt.toString();
   }
@@ -205,5 +264,27 @@ public final class ReviewPromptBuilder {
 
   private static String fileContextLabel(final ReviewContentMode contentMode) {
     return contentMode == ReviewContentMode.FULL_FILE ? "file content" : "file diff";
+  }
+
+  private static void appendPromptSection(final StringBuilder prompt, final String section) {
+    if (section == null || section.isBlank()) {
+      return;
+    }
+    prompt.append(section.trim()).append(System.lineSeparator()).append(System.lineSeparator());
+  }
+
+  private static ReviewPromptSupplements supplementsFromOutputFormat(final String outputFormat) {
+    if (outputFormat == null) {
+      return null;
+    }
+    return new ReviewPromptSupplements("", outputFormat);
+  }
+
+  private static String guardrailsFrom(final ReviewPromptSupplements supplements) {
+    return supplements == null ? null : supplements.guardrails();
+  }
+
+  private static String outputFormatFrom(final ReviewPromptSupplements supplements) {
+    return supplements == null ? null : supplements.outputFormat();
   }
 }

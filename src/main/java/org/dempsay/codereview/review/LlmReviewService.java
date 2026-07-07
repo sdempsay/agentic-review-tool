@@ -76,6 +76,8 @@ public final class LlmReviewService {
       final ReviewProgress progress,
       final ReviewContentMode contentMode
   ) {
+    final ReviewPromptSupplements supplements =
+        ExceptionalSupport.response(ReviewPromptSupplements.load(config.rulesDir()));
     final List<ReviewResult> results = new ArrayList<>();
     for (final RulesetReviewTask task : tasks) {
       final long agentStart = System.currentTimeMillis();
@@ -86,8 +88,8 @@ public final class LlmReviewService {
       }
 
       final String prompt = task.isGeneralFallback()
-          ? ReviewPromptBuilder.buildGeneralFallback(task.files(), contentMode)
-          : ReviewPromptBuilder.buildForRuleset(task.rule(), task.files(), contentMode);
+          ? ReviewPromptBuilder.buildGeneralFallback(task.files(), contentMode, supplements)
+          : ReviewPromptBuilder.buildForRuleset(task.rule(), task.files(), contentMode, supplements);
       final String findings = StreamingLlmClient.complete(
           config.model(),
           config.maxTokens(),

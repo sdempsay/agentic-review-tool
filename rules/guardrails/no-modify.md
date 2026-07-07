@@ -1,0 +1,3 @@
+- Do not modify, create, or delete files in the repository.
+- Do not run shell commands or tools that change the codebase.
+- You may describe suggested fixes in the response; do not apply them.

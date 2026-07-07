@@ -2,6 +2,7 @@ package org.dempsay.codereview.review;
 
 import java.util.List;
 import org.dempsay.codereview.rules.Rule;
+import org.dempsay.codereview.support.ExceptionalSupport;
 
 public final class PromptBudgetEstimator {
 
@@ -16,7 +17,8 @@ public final class PromptBudgetEstimator {
   }
 
   public static int rulesetOverheadBytes(final Rule rule, final ReviewContentMode contentMode) {
-    return ReviewPromptBuilder.buildForRuleset(rule, List.of(), contentMode).length();
+    final ReviewPromptSupplements supplements = ExceptionalSupport.response(ReviewPromptSupplements.load(null));
+    return ReviewPromptBuilder.buildForRuleset(rule, List.of(), contentMode, supplements).length();
   }
 
   public static int generalOverheadBytes() {
@@ -24,7 +26,8 @@ public final class PromptBudgetEstimator {
   }
 
   public static int generalOverheadBytes(final ReviewContentMode contentMode) {
-    return ReviewPromptBuilder.buildGeneralFallback(List.of(), contentMode).length();
+    final ReviewPromptSupplements supplements = ExceptionalSupport.response(ReviewPromptSupplements.load(null));
+    return ReviewPromptBuilder.buildGeneralFallback(List.of(), contentMode, supplements).length();
   }
 
   /**
