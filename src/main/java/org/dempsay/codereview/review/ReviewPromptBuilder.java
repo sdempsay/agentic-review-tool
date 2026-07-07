@@ -12,6 +12,28 @@ public final class ReviewPromptBuilder {
   private ReviewPromptBuilder() {
   }
 
+  public static String buildForRuleset(final Rule rule, final List<ChangedFile> changedFiles) {
+    final StringBuilder prompt = new StringBuilder();
+    prompt.append("You are a specialized code review agent for the \"").append(rule.id()).append("\" ruleset.");
+    prompt.append(System.lineSeparator());
+    prompt.append("Review only the files below using the ruleset instructions.");
+    prompt.append(System.lineSeparator()).append(System.lineSeparator());
+    prompt.append("## Ruleset Instructions").append(System.lineSeparator()).append(System.lineSeparator());
+    prompt.append(rule.promptBody().trim()).append(System.lineSeparator()).append(System.lineSeparator());
+    appendChangedFiles(prompt, Map.of(), changedFiles);
+    return prompt.toString();
+  }
+
+  public static String buildGeneralFallback(final List<ChangedFile> changedFiles) {
+    final StringBuilder prompt = new StringBuilder();
+    prompt.append("You are a general code review agent.");
+    prompt.append(System.lineSeparator());
+    prompt.append("No specialized rules matched these files. Review the diffs for correctness and clarity.");
+    prompt.append(System.lineSeparator()).append(System.lineSeparator());
+    appendChangedFiles(prompt, Map.of(), changedFiles);
+    return prompt.toString();
+  }
+
   public static String build(final Map<String, List<Rule>> classification, final List<ChangedFile> changedFiles) {
     final StringBuilder prompt = new StringBuilder();
     prompt.append(

@@ -2,6 +2,7 @@
 
 ## 2026-07-07
 
+- Implemented per-ruleset specialized review sub-agents (task 14): `RulesetReviewPlanner` groups files by rule, one LLM call per ruleset via `ReviewPromptBuilder.buildForRuleset`, general fallback for unmatched files, `ReviewAggregator` combines output
 - Wired classified rules into LLM review prompt (task 13): `DiffCommand` loads rules, shows classification, `ReviewPromptBuilder` injects matched rule bodies; default `rulesDir` set to `~/.grok/rules`
 - Created `TODO.md` task tracker from `PRD.md` and current implementation state
 - Committed initial MVP implementation (ingest, classify, review scaffold, config, doctor, CI)

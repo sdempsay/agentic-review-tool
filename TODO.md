@@ -19,8 +19,8 @@ Task tracker for the Code Review Pipeline MVP (`PRD.md`).
 | 11 | Unit tests for ingest, classify, config, review | complete | `mvn verify` passes |
 | 12 | Commit initial implementation to git | complete | Initial MVP scaffold committed 2026-07-07 |
 | 13 | **Review** — wire classified rules into LLM prompt | complete | Loads `~/.grok/rules`, classifies, injects into prompt |
-| 14 | **Review** — per-ruleset specialized sub-agents | pending | **Next task** — PRD calls for Java formatting + style agents |
-| 15 | **Summarize** — aggregate findings, health score, recommendation | pending | Fourth pipeline stage |
+| 14 | **Review** — per-ruleset specialized sub-agents | complete | One LLM call per matched ruleset + general fallback |
+| 15 | **Summarize** — aggregate findings, health score, recommendation | pending | **Next task** — fourth pipeline stage |
 | 16 | Interactive terminal results viewer | pending | MVP CLI output enhancement |
 | 17 | Markdown report export (`--output`) | pending | MVP deliverable |
 | 18 | Create and maintain `ACTIONS.md` work log | complete | Created 2026-07-07 |

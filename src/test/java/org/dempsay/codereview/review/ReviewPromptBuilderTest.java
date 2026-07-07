@@ -60,6 +60,42 @@ public class ReviewPromptBuilderTest {
   }
 
   @Test
+  public void buildForRulesetIncludesOnlyRulesetInstructionsAndScopedFiles() {
+    final Rule javaRule = new Rule(
+        "java-general",
+        Path.of("/rules/java-general.md"),
+        List.of("**/*.java"),
+        "Check Java indentation and naming."
+    );
+    final String prompt = ReviewPromptBuilder.buildForRuleset(
+        javaRule,
+        List.of(
+            ChangedFile.included("src/App.java", ChangeType.MODIFIED, "+new line"),
+            ChangedFile.skipped("pom.xml", ChangeType.MODIFIED, "not in scope")
+        )
+    );
+
+    assertTrue(prompt.contains("specialized code review agent for the \"java-general\" ruleset"));
+    assertTrue(prompt.contains("Check Java indentation and naming."));
+    assertTrue(prompt.contains("src/App.java"));
+    assertTrue(prompt.contains("+new line"));
+    assertTrue(prompt.contains("pom.xml"));
+    assertTrue(prompt.contains("not in scope"));
+  }
+
+  @Test
+  public void buildGeneralFallbackUsesGenericInstructions() {
+    final String prompt = ReviewPromptBuilder.buildGeneralFallback(
+        List.of(ChangedFile.included("README.md", ChangeType.MODIFIED, "+docs"))
+    );
+
+    assertTrue(prompt.contains("general code review agent"));
+    assertTrue(prompt.contains("No specialized rules matched these files"));
+    assertTrue(prompt.contains("README.md"));
+    assertTrue(prompt.contains("+docs"));
+  }
+
+  @Test
   public void buildPromptDeduplicatesRulesAcrossFiles() {
     final Rule javaRule = new Rule(
         "java-general",
