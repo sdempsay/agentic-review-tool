@@ -150,7 +150,8 @@ public class ReviewPromptBuilderTest {
             8000,
             512,
             256,
-            0
+            0,
+            List.of()
         ),
         List.of(),
         List.of(ChangedFile.skipped("image.png", ChangeType.ADDED, "Binary file")),

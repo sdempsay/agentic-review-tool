@@ -8,6 +8,7 @@ public record RepoIngestRequest(
     int maxFileKb,
     List<String> pathGlobs,
     List<String> includeExtensions,
+    List<String> configExcludeExtensions,
     List<String> excludeExtensions
 ) {
 
@@ -22,11 +23,12 @@ public record RepoIngestRequest(
     }
     pathGlobs = List.copyOf(pathGlobs == null ? List.of() : pathGlobs);
     includeExtensions = List.copyOf(includeExtensions == null ? List.of() : includeExtensions);
+    configExcludeExtensions = List.copyOf(configExcludeExtensions == null ? List.of() : configExcludeExtensions);
     excludeExtensions = List.copyOf(excludeExtensions == null ? List.of() : excludeExtensions);
   }
 
   public static RepoIngestRequest of(final Path repoRoot, final int maxFileKb) {
-    return new RepoIngestRequest(repoRoot, maxFileKb, List.of(), List.of(), List.of());
+    return new RepoIngestRequest(repoRoot, maxFileKb, List.of(), List.of(), List.of(), List.of());
   }
 
   public List<String> resolvedExcludeExtensions() {
@@ -34,6 +36,7 @@ public record RepoIngestRequest(
       return normalizeExtensions(excludeExtensions);
     }
     final java.util.LinkedHashSet<String> merged = new java.util.LinkedHashSet<>(DEFAULT_EXCLUDE_EXTENSIONS);
+    merged.addAll(normalizeExtensions(configExcludeExtensions));
     merged.addAll(normalizeExtensions(excludeExtensions));
     return List.copyOf(merged);
   }

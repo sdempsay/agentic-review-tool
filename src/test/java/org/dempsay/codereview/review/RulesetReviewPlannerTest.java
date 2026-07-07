@@ -85,7 +85,8 @@ public class RulesetReviewPlannerTest {
         8000,
         512,
         1,
-        0
+        0,
+        List.of()
     );
 
     final List<RulesetReviewTask> tasks = RulesetReviewPlanner.plan(

@@ -197,6 +197,7 @@ public class RepoCommand implements Runnable {
         config.maxDiffKb(),
         pathGlobs == null ? List.of() : pathGlobs,
         includeExtensions == null ? List.of() : includeExtensions,
+        config.repoExcludeExtensions(),
         excludeExtensions == null ? List.of() : excludeExtensions
     );
   }

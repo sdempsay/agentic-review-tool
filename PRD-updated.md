@@ -84,8 +84,8 @@ whose extension is in the built-in deny list:**
 Users can widen scope with `--path` or `--include-ext`. Additional skips via
 `--exclude-ext`.
 
-Future config option (task 20e): `repoExcludeExtensions` in `config.json` to extend the
-default deny list without flags.
+`repoExcludeExtensions` in `config.json` extends the default deny list (`.md`, `.json`)
+without CLI flags. Values merge with `--exclude-ext` when no `--include-ext` is set.
 
 ### Ingest behaviour
 

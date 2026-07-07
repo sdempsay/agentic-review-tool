@@ -19,7 +19,8 @@ public class AgentBatchLimitsTest {
         8000,
         512,
         256,
-        0
+        0,
+        List.of()
     );
     final Rule rule = new Rule("java-general", null, List.of("**/*.java"), "Rules");
 

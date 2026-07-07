@@ -25,6 +25,7 @@ public class RepoPathFilterTest {
         512,
         List.of(),
         List.of(".md"),
+        List.of(),
         List.of()
     );
 
@@ -38,6 +39,7 @@ public class RepoPathFilterTest {
         Path.of("."),
         512,
         List.of("src/**"),
+        List.of(),
         List.of(),
         List.of()
     );
@@ -53,10 +55,28 @@ public class RepoPathFilterTest {
         512,
         List.of(),
         List.of(),
+        List.of(),
         List.of(".xml")
     );
 
     assertTrue(RepoPathFilter.exclusionReason("pom.xml", request).isPresent());
     assertTrue(RepoPathFilter.exclusionReason("README.md", request).isPresent());
+  }
+
+  @Test
+  public void configExcludeExtensionsExtendDefaultDenyList() {
+    final RepoIngestRequest request = new RepoIngestRequest(
+        Path.of("."),
+        512,
+        List.of(),
+        List.of(),
+        List.of(".xml", ".yaml"),
+        List.of()
+    );
+
+    assertTrue(RepoPathFilter.exclusionReason("pom.xml", request).isPresent());
+    assertTrue(RepoPathFilter.exclusionReason("config.yaml", request).isPresent());
+    assertTrue(RepoPathFilter.exclusionReason("README.md", request).isPresent());
+    assertFalse(RepoPathFilter.exclusionReason("src/App.java", request).isPresent());
   }
 }

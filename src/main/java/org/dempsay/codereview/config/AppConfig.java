@@ -1,6 +1,7 @@
 package org.dempsay.codereview.config;
 
 import java.nio.file.Path;
+import java.util.List;
 
 public record AppConfig(
     ModelConfig model,
@@ -8,6 +9,10 @@ public record AppConfig(
     int maxTokens,
     int maxDiffKb,
     int maxAgentDiffKb,
-    int maxFilesPerAgent
+    int maxFilesPerAgent,
+    List<String> repoExcludeExtensions
 ) {
+  public AppConfig {
+    repoExcludeExtensions = List.copyOf(repoExcludeExtensions == null ? List.of() : repoExcludeExtensions);
+  }
 }

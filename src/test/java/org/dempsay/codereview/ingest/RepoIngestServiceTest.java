@@ -41,12 +41,29 @@ public class RepoIngestServiceTest {
     Files.writeString(repoRoot.resolve("visible.java"), "class Visible {}\n");
 
     final var files = ExceptionalSupport.response(
-        RepoIngestService.ingest(new RepoIngestRequest(repoRoot, 512, List.of(), List.of(".java"), List.of()))
+        RepoIngestService.ingest(new RepoIngestRequest(repoRoot, 512, List.of(), List.of(".java"), List.of(), List.of()))
     );
 
     assertEquals(1, files.size());
     assertEquals("visible.java", files.get(0).path());
     assertFalse(files.stream().anyMatch(file -> "ignored.java".equals(file.path())));
+  }
+
+  @Test
+  public void ingestAppliesConfigExcludeExtensions() throws Exception {
+    final Path repoRoot = initGitRepo();
+    Files.writeString(repoRoot.resolve("App.java"), "class App {}\n");
+    Files.writeString(repoRoot.resolve("pom.xml"), "<project/>\n");
+    Files.writeString(repoRoot.resolve("config.yaml"), "key: value\n");
+
+    final var files = ExceptionalSupport.response(
+        RepoIngestService.ingest(
+            new RepoIngestRequest(repoRoot, 512, List.of(), List.of(), List.of(".xml", ".yaml"), List.of())
+        )
+    );
+
+    assertEquals(1, files.size());
+    assertEquals("App.java", files.get(0).path());
   }
 
   @Test
@@ -72,7 +89,7 @@ public class RepoIngestServiceTest {
     Files.writeString(repoRoot.resolve("other.java"), "class Other {}\n");
 
     final var files = ExceptionalSupport.response(
-        RepoIngestService.ingest(new RepoIngestRequest(repoRoot, 512, List.of("src/**"), List.of(), List.of()))
+        RepoIngestService.ingest(new RepoIngestRequest(repoRoot, 512, List.of("src/**"), List.of(), List.of(), List.of()))
     );
 
     assertEquals(1, files.size());

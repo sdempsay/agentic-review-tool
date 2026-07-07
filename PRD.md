@@ -27,6 +27,7 @@ Commercial code review tools using frontier models incur high costs due to large
 ### In Scope (MVP)
 - CLI tool (`code-review` command).
 - Differential review using Git diffs.
+- Full repository review (`code-review repo`) — tracked + untracked files, gitignore-safe.
 - Model configuration via simple JSON.
 - Dynamic rules loaded from directory with YAML frontmatter (`paths` globs).
 - Java formatting and style review agents.
@@ -34,7 +35,6 @@ Commercial code review tools using frontier models incur high costs due to large
 - Basic summarization and recommendation.
 
 ### Out of Scope (MVP)
-- Full repository review (Phase 2).
 - Auto-fix suggestions.
 - Direct GitLab MCP comment posting.
 - Advanced RAG over entire codebase.
@@ -168,6 +168,7 @@ context window on large commits.
 | `maxAgentDiffKb` | Max combined diff KB sent per ruleset agent call | `256` |
 | `maxFilesPerAgent` | Optional file-count cap per agent call (0 = unlimited) | `0` |
 | `maxTokens` | Model generation token limit | `8000` |
+| `repoExcludeExtensions` | Extra file extensions skipped by `code-review repo` (merged with built-in `.md`/`.json`) | `[]` |
 
 `maxAgentDiffKb` is the primary context cap for batching. `maxFilesPerAgent` is a
 secondary guard for many small files. Both are user-configurable.
@@ -184,7 +185,8 @@ secondary guard for many small files. Both are user-configurable.
   "maxTokens": 8000,
   "maxDiffKb": 512,
   "maxAgentDiffKb": 256,
-  "maxFilesPerAgent": 0
+  "maxFilesPerAgent": 0,
+  "repoExcludeExtensions": [".xml", ".yaml"]
 }
 ```
 

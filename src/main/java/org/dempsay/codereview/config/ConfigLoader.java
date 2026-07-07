@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import org.dempsay.codereview.support.ExceptionalSupport;
 import org.dempsay.utils.exceptional.api.ExceptionalResource;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
@@ -94,7 +96,31 @@ public final class ConfigLoader {
     final int maxDiffKb = root.path("maxDiffKb").asInt(512);
     final int maxAgentDiffKb = root.path("maxAgentDiffKb").asInt(256);
     final int maxFilesPerAgent = root.path("maxFilesPerAgent").asInt(0);
-    return new AppConfig(model, expandHome(rulesDir), maxTokens, maxDiffKb, maxAgentDiffKb, maxFilesPerAgent);
+    final List<String> repoExcludeExtensions = readStringList(root, "repoExcludeExtensions");
+    return new AppConfig(
+        model,
+        expandHome(rulesDir),
+        maxTokens,
+        maxDiffKb,
+        maxAgentDiffKb,
+        maxFilesPerAgent,
+        repoExcludeExtensions
+    );
+  }
+
+  private static List<String> readStringList(final JsonNode root, final String field) {
+    final JsonNode node = root.path(field);
+    if (!node.isArray()) {
+      return List.of();
+    }
+
+    final List<String> values = new ArrayList<>();
+    for (final JsonNode item : node) {
+      if (item.isTextual() && !item.asText().isBlank()) {
+        values.add(item.asText());
+      }
+    }
+    return List.copyOf(values);
   }
 
   private static String optionalText(final JsonNode node, final String field) {

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import org.dempsay.codereview.support.ExceptionalSupport;
 import org.junit.Test;
 
@@ -42,6 +43,32 @@ public class ConfigLoaderTest {
     assertEquals(512, appConfig.maxDiffKb());
     assertEquals(256, appConfig.maxAgentDiffKb());
     assertEquals(0, appConfig.maxFilesPerAgent());
+    assertTrue(appConfig.repoExcludeExtensions().isEmpty());
+  }
+
+  @Test
+  public void loadRepoExcludeExtensionsFromConfig() throws Exception {
+    final Path config = Files.createTempFile("code-review-repo-excludes", ".json");
+    Files.writeString(
+        config,
+        """
+        {
+          "model": {
+            "provider": "ollama",
+            "name": "llama3.2",
+            "temperature": 0.2,
+            "baseUrl": "http://127.0.0.1:11434",
+            "timeoutSeconds": 90
+          },
+          "rulesDir": "~/custom-rules",
+          "repoExcludeExtensions": [".xml", "yaml", ".yml"]
+        }
+        """
+    );
+
+    final AppConfig appConfig = ExceptionalSupport.response(ConfigLoader.load(config));
+
+    assertEquals(List.of(".xml", "yaml", ".yml"), appConfig.repoExcludeExtensions());
   }
 
   @Test
@@ -55,6 +82,7 @@ public class ConfigLoaderTest {
     assertEquals(512, appConfig.maxDiffKb());
     assertEquals(256, appConfig.maxAgentDiffKb());
     assertEquals(0, appConfig.maxFilesPerAgent());
+    assertTrue(appConfig.repoExcludeExtensions().isEmpty());
   }
 
   @Test
