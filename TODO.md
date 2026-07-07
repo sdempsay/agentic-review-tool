@@ -22,7 +22,7 @@ Task tracker for the Code Review Pipeline MVP (`PRD.md`).
 | 14 | **Review** — per-ruleset specialized sub-agents | complete | One LLM call per matched ruleset + general fallback |
 | 15 | **Summarize** — aggregate findings, health score, recommendation | complete | Summarizer agent: health score, recommendation, top actions |
 | 16 | Interactive terminal results viewer | pending | **Next task** — MVP CLI output enhancement |
-| 17 | Markdown report export (`--output`) | pending | MVP deliverable |
+| 17 | Markdown report export (`--output`) | complete | Ingest + classification + review; works with `--dry-run` |
 | 18 | Create and maintain `ACTIONS.md` work log | complete | Created 2026-07-07 |
 
 ## Future / Out of Scope (MVP)

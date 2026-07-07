@@ -2,6 +2,7 @@
 
 ## 2026-07-07
 
+- Added Markdown report export via `--output` (task 17): `MarkdownReportBuilder`, `ReportExporter`; includes ingest, classification, and review sections
 - Implemented **Summarize** stage (task 15): `LlmSummarizeService` aggregates agent findings into health score, recommendation, summary, and top actions; `ReviewReportComposer` outputs agent reviews + summary sections
 - Documented configurable ruleset batch context caps (`maxAgentDiffKb`, `maxFilesPerAgent`) in `PRD.md`; added `TODO.md` task 27
 - Added Enhanced CLI Experience requirements to `PRD.md` (live progress, per-agent/file status, streaming thinking); captured in `PRD-updated.md` and `TODO.md` task 26

@@ -13,6 +13,7 @@ import org.dempsay.codereview.rules.Rule;
 import org.dempsay.codereview.rules.RulesClassifier;
 import org.dempsay.codereview.rules.RulesEngine;
 import org.dempsay.codereview.support.FailureCapture;
+import org.dempsay.utils.exceptional.api.ExceptionalListener;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -48,6 +49,12 @@ public class DiffCommand implements Runnable {
   )
   private String baseRef;
 
+  @Option(
+      names = "--output",
+      description = "Write the full report to this Markdown file path"
+  )
+  private Path outputPath;
+
   @Override
   public void run() {
     final FailureCapture failures = new FailureCapture();
@@ -60,13 +67,14 @@ public class DiffCommand implements Runnable {
         .chain((listener, config) -> RulesEngine.load(config.rulesDir(), listener)
             .chain((rulesListener, rules) -> GitIngestService.ingest(buildIngestRequest(config))
                 .chain((ingestListener, changedFiles) -> {
+                  final Map<String, List<Rule>> classification = classify(rules, changedFiles);
                   IngestSummaryRenderer.render(changedFiles);
-                  renderClassification(rules, changedFiles);
+                  DryRunRenderer.render(classification);
                   return LlmReviewService.review(config, rules, changedFiles)
                       .chain((reviewListener, reviewText) -> {
                         System.out.println();
                         System.out.println(reviewText);
-                        return ExceptionalResponse.success(Boolean.TRUE);
+                        return writeReportIfRequested(reviewText, changedFiles, classification, ingestListener);
                       }, ingestListener);
                 }, rulesListener), listener), failures.listener());
   }
@@ -76,9 +84,28 @@ public class DiffCommand implements Runnable {
         .chain((listener, config) -> RulesEngine.load(config.rulesDir(), listener)
             .chain((rulesListener, rules) -> GitIngestService.ingest(buildIngestRequest(config))
                 .chain((ingestListener, changedFiles) -> {
-                  renderClassification(rules, changedFiles);
-                  return ExceptionalResponse.success(Boolean.TRUE);
+                  final Map<String, List<Rule>> classification = classify(rules, changedFiles);
+                  DryRunRenderer.render(classification);
+                  return writeReportIfRequested(null, changedFiles, classification, ingestListener);
                 }, rulesListener), listener), failures.listener());
+  }
+
+  private ExceptionalResponse<Boolean> writeReportIfRequested(
+      final String reviewText,
+      final List<ChangedFile> changedFiles,
+      final Map<String, List<Rule>> classification,
+      final ExceptionalListener listener
+  ) {
+    if (outputPath == null) {
+      return ExceptionalResponse.success(Boolean.TRUE);
+    }
+
+    final String markdown = MarkdownReportBuilder.build(describeScope(), changedFiles, classification, reviewText);
+    return ReportExporter.write(outputPath, markdown, listener)
+        .chain((writeListener, writtenPath) -> {
+          System.out.println("Report written to: " + writtenPath);
+          return ExceptionalResponse.success(Boolean.TRUE);
+        }, listener);
   }
 
   private IngestRequest buildIngestRequest(final AppConfig config) {
@@ -92,9 +119,18 @@ public class DiffCommand implements Runnable {
     return IngestRequest.uncommitted(repoRoot, config.maxDiffKb());
   }
 
-  private static void renderClassification(final List<Rule> rules, final List<ChangedFile> changedFiles) {
+  private String describeScope() {
+    if (staged) {
+      return "staged changes";
+    }
+    if (baseRef != null && !baseRef.isBlank()) {
+      return "changes against " + baseRef;
+    }
+    return "uncommitted changes";
+  }
+
+  private static Map<String, List<Rule>> classify(final List<Rule> rules, final List<ChangedFile> changedFiles) {
     final List<String> filePaths = changedFiles.stream().map(ChangedFile::path).toList();
-    final Map<String, List<Rule>> matches = RulesClassifier.classify(rules, filePaths);
-    DryRunRenderer.render(matches);
+    return RulesClassifier.classify(rules, filePaths);
   }
 }
