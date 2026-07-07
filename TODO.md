@@ -31,7 +31,7 @@ Task tracker for the Code Review Pipeline MVP (`PRD.md`).
 |----|------|--------|-------|
 | 19 | OpenRouter model provider | pending | Mentioned in PRD overview; not in MVP config example |
 | 20 | Full repository review (`code-review repo`) | pending | Phase 2; tracked + untracked (gitignore-safe); default skip `.md`/`.json` |
-| 20a | **Repo ingest** — `RepoIngestService`, tracked + untracked via `git ls-files` / `--others --exclude-standard`, default ext filter | pending | `--dry-run` on `repo`; dedupe; skip binary / over `maxDiffKb` |
+| 20a | **Repo ingest** — `RepoIngestService`, tracked + untracked via `git ls-files` / `--others --exclude-standard`, default ext filter | complete | `code-review repo`; `RepoPathFilter`; default skip `.md`/`.json` |
 | 20b | **Review** — full-file `ReviewPromptBuilder` mode + wire `LlmReviewService` | pending | Reuse ruleset planner + Ollama batch caps |
 | 20c | **CLI** — `RepoCommand` end-to-end, `--path` / `--exclude-ext`, report export | pending | Mirror `DiffCommand` orchestration |
 | 20d | **Summarize** — repo-level health, hotspots, cross-cutting findings | pending | Two-pass rollup optional |

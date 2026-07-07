@@ -4,5 +4,6 @@ public enum ChangeType {
   ADDED,
   MODIFIED,
   DELETED,
-  RENAMED
+  RENAMED,
+  EXISTING
 }

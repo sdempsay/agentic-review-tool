@@ -6,7 +6,7 @@ import picocli.CommandLine.Command;
 @Command(
     name = "code-review",
     description = "Cost-effective agentic code review pipeline",
-    subcommands = {DiffCommand.class, DoctorCommand.class},
+    subcommands = {DiffCommand.class, RepoCommand.class, DoctorCommand.class},
     mixinStandardHelpOptions = true
 )
 public class CodeReviewCommand implements Runnable {
