@@ -2,6 +2,7 @@
 
 ## 2026-07-07
 
+- Documented Phase 2 full repository review (task 20) in `PRD-updated.md`: `code-review repo`, tracked + untracked ingest via `git ls-files --others --exclude-standard`, default exclusions for `.md`/`.json`; split into TODO 20a–20e
 - Added project `AGENTS.md` with mandatory exceptional error-handling rules, reference classes, and try/catch allowlist
 - Implemented soft/hard batch caps: `maxAgentDiffKb` soft target, Ollama `num_ctx` hard limit via `OllamaModelInspector`; `AgentBatchLimits`, `PromptBudgetEstimator`; context warnings in `ReviewProgress` and `doctor`
 - Refactored `OllamaModelInspector` to exceptional pattern (`fetchContextTokens` / `resolveContextTokens` with `wasError()` fallback)

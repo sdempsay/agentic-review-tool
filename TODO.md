@@ -30,7 +30,12 @@ Task tracker for the Code Review Pipeline MVP (`PRD.md`).
 | ID | Task | Status | Notes |
 |----|------|--------|-------|
 | 19 | OpenRouter model provider | pending | Mentioned in PRD overview; not in MVP config example |
-| 20 | Full repository review | pending | Phase 2 |
+| 20 | Full repository review (`code-review repo`) | pending | Phase 2; tracked + untracked (gitignore-safe); default skip `.md`/`.json` |
+| 20a | **Repo ingest** — `RepoIngestService`, tracked + untracked via `git ls-files` / `--others --exclude-standard`, default ext filter | pending | `--dry-run` on `repo`; dedupe; skip binary / over `maxDiffKb` |
+| 20b | **Review** — full-file `ReviewPromptBuilder` mode + wire `LlmReviewService` | pending | Reuse ruleset planner + Ollama batch caps |
+| 20c | **CLI** — `RepoCommand` end-to-end, `--path` / `--exclude-ext`, report export | pending | Mirror `DiffCommand` orchestration |
+| 20d | **Summarize** — repo-level health, hotspots, cross-cutting findings | pending | Two-pass rollup optional |
+| 20e | **Config** — `repoExcludeExtensions` in `config.json`; update `PRD.md` §3 | pending | Extend default deny list beyond `.md`, `.json` |
 | 21 | Auto-fix suggestions | pending | Out of scope for MVP |
 | 22 | GitLab MCP comment posting | pending | Out of scope for MVP |
 | 23 | Advanced RAG over codebase | pending | Out of scope for MVP |
