@@ -107,27 +107,45 @@ public final class ModelHealthChecker {
       final ModelConfig model,
       final ExceptionalListener listener
   ) {
-    final String apiKey = ChatModelFactory.requireApiKey(model);
-    final URI modelsUri = URI.create(model.resolveBaseUrl() + "/models");
-    final HttpRequest request = HttpRequest.newBuilder(modelsUri)
-        .timeout(Duration.ofSeconds(10))
-        .header("Authorization", "Bearer " + apiKey)
-        .GET()
-        .build();
+    return resolveOpenRouterApiKey(model, listener)
+        .chain((keyListener, apiKey) -> {
+          final URI modelsUri = URI.create(model.resolveBaseUrl() + "/models");
+          final HttpRequest request = HttpRequest.newBuilder(modelsUri)
+              .timeout(Duration.ofSeconds(10))
+              .header("Authorization", "Bearer " + apiKey)
+              .GET()
+              .build();
 
-    return ExceptionalSupport.supply(() -> HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString()), listener)
-        .chain((httpListener, response) -> {
-          if (response.statusCode() != 200) {
-            return ExceptionalSupport.fail(
-                httpListener,
-                new IllegalStateException(
-                    "OpenRouter health check failed: HTTP " + response.statusCode() + " from " + modelsUri
-                )
-            );
-          }
-          return ExceptionalSupport.supply(() -> MAPPER.readTree(response.body()), httpListener)
-              .chain((parseListener, root) -> validateOpenRouterModel(model, root, httpListener), httpListener);
+          return ExceptionalSupport.supply(() -> HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString()), keyListener)
+              .chain((httpListener, response) -> {
+                if (response.statusCode() != 200) {
+                  return ExceptionalSupport.fail(
+                      httpListener,
+                      new IllegalStateException(
+                          "OpenRouter health check failed: HTTP " + response.statusCode() + " from " + modelsUri
+                      )
+                  );
+                }
+                return ExceptionalSupport.supply(() -> MAPPER.readTree(response.body()), httpListener)
+                    .chain((parseListener, root) -> validateOpenRouterModel(model, root, httpListener), httpListener);
+              }, keyListener);
         }, listener);
+  }
+
+  private static ExceptionalResponse<String> resolveOpenRouterApiKey(
+      final ModelConfig model,
+      final ExceptionalListener listener
+  ) {
+    final String apiKey = model.resolveApiKey();
+    if (apiKey == null || apiKey.isBlank()) {
+      return ExceptionalSupport.fail(
+          listener,
+          new IllegalArgumentException(
+              "OpenRouter API key is required. Set OPENROUTER_API_KEY or model.apiKey in config.json"
+          )
+      );
+    }
+    return ExceptionalResponse.success(apiKey);
   }
 
   private static ExceptionalResponse<HealthReport> validateOpenRouterModel(

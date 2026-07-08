@@ -25,11 +25,19 @@ final class GitRunner {
   }
 
   static ExceptionalResponse<Boolean> hasCommits(final Path repoRoot, final ExceptionalListener listener) {
-    return run(repoRoot, "rev-parse", "HEAD")
+    return run(repoRoot, listener, "rev-parse", "HEAD")
         .chain((runListener, result) -> ExceptionalResponse.success(result.exitCode() == 0), listener);
   }
 
   static ExceptionalResponse<GitResult> run(final Path repoRoot, final String... command) {
+    return run(repoRoot, null, command);
+  }
+
+  static ExceptionalResponse<GitResult> run(
+      final Path repoRoot,
+      final ExceptionalListener listener,
+      final String... command
+  ) {
     return ExceptionalSupport.supply(() -> {
       final List<String> gitCommand = new ArrayList<>();
       gitCommand.add("git");
@@ -55,7 +63,7 @@ final class GitRunner {
       }
       final int exitCode = process.waitFor();
       return new GitResult(exitCode, output.toString());
-    });
+    }, listener);
   }
 
   static ExceptionalResponse<List<String>> runLines(final Path repoRoot, final String... command) {
@@ -67,7 +75,7 @@ final class GitRunner {
       final ExceptionalListener listener,
       final String... command
   ) {
-    return run(repoRoot, command)
+    return run(repoRoot, listener, command)
         .chain((runListener, result) -> {
           if (result.exitCode() != 0) {
             return ExceptionalSupport.fail(

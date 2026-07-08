@@ -13,6 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.dempsay.codereview.config.ModelConfig;
 import org.dempsay.codereview.support.ExceptionalSupport;
+import org.dempsay.utils.exceptional.api.ExceptionalListener;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
 public final class OllamaModelInspector {
@@ -27,22 +28,37 @@ public final class OllamaModelInspector {
   }
 
   public static ExceptionalResponse<Integer> fetchContextTokens(final ModelConfig model) {
+    return fetchContextTokens(model, null);
+  }
+
+  public static ExceptionalResponse<Integer> fetchContextTokens(
+      final ModelConfig model,
+      final ExceptionalListener listener
+  ) {
+    final URI showUri = URI.create(model.resolveBaseUrl() + "/api/show");
     return ExceptionalSupport.supply(() -> {
-      final URI showUri = URI.create(model.resolveBaseUrl() + "/api/show");
       final String requestBody = MAPPER.writeValueAsString(Map.of("model", model.name()));
       final HttpRequest request = HttpRequest.newBuilder(showUri)
           .timeout(Duration.ofSeconds(10))
           .header("Content-Type", "application/json")
           .POST(HttpRequest.BodyPublishers.ofString(requestBody))
           .build();
-      final HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
-      if (response.statusCode() != 200) {
-        throw new IllegalStateException(
-            "Ollama /api/show failed: HTTP " + response.statusCode() + " from " + showUri
-        );
-      }
-      return parseContextTokens(MAPPER.readTree(response.body()));
-    });
+      return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+    }, listener)
+        .chain((httpListener, response) -> {
+          if (response.statusCode() != 200) {
+            return ExceptionalSupport.fail(
+                httpListener,
+                new IllegalStateException(
+                    "Ollama /api/show failed: HTTP " + response.statusCode() + " from " + showUri
+                )
+            );
+          }
+          return ExceptionalSupport.supply(
+              () -> parseContextTokens(MAPPER.readTree(response.body())),
+              httpListener
+          );
+        }, listener);
   }
 
   /**

@@ -52,7 +52,7 @@ public final class GitIngestService {
           if (!hasCommits) {
             return appendUntrackedFiles(request.repoRoot(), files, maxDiffBytes, hasCommitsListener);
           }
-          return GitRunner.run(request.repoRoot(), "diff", "HEAD")
+          return GitRunner.run(request.repoRoot(), hasCommitsListener, "diff", "HEAD")
               .chain((diffListener, result) -> {
                 addParsedDiff(files, result.output(), maxDiffBytes);
                 return appendUntrackedFiles(request.repoRoot(), files, maxDiffBytes, hasCommitsListener);
@@ -104,7 +104,7 @@ public final class GitIngestService {
       final ExceptionalListener listener,
       final String... gitDiffCommand
   ) {
-    return GitRunner.run(request.repoRoot(), gitDiffCommand)
+    return GitRunner.run(request.repoRoot(), listener, gitDiffCommand)
         .chain((runListener, result) -> {
           if (result.exitCode() != 0) {
             return ExceptionalSupport.fail(
@@ -147,7 +147,7 @@ public final class GitIngestService {
       );
     }
 
-    return GitRunner.run(repoRoot, "diff", "--no-index", DEV_NULL, path)
+    return GitRunner.run(repoRoot, listener, "diff", "--no-index", DEV_NULL, path)
         .chain((diffListener, diffResult) -> {
           if (diffResult.exitCode() > 1) {
             return ExceptionalSupport.fail(
