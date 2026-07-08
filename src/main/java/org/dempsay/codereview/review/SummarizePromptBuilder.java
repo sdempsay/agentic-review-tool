@@ -3,15 +3,38 @@ package org.dempsay.codereview.review;
 import java.util.List;
 import org.dempsay.codereview.ingest.ChangedFile;
 
+/**
+ * Builds the LLM prompt for the summarize stage.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class SummarizePromptBuilder {
 
   private SummarizePromptBuilder() {
   }
 
+  /**
+   * Builds a prompt or report from the given inputs.
+   * 
+   * @param agentResults the agentResults
+   * @param changedFiles the changedFiles
+   * @return the result
+   * @since 1.0.0
+ */
   public static String build(final List<ReviewResult> agentResults, final List<ChangedFile> changedFiles) {
     return build(agentResults, changedFiles, ReviewContentMode.resolve(changedFiles));
   }
 
+  /**
+   * Builds a prompt or report from the given inputs.
+   * 
+   * @param agentResults the agentResults
+   * @param changedFiles the changedFiles
+   * @param contentMode the contentMode
+   * @return the result
+   * @since 1.0.0
+ */
   public static String build(
       final List<ReviewResult> agentResults,
       final List<ChangedFile> changedFiles,
@@ -20,6 +43,16 @@ public final class SummarizePromptBuilder {
     return build(agentResults, changedFiles, contentMode, null);
   }
 
+  /**
+   * Builds a prompt or report from the given inputs.
+   * 
+   * @param agentResults the agentResults
+   * @param changedFiles the changedFiles
+   * @param contentMode the contentMode
+   * @param guardrails the guardrails
+   * @return the result
+   * @since 1.0.0
+ */
   public static String build(
       final List<ReviewResult> agentResults,
       final List<ChangedFile> changedFiles,

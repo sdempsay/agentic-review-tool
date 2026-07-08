@@ -12,6 +12,8 @@ import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 /**
  * Loads shared review-agent output instructions from {@code review-output-format.md}.
  * Resolves {@code rulesDir/review-output-format.md} first, then the bundled classpath copy.
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
  */
 public final class ReviewOutputFormatLoader {
 
@@ -21,10 +23,25 @@ public final class ReviewOutputFormatLoader {
   private ReviewOutputFormatLoader() {
   }
 
+  /**
+   * Loads configuration or resources.
+   * 
+   * @param rulesDir the rulesDir
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<String> load(final Path rulesDir) {
     return load(rulesDir, null);
   }
 
+  /**
+   * Loads configuration or resources.
+   * 
+   * @param rulesDir the rulesDir
+   * @param listener the listener
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<String> load(final Path rulesDir, final ExceptionalListener listener) {
     if (rulesDir != null) {
       final Path file = rulesDir.resolve(FILE_NAME);

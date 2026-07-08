@@ -4,17 +4,41 @@ import java.nio.file.Path;
 import org.dempsay.utils.exceptional.api.ExceptionalListener;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
-/** Shared prompt fragments loaded from the rules directory (guardrails, output format). */
+/** Shared prompt fragments loaded from the rules directory (guardrails, output format).
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public record ReviewPromptSupplements(String guardrails, String outputFormat) {
 
+  /**
+   * Returns empty prompt supplements.
+   * 
+   * @return the result
+   * @since 1.0.0
+ */
   public static ReviewPromptSupplements empty() {
     return new ReviewPromptSupplements("", "");
   }
 
+  /**
+   * Loads configuration or resources.
+   * 
+   * @param rulesDir the rulesDir
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<ReviewPromptSupplements> load(final Path rulesDir) {
     return load(rulesDir, null);
   }
 
+  /**
+   * Loads configuration or resources.
+   * 
+   * @param rulesDir the rulesDir
+   * @param listener the listener
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<ReviewPromptSupplements> load(
       final Path rulesDir,
       final ExceptionalListener listener

@@ -4,11 +4,25 @@ import java.util.List;
 import java.util.Optional;
 import org.dempsay.codereview.rules.PathGlobMatcher;
 
+/**
+ * Applies path and extension filters during repo ingest.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class RepoPathFilter {
 
   private RepoPathFilter() {
   }
 
+  /**
+   * Returns the reason a path is excluded, if any.
+   * 
+   * @param path the path
+   * @param request the request
+   * @return the result
+   * @since 1.0.0
+ */
   public static Optional<String> exclusionReason(final String path, final RepoIngestRequest request) {
     if (!matchesPathGlobs(path, request.pathGlobs())) {
       return Optional.of("Outside --path scope");

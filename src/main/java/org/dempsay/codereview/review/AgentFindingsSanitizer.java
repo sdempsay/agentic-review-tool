@@ -1,5 +1,11 @@
 package org.dempsay.codereview.review;
 
+/**
+ * Prepares agent output for the summarize stage.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class AgentFindingsSanitizer {
 
   private AgentFindingsSanitizer() {
@@ -9,7 +15,8 @@ public final class AgentFindingsSanitizer {
    * Prepares agent output for the summarize stage. When an agent lists findings and later
    * retracts them (re-evaluation note, invalid markers) but ends with {@code ## Clean},
    * only the clean verdict is passed through.
-   */
+   * @since 1.0.0
+ */
   public static String forSummarize(final String findings) {
     if (findings == null || findings.isBlank()) {
       return findings;

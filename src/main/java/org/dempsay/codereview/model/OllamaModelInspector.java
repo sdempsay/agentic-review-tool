@@ -16,6 +16,12 @@ import org.dempsay.codereview.support.ExceptionalSupport;
 import org.dempsay.utils.exceptional.api.ExceptionalListener;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
+/**
+ * Queries Ollama for model context window size.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class OllamaModelInspector {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -27,10 +33,25 @@ public final class OllamaModelInspector {
   private OllamaModelInspector() {
   }
 
+  /**
+   * Fetches configured Ollama context tokens ({@code num_ctx}).
+   * 
+   * @param model the model
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<Integer> fetchContextTokens(final ModelConfig model) {
     return fetchContextTokens(model, null);
   }
 
+  /**
+   * Fetches configured Ollama context tokens ({@code num_ctx}).
+   * 
+   * @param model the model
+   * @param listener the listener
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<Integer> fetchContextTokens(
       final ModelConfig model,
       final ExceptionalListener listener
@@ -63,7 +84,8 @@ public final class OllamaModelInspector {
 
   /**
    * Returns configured Ollama context tokens ({@code num_ctx}), or {@code 0} when unavailable.
-   */
+   * @since 1.0.0
+ */
   public static int resolveContextTokens(final ModelConfig model) {
     if (!"ollama".equalsIgnoreCase(model.provider())) {
       return 0;

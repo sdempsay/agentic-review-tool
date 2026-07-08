@@ -15,6 +15,12 @@ import picocli.CommandLine.Option;
     description = "Check configuration and LLM connectivity",
     mixinStandardHelpOptions = true
 )
+/**
+ * Checks configuration and LLM connectivity.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public class DoctorCommand implements Runnable {
 
   @Option(
@@ -24,6 +30,11 @@ public class DoctorCommand implements Runnable {
   private Path configPath;
 
   @Override
+  /**
+   * Executes this command.
+   * 
+   * @since 1.0.0
+ */
   public void run() {
     final FailureCapture failures = new FailureCapture();
     final ExceptionalResponse<Boolean> outcome = ConfigLoader.load(configPath, failures.listener())

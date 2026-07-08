@@ -17,6 +17,8 @@ import org.dempsay.utils.exceptional.api.ExceptionalResponse;
  * Loads review-agent guardrails from {@code rulesDir/guardrails/*.md}.
  * When that directory exists, only those files are used (even if empty).
  * Otherwise falls back to bundled classpath guardrails.
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
  */
 public final class ReviewGuardrailsLoader {
 
@@ -29,10 +31,25 @@ public final class ReviewGuardrailsLoader {
   private ReviewGuardrailsLoader() {
   }
 
+  /**
+   * Loads configuration or resources.
+   * 
+   * @param rulesDir the rulesDir
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<String> load(final Path rulesDir) {
     return load(rulesDir, null);
   }
 
+  /**
+   * Loads configuration or resources.
+   * 
+   * @param rulesDir the rulesDir
+   * @param listener the listener
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<String> load(final Path rulesDir, final ExceptionalListener listener) {
     if (rulesDir != null) {
       final Path guardrailsDir = rulesDir.resolve(SUBDIRECTORY);

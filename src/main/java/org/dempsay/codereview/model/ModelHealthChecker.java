@@ -12,6 +12,12 @@ import org.dempsay.codereview.support.ExceptionalSupport;
 import org.dempsay.utils.exceptional.api.ExceptionalListener;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
+/**
+ * Verifies LLM provider connectivity and model availability.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class ModelHealthChecker {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -22,10 +28,25 @@ public final class ModelHealthChecker {
   private ModelHealthChecker() {
   }
 
+  /**
+   * Checks provider connectivity and model availability.
+   * 
+   * @param model the model
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<HealthReport> check(final ModelConfig model) {
     return check(model, null);
   }
 
+  /**
+   * Checks provider connectivity and model availability.
+   * 
+   * @param model the model
+   * @param listener the listener
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<HealthReport> check(
       final ModelConfig model,
       final ExceptionalListener listener
@@ -181,6 +202,16 @@ public final class ModelHealthChecker {
     );
   }
 
+  /**
+   * Result of a model health check.
+   *
+   * @param provider configured provider name
+   * @param modelName configured model name
+   * @param baseUrl resolved provider base URL
+   * @param message human-readable status message
+   * @since 1.0.0
+   * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+   */
   public record HealthReport(String provider, String modelName, String baseUrl, String message) {
   }
 }

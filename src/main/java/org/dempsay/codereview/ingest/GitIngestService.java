@@ -11,6 +11,12 @@ import org.dempsay.utils.exceptional.api.ExceptionalListener;
 import org.dempsay.utils.exceptional.api.ExceptionalResource;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
+/**
+ * Ingests changed files from a git repository.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class GitIngestService {
 
   private static final String DEV_NULL = "/dev/null";
@@ -18,10 +24,25 @@ public final class GitIngestService {
   private GitIngestService() {
   }
 
+  /**
+   * Ingests files according to the request.
+   * 
+   * @param request the request
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<List<ChangedFile>> ingest(final IngestRequest request) {
     return ingest(request, null);
   }
 
+  /**
+   * Ingests files according to the request.
+   * 
+   * @param request the request
+   * @param listener the listener
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<List<ChangedFile>> ingest(
       final IngestRequest request,
       final ExceptionalListener listener

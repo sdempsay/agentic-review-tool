@@ -5,11 +5,24 @@ import java.util.ArrayList;
 import java.util.List;
 import org.dempsay.codereview.config.ModelConfig;
 
+/**
+ * Accumulates per-call and total token usage during a review.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class LlmTokenLedger {
 
   private final List<CallUsage> calls = new ArrayList<>();
   private TokenUsage total = new TokenUsage(0, 0, 0);
 
+  /**
+   * Records token usage for a labeled LLM call.
+   * 
+   * @param label the label
+   * @param usage the usage
+   * @since 1.0.0
+ */
   public void record(final String label, final TokenUsage usage) {
     final TokenUsage normalized = LlmTokenUsageExtractor.normalize(usage);
     if (!LlmTokenUsageExtractor.hasUsage(normalized)) {
@@ -24,18 +37,43 @@ public final class LlmTokenLedger {
     total = total.add(normalized);
   }
 
+  /**
+   * Returns whether any LLM calls were recorded.
+   * 
+   * @return the result
+   * @since 1.0.0
+ */
   public boolean isEmpty() {
     return calls.isEmpty();
   }
 
+  /**
+   * Returns recorded per-call token usage.
+   * 
+   * @return the result
+   * @since 1.0.0
+ */
   public List<CallUsage> calls() {
     return List.copyOf(calls);
   }
 
+  /**
+   * Returns cumulative token usage.
+   * 
+   * @return the result
+   * @since 1.0.0
+ */
   public TokenUsage total() {
     return total;
   }
 
+  /**
+   * Formats token usage for the review report.
+   * 
+   * @param model the model
+   * @return the result
+   * @since 1.0.0
+ */
   public String formatReportSection(final ModelConfig model) {
     if (isEmpty()) {
       return "";
@@ -58,6 +96,13 @@ public final class LlmTokenLedger {
     return section.toString().trim();
   }
 
+  /**
+   * Formats token usage for progress output.
+   * 
+   * @param model the model
+   * @return the result
+   * @since 1.0.0
+ */
   public String formatProgressSummary(final ModelConfig model) {
     if (isEmpty()) {
       return "[Tokens] No usage reported by provider";
@@ -80,6 +125,16 @@ public final class LlmTokenLedger {
         + " total";
   }
 
+  /**
+   * Token usage for a single LLM call.
+   *
+   * @param label call label shown in reports
+   * @param inputTokens input tokens consumed
+   * @param outputTokens output tokens generated
+   * @param totalTokens total tokens reported by the provider
+   * @since 1.0.0
+   * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+   */
   public record CallUsage(String label, int inputTokens, int outputTokens, int totalTokens) {
   }
 }

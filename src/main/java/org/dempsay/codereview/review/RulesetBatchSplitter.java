@@ -4,18 +4,45 @@ import java.util.ArrayList;
 import java.util.List;
 import org.dempsay.codereview.ingest.ChangedFile;
 
+/**
+ * Splits files into batches that fit agent diff caps.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class RulesetBatchSplitter {
 
   private RulesetBatchSplitter() {
   }
 
+  /**
+   * A batch of files and whether it exceeds the context cap.
+   *
+   * @param files files in this batch
+   * @param exceedsContextCap whether combined diff exceeds the hard context cap
+   * @since 1.0.0
+   * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+   */
   public record BatchChunk(List<ChangedFile> files, boolean exceedsContextCap) {
 
+    /**
+     * Defensive copy of batch files.
+     *
+     * @since 1.0.0
+     */
     public BatchChunk {
       files = List.copyOf(files);
     }
   }
 
+  /**
+   * Splits files into batches within agent diff caps.
+   * 
+   * @param files the files
+   * @param limits the limits
+   * @return the result
+   * @since 1.0.0
+ */
   public static List<BatchChunk> split(
       final List<ChangedFile> files,
       final AgentBatchLimits limits
@@ -59,6 +86,15 @@ public final class RulesetBatchSplitter {
     return List.copyOf(batches);
   }
 
+  /**
+   * Splits files into batches within agent diff caps.
+   * 
+   * @param files the files
+   * @param maxAgentDiffKb the maxAgentDiffKb
+   * @param maxFilesPerAgent the maxFilesPerAgent
+   * @return the result
+   * @since 1.0.0
+ */
   public static List<List<ChangedFile>> split(
       final List<ChangedFile> files,
       final int maxAgentDiffKb,

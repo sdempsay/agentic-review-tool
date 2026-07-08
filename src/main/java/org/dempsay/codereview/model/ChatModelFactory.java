@@ -8,11 +8,25 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import org.dempsay.codereview.config.ModelConfig;
 
+/**
+ * Creates langchain4j chat models from configuration.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class ChatModelFactory {
 
   private ChatModelFactory() {
   }
 
+  /**
+   * Creates a progress reporter for the given verbosity.
+   * 
+   * @param model the model
+   * @param maxTokens the maxTokens
+   * @return the result
+   * @since 1.0.0
+ */
   public static ChatModel create(final ModelConfig model, final int maxTokens) {
     if (model.isOllama()) {
       return OllamaChatModel.builder()
@@ -29,10 +43,25 @@ public final class ChatModelFactory {
     throw new IllegalArgumentException("Unsupported model provider: " + model.provider());
   }
 
+  /**
+   * Returns whether the provider supports streaming completion.
+   * 
+   * @param model the model
+   * @return the result
+   * @since 1.0.0
+ */
   public static boolean supportsStreaming(final ModelConfig model) {
     return model.isOllama() || model.isOpenRouter();
   }
 
+  /**
+   * Create streaming.
+   * 
+   * @param model the model
+   * @param maxTokens the maxTokens
+   * @return the result
+   * @since 1.0.0
+ */
   public static StreamingChatModel createStreaming(final ModelConfig model, final int maxTokens) {
     if (model.isOllama()) {
       return OllamaStreamingChatModel.builder()

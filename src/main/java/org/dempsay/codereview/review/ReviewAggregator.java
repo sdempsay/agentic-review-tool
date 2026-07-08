@@ -2,11 +2,24 @@ package org.dempsay.codereview.review;
 
 import java.util.List;
 
+/**
+ * Combines agent review results into one text block.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class ReviewAggregator {
 
   private ReviewAggregator() {
   }
 
+  /**
+   * Aggregates agent review results into one text block.
+   * 
+   * @param results the results
+   * @return the result
+   * @since 1.0.0
+ */
   public static String aggregate(final List<ReviewResult> results) {
     if (results.isEmpty()) {
       return "No reviewable diffs found.";

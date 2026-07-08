@@ -10,15 +10,36 @@ import org.dempsay.codereview.support.ExceptionalSupport;
 import org.dempsay.utils.exceptional.api.ExceptionalListener;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
+/**
+ * Ingests reviewable files from a git repository.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class RepoIngestService {
 
   private RepoIngestService() {
   }
 
+  /**
+   * Ingests files according to the request.
+   * 
+   * @param request the request
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<List<ChangedFile>> ingest(final RepoIngestRequest request) {
     return ingest(request, null);
   }
 
+  /**
+   * Ingests files according to the request.
+   * 
+   * @param request the request
+   * @param listener the listener
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<List<ChangedFile>> ingest(
       final RepoIngestRequest request,
       final ExceptionalListener listener

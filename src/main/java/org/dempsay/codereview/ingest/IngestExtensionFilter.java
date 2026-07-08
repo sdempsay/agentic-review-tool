@@ -4,7 +4,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 
-/** Shared default extension exclusions for diff and repo ingest. */
+/** Shared default extension exclusions for diff and repo ingest.
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class IngestExtensionFilter {
 
   public static final List<String> DEFAULT_EXCLUDE_EXTENSIONS = List.of(".md", ".json");
@@ -12,10 +15,27 @@ public final class IngestExtensionFilter {
   private IngestExtensionFilter() {
   }
 
+  /**
+   * Returns the default exclusion reason for a path, if any.
+   * 
+   * @param path the path
+   * @return the result
+   * @since 1.0.0
+ */
   public static Optional<String> defaultExclusionReason(final String path) {
     return exclusionReason(path, List.of(), List.of(), List.of());
   }
 
+  /**
+   * Returns the reason a path is excluded, if any.
+   * 
+   * @param path the path
+   * @param includeExtensions the includeExtensions
+   * @param configExcludeExtensions the configExcludeExtensions
+   * @param cliExcludeExtensions the cliExcludeExtensions
+   * @return the result
+   * @since 1.0.0
+ */
   public static Optional<String> exclusionReason(
       final String path,
       final List<String> includeExtensions,
@@ -37,6 +57,14 @@ public final class IngestExtensionFilter {
     return Optional.empty();
   }
 
+  /**
+   * Returns merged exclude extensions for ingest.
+   * 
+   * @param configExcludeExtensions the configExcludeExtensions
+   * @param cliExcludeExtensions the cliExcludeExtensions
+   * @return the result
+   * @since 1.0.0
+ */
   public static List<String> resolvedExcludeExtensions(
       final List<String> configExcludeExtensions,
       final List<String> cliExcludeExtensions

@@ -3,11 +3,23 @@ package org.dempsay.codereview.cli;
 import java.util.List;
 import org.dempsay.codereview.ingest.ChangedFile;
 
+/**
+ * Prints ingest statistics to stdout.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class IngestSummaryRenderer {
 
   private IngestSummaryRenderer() {
   }
 
+  /**
+   * Renders output to stdout.
+   * 
+   * @param changedFiles the changedFiles
+   * @since 1.0.0
+ */
   public static void render(final List<ChangedFile> changedFiles) {
     final long included = changedFiles.stream().filter(ChangedFile::included).count();
     final long skipped = changedFiles.size() - included;

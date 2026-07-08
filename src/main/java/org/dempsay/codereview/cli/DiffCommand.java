@@ -24,6 +24,12 @@ import picocli.CommandLine.Option;
     description = "Review uncommitted changes (staged + unstaged)",
     mixinStandardHelpOptions = true
 )
+/**
+ * Reviews uncommitted, staged, or base-ref git changes.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public class DiffCommand implements Runnable {
 
   @Option(
@@ -81,6 +87,11 @@ public class DiffCommand implements Runnable {
   private boolean verbose;
 
   @Override
+  /**
+   * Executes this command.
+   * 
+   * @since 1.0.0
+ */
   public void run() {
     final FailureCapture failures = new FailureCapture();
     final ExceptionalResponse<Boolean> outcome = dryRun ? runDryRun(failures) : runLlmReview(failures);

@@ -8,15 +8,38 @@ import org.dempsay.codereview.ingest.ChangeType;
 import org.dempsay.codereview.ingest.ChangedFile;
 import org.dempsay.codereview.rules.Rule;
 
+/**
+ * Builds LLM prompts for agent and follow-up reviews.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class ReviewPromptBuilder {
 
   private ReviewPromptBuilder() {
   }
 
+  /**
+   * Builds a review prompt for a ruleset and files.
+   * 
+   * @param rule the rule
+   * @param changedFiles the changedFiles
+   * @return the result
+   * @since 1.0.0
+ */
   public static String buildForRuleset(final Rule rule, final List<ChangedFile> changedFiles) {
     return buildForRuleset(rule, changedFiles, ReviewContentMode.resolve(changedFiles));
   }
 
+  /**
+   * Builds a review prompt for a ruleset and files.
+   * 
+   * @param rule the rule
+   * @param changedFiles the changedFiles
+   * @param contentMode the contentMode
+   * @return the result
+   * @since 1.0.0
+ */
   public static String buildForRuleset(
       final Rule rule,
       final List<ChangedFile> changedFiles,
@@ -25,6 +48,16 @@ public final class ReviewPromptBuilder {
     return buildForRuleset(rule, changedFiles, contentMode, (ReviewPromptSupplements) null);
   }
 
+  /**
+   * Builds a review prompt for a ruleset and files.
+   * 
+   * @param rule the rule
+   * @param changedFiles the changedFiles
+   * @param contentMode the contentMode
+   * @param outputFormat the outputFormat
+   * @return the result
+   * @since 1.0.0
+ */
   public static String buildForRuleset(
       final Rule rule,
       final List<ChangedFile> changedFiles,
@@ -34,6 +67,16 @@ public final class ReviewPromptBuilder {
     return buildForRuleset(rule, changedFiles, contentMode, supplementsFromOutputFormat(outputFormat));
   }
 
+  /**
+   * Builds a review prompt for a ruleset and files.
+   * 
+   * @param rule the rule
+   * @param changedFiles the changedFiles
+   * @param contentMode the contentMode
+   * @param supplements the supplements
+   * @return the result
+   * @since 1.0.0
+ */
   public static String buildForRuleset(
       final Rule rule,
       final List<ChangedFile> changedFiles,
@@ -59,6 +102,16 @@ public final class ReviewPromptBuilder {
     return prompt.toString();
   }
 
+  /**
+   * Builds a follow-up prompt for a ruleset and file.
+   * 
+   * @param rule the rule
+   * @param file the file
+   * @param question the question
+   * @param reportText the reportText
+   * @return the result
+   * @since 1.0.0
+ */
   public static String buildFollowUp(
       final Rule rule,
       final ChangedFile file,
@@ -68,6 +121,17 @@ public final class ReviewPromptBuilder {
     return buildFollowUp(rule, file, question, reportText, null);
   }
 
+  /**
+   * Builds a follow-up prompt for a ruleset and file.
+   * 
+   * @param rule the rule
+   * @param file the file
+   * @param question the question
+   * @param reportText the reportText
+   * @param supplements the supplements
+   * @return the result
+   * @since 1.0.0
+ */
   public static String buildFollowUp(
       final Rule rule,
       final ChangedFile file,
@@ -96,6 +160,15 @@ public final class ReviewPromptBuilder {
     return prompt.toString();
   }
 
+  /**
+   * Builds a general follow-up prompt for a file.
+   * 
+   * @param file the file
+   * @param question the question
+   * @param reportText the reportText
+   * @return the result
+   * @since 1.0.0
+ */
   public static String buildGeneralFollowUp(
       final ChangedFile file,
       final String question,
@@ -104,6 +177,16 @@ public final class ReviewPromptBuilder {
     return buildGeneralFollowUp(file, question, reportText, null);
   }
 
+  /**
+   * Builds a general follow-up prompt for a file.
+   * 
+   * @param file the file
+   * @param question the question
+   * @param reportText the reportText
+   * @param supplements the supplements
+   * @return the result
+   * @since 1.0.0
+ */
   public static String buildGeneralFollowUp(
       final ChangedFile file,
       final String question,
@@ -129,10 +212,25 @@ public final class ReviewPromptBuilder {
     return prompt.toString();
   }
 
+  /**
+   * Builds a general fallback review prompt.
+   * 
+   * @param changedFiles the changedFiles
+   * @return the result
+   * @since 1.0.0
+ */
   public static String buildGeneralFallback(final List<ChangedFile> changedFiles) {
     return buildGeneralFallback(changedFiles, ReviewContentMode.resolve(changedFiles));
   }
 
+  /**
+   * Builds a general fallback review prompt.
+   * 
+   * @param changedFiles the changedFiles
+   * @param contentMode the contentMode
+   * @return the result
+   * @since 1.0.0
+ */
   public static String buildGeneralFallback(
       final List<ChangedFile> changedFiles,
       final ReviewContentMode contentMode
@@ -140,6 +238,15 @@ public final class ReviewPromptBuilder {
     return buildGeneralFallback(changedFiles, contentMode, (ReviewPromptSupplements) null);
   }
 
+  /**
+   * Builds a general fallback review prompt.
+   * 
+   * @param changedFiles the changedFiles
+   * @param contentMode the contentMode
+   * @param outputFormat the outputFormat
+   * @return the result
+   * @since 1.0.0
+ */
   public static String buildGeneralFallback(
       final List<ChangedFile> changedFiles,
       final ReviewContentMode contentMode,
@@ -148,6 +255,15 @@ public final class ReviewPromptBuilder {
     return buildGeneralFallback(changedFiles, contentMode, supplementsFromOutputFormat(outputFormat));
   }
 
+  /**
+   * Builds a general fallback review prompt.
+   * 
+   * @param changedFiles the changedFiles
+   * @param contentMode the contentMode
+   * @param supplements the supplements
+   * @return the result
+   * @since 1.0.0
+ */
   public static String buildGeneralFallback(
       final List<ChangedFile> changedFiles,
       final ReviewContentMode contentMode,
@@ -170,6 +286,14 @@ public final class ReviewPromptBuilder {
     return prompt.toString();
   }
 
+  /**
+   * Builds a prompt or report from the given inputs.
+   * 
+   * @param classification the classification
+   * @param changedFiles the changedFiles
+   * @return the result
+   * @since 1.0.0
+ */
   public static String build(final Map<String, List<Rule>> classification, final List<ChangedFile> changedFiles) {
     final ReviewContentMode contentMode = ReviewContentMode.resolve(changedFiles);
     final StringBuilder prompt = new StringBuilder();

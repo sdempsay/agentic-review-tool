@@ -39,7 +39,7 @@ When reviewing files whose paths end in `.java.ftl`:
 ## 1. Javadoc
 
 - Flag missing Javadoc only on **new public** types and **new public** methods introduced on **`+` lines**
-- New public API should include `@since` and `@author Name {@literal <email@domain>}`
+- New public API should include `@since 1.0.0` (first-release baseline; use the introducing release version after 1.0.0 ships) and `@author Shawn Dempsay {@literal <shawn@dempsay.org>}`
 - Document parameters and return values on non-obvious public methods
 - Only require `@return` when behavior is not obvious from the signature
 - Do not require Javadoc on private helpers, package-private types, tests, or trivial one-line changes

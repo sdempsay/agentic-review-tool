@@ -2,6 +2,7 @@
 
 ## 2026-07-08
 
+- Version convention: `pom.xml` → `1.1.0-SNAPSHOT`; Javadoc `@since 1.0.0` + `@author` on all public API (64 types); `java-javadoc.md` and `AGENTS.md` document the baseline
 - Added `samples/diff-discipline-small/` — checked-in Ollama report for commit `3bc265e` (3 Java files, APPROVE_WITH_NITS); `reproduce.sh` checks out the commit and runs `diff --base 3bc265e^`; README sample excerpt
 - Added witty `README.md` for GitHub engagement — quick start, agent cast, config, diff discipline, rules authoring
 - Added `reviewMaxTokens` config (default 4096): caps per-call LLM output for agent review, summarize, and chat; batch budgeting reserves `resolvedReviewMaxTokens()` instead of full `maxTokens`; bundled `maxTokens` 24000 unchanged for backward-compat fallback

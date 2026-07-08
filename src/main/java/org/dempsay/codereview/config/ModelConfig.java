@@ -2,6 +2,12 @@ package org.dempsay.codereview.config;
 
 import java.time.Duration;
 
+/**
+ * LLM provider configuration.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public record ModelConfig(
     String provider,
     String name,
@@ -16,6 +22,12 @@ public record ModelConfig(
   private static final String OPENROUTER_API_KEY_ENV = "OPENROUTER_API_KEY";
   private static final int DEFAULT_TIMEOUT_SECONDS = 300;
 
+  /**
+   * Resolves the provider base URL with defaults.
+   * 
+   * @return the result
+   * @since 1.0.0
+ */
   public String resolveBaseUrl() {
     if (baseUrl != null && !baseUrl.isBlank()) {
       return baseUrl;
@@ -26,6 +38,12 @@ public record ModelConfig(
     return DEFAULT_OLLAMA_BASE_URL;
   }
 
+  /**
+   * Resolves the API key from config or environment.
+   * 
+   * @return the result
+   * @since 1.0.0
+ */
   public String resolveApiKey() {
     final String configured = resolveEnvReference(apiKey);
     if (configured != null && !configured.isBlank()) {
@@ -37,15 +55,33 @@ public record ModelConfig(
     return null;
   }
 
+  /**
+   * Resolves the HTTP timeout as a duration.
+   * 
+   * @return the result
+   * @since 1.0.0
+ */
   public Duration resolveTimeout() {
     final int seconds = timeoutSeconds > 0 ? timeoutSeconds : DEFAULT_TIMEOUT_SECONDS;
     return Duration.ofSeconds(seconds);
   }
 
+  /**
+   * Returns whether the provider is Ollama.
+   * 
+   * @return the result
+   * @since 1.0.0
+ */
   public boolean isOllama() {
     return "ollama".equalsIgnoreCase(provider);
   }
 
+  /**
+   * Returns whether the provider is OpenRouter.
+   * 
+   * @return the result
+   * @since 1.0.0
+ */
   public boolean isOpenRouter() {
     return "openrouter".equalsIgnoreCase(provider);
   }

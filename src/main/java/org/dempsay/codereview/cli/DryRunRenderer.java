@@ -4,11 +4,23 @@ import java.util.List;
 import java.util.Map;
 import org.dempsay.codereview.rules.Rule;
 
+/**
+ * Prints rule classification without calling the LLM.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class DryRunRenderer {
 
   private DryRunRenderer() {
   }
 
+  /**
+   * Renders output to stdout.
+   * 
+   * @param matches the matches
+   * @since 1.0.0
+ */
   public static void render(final Map<String, List<Rule>> matches) {
     if (matches.isEmpty()) {
       System.out.println("No changed files detected.");

@@ -13,6 +13,12 @@ import org.dempsay.utils.exceptional.api.ExceptionalListener;
 import org.dempsay.utils.exceptional.api.ExceptionalResource;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
+/**
+ * Loads review rules from a directory or bundled classpath resources.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class RulesEngine {
 
   private static final List<String> BUNDLED_RULE_RESOURCES = List.of(
@@ -26,10 +32,25 @@ public final class RulesEngine {
   private RulesEngine() {
   }
 
+  /**
+   * Loads configuration or resources.
+   * 
+   * @param rulesDir the rulesDir
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<List<Rule>> load(final Path rulesDir) {
     return load(rulesDir, null);
   }
 
+  /**
+   * Loads configuration or resources.
+   * 
+   * @param rulesDir the rulesDir
+   * @param listener the listener
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<List<Rule>> load(
       final Path rulesDir,
       final ExceptionalListener listener

@@ -9,15 +9,36 @@ import org.dempsay.codereview.support.ExceptionalSupport;
 import org.dempsay.utils.exceptional.api.ExceptionalListener;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
+/**
+ * Interactive follow-up chat after a review.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class ReviewChatLoop {
 
   private ReviewChatLoop() {
   }
 
+  /**
+   * Executes this command.
+   * 
+   * @param session the session
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<Void> run(final ReviewSessionContext session) {
     return run(session, null);
   }
 
+  /**
+   * Executes this command.
+   * 
+   * @param session the session
+   * @param listener the listener
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<Void> run(
       final ReviewSessionContext session,
       final ExceptionalListener listener
@@ -48,10 +69,25 @@ public final class ReviewChatLoop {
     }, loadListener), listener);
   }
 
+  /**
+   * Returns whether the input ends the chat loop.
+   * 
+   * @param input the input
+   * @return the result
+   * @since 1.0.0
+ */
   public static boolean isExit(final String input) {
     return "exit".equalsIgnoreCase(input) || "quit".equalsIgnoreCase(input);
   }
 
+  /**
+   * Returns whether follow-up chat should run.
+   * 
+   * @param chatFlag the chatFlag
+   * @param noChat the noChat
+   * @return the result
+   * @since 1.0.0
+ */
   public static boolean shouldEnable(final Boolean chatFlag, final boolean noChat) {
     if (noChat) {
       return false;

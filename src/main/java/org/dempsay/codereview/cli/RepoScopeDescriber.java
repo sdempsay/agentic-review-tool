@@ -2,11 +2,26 @@ package org.dempsay.codereview.cli;
 
 import java.util.List;
 
+/**
+ * Describes repo review scope for reports.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class RepoScopeDescriber {
 
   private RepoScopeDescriber() {
   }
 
+  /**
+   * Describes the repo review scope.
+   * 
+   * @param pathGlobs the pathGlobs
+   * @param includeExtensions the includeExtensions
+   * @param excludeExtensions the excludeExtensions
+   * @return the result
+   * @since 1.0.0
+ */
   public static String describe(
       final List<String> pathGlobs,
       final List<String> includeExtensions,

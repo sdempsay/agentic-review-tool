@@ -11,6 +11,12 @@ import java.util.Optional;
 import org.dempsay.codereview.ingest.ChangedFile;
 import org.dempsay.codereview.model.ChatModelFactory;
 import org.dempsay.codereview.rules.Rule;
+/**
+ * Routes follow-up chat to specialized agents or the report.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class ReviewChatOrchestrator {
 
   private final ReviewSessionContext session;
@@ -18,6 +24,13 @@ public final class ReviewChatOrchestrator {
   private final List<ChatMessage> conversation;
   private final ReviewPromptSupplements supplements;
 
+  /**
+   * Creates a new ReviewChatOrchestrator.
+   * 
+   * @param session the session
+   * @param supplements the supplements
+   * @since 1.0.0
+ */
   public ReviewChatOrchestrator(final ReviewSessionContext session, final ReviewPromptSupplements supplements) {
     this.session = session;
     this.chatModel = ChatModelFactory.create(
@@ -31,6 +44,13 @@ public final class ReviewChatOrchestrator {
     ));
   }
 
+  /**
+   * Responds to a follow-up chat message.
+   * 
+   * @param userMessage the userMessage
+   * @return the result
+   * @since 1.0.0
+ */
   public String respond(final String userMessage) {
     final Optional<DelegationTarget> delegation = resolveDelegation(userMessage);
     if (delegation.isPresent()) {

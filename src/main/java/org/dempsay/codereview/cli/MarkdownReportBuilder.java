@@ -6,11 +6,27 @@ import java.util.Map;
 import org.dempsay.codereview.ingest.ChangedFile;
 import org.dempsay.codereview.rules.Rule;
 
+/**
+ * Builds a Markdown report from review output.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class MarkdownReportBuilder {
 
   private MarkdownReportBuilder() {
   }
 
+  /**
+   * Builds a prompt or report from the given inputs.
+   * 
+   * @param scopeDescription the scopeDescription
+   * @param changedFiles the changedFiles
+   * @param classification the classification
+   * @param reviewBody the reviewBody
+   * @return the result
+   * @since 1.0.0
+ */
   public static String build(
       final String scopeDescription,
       final List<ChangedFile> changedFiles,

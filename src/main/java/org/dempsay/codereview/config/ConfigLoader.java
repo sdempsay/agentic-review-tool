@@ -12,6 +12,12 @@ import org.dempsay.utils.exceptional.api.ExceptionalListener;
 import org.dempsay.utils.exceptional.api.ExceptionalResource;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
+/**
+ * Loads and parses application configuration.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class ConfigLoader {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -21,10 +27,25 @@ public final class ConfigLoader {
   private ConfigLoader() {
   }
 
+  /**
+   * Loads configuration or resources.
+   * 
+   * @param explicitConfigPath the explicitConfigPath
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<AppConfig> load(final Path explicitConfigPath) {
     return load(explicitConfigPath, null);
   }
 
+  /**
+   * Loads configuration or resources.
+   * 
+   * @param explicitConfigPath the explicitConfigPath
+   * @param listener the listener
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<AppConfig> load(
       final Path explicitConfigPath,
       final ExceptionalListener listener
@@ -34,6 +55,13 @@ public final class ConfigLoader {
         .chain((readListener, root) -> ExceptionalResponse.success(toAppConfig(root)), listener);
   }
 
+  /**
+   * Describes which config file was loaded.
+   * 
+   * @param explicitConfigPath the explicitConfigPath
+   * @return the result
+   * @since 1.0.0
+ */
   public static String describeSource(final Path explicitConfigPath) {
     if (explicitConfigPath != null) {
       return explicitConfigPath.toAbsolutePath().toString();

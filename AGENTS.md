@@ -2,6 +2,11 @@
 
 Project-specific rules for agents working in this repository. Global rules in `~/.grok/AGENTS.md` also apply.
 
+## Versioning
+
+- **Maven:** `1.1.0-SNAPSHOT` in `pom.xml` (development after the 1.0.0 release line)
+- **Javadoc `@since`:** `1.0.0` on all first-release public API; bump `@since` only when adding API in a later release
+
 ## Session start
 
 - Read `TODO.md` for task status

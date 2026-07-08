@@ -24,6 +24,12 @@ import picocli.CommandLine.Option;
     description = "Review repository files (tracked + untracked, gitignore-safe)",
     mixinStandardHelpOptions = true
 )
+/**
+ * Reviews repository files (tracked and untracked).
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public class RepoCommand implements Runnable {
 
   @Option(
@@ -87,6 +93,11 @@ public class RepoCommand implements Runnable {
   private boolean verbose;
 
   @Override
+  /**
+   * Executes this command.
+   * 
+   * @since 1.0.0
+ */
   public void run() {
     final FailureCapture failures = new FailureCapture();
     final ExceptionalResponse<Boolean> outcome = dryRun ? runDryRun(failures) : runLlmReview(failures);

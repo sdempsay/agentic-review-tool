@@ -7,6 +7,12 @@ import java.util.List;
 import java.util.Map;
 import org.dempsay.codereview.ingest.ChangedFile;
 
+/**
+ * Identifies directories with the most reviewable files.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class RepoHotspotAnalyzer {
 
   private static final int DEFAULT_DEPTH = 2;
@@ -15,10 +21,26 @@ public final class RepoHotspotAnalyzer {
   private RepoHotspotAnalyzer() {
   }
 
+  /**
+   * Returns top hotspot directories by reviewable file count.
+   * 
+   * @param changedFiles the changedFiles
+   * @return the result
+   * @since 1.0.0
+ */
   public static List<HotspotArea> topAreas(final List<ChangedFile> changedFiles) {
     return topAreas(changedFiles, DEFAULT_DEPTH, DEFAULT_LIMIT);
   }
 
+  /**
+   * Returns top hotspot directories by reviewable file count.
+   * 
+   * @param changedFiles the changedFiles
+   * @param pathDepth the pathDepth
+   * @param limit the limit
+   * @return the result
+   * @since 1.0.0
+ */
   public static List<HotspotArea> topAreas(
       final List<ChangedFile> changedFiles,
       final int pathDepth,
@@ -61,6 +83,14 @@ public final class RepoHotspotAnalyzer {
     return String.join("/", prefix);
   }
 
+  /**
+   * A directory area and its reviewable file count.
+   *
+   * @param path directory path prefix
+   * @param reviewableFiles number of reviewable files in this area
+   * @since 1.0.0
+   * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+   */
   public record HotspotArea(String path, int reviewableFiles) {
   }
 }

@@ -5,6 +5,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Matches review rules to file paths.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class RulesClassifier {
 
   private RulesClassifier() {
@@ -24,6 +30,14 @@ public final class RulesClassifier {
     return matches;
   }
 
+  /**
+   * Classifies rules that match a single file path.
+   * 
+   * @param rules the rules
+   * @param filePath the filePath
+   * @return the result
+   * @since 1.0.0
+ */
   public static List<Rule> classifyFile(final List<Rule> rules, final String filePath) {
     final List<Rule> matchedRules = new ArrayList<>();
     for (final Rule rule : rules) {

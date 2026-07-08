@@ -9,6 +9,12 @@ import org.dempsay.codereview.config.AppConfig;
 import org.dempsay.codereview.ingest.ChangedFile;
 import org.dempsay.codereview.rules.Rule;
 
+/**
+ * Plans batched review tasks per ruleset.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class RulesetReviewPlanner {
 
   private record PlanOptions(
@@ -24,6 +30,15 @@ public final class RulesetReviewPlanner {
   private RulesetReviewPlanner() {
   }
 
+  /**
+   * Plans batched review tasks for rules and changed files.
+   * 
+   * @param rules the rules
+   * @param classification the classification
+   * @param changedFiles the changedFiles
+   * @return the result
+   * @since 1.0.0
+ */
   public static List<RulesetReviewTask> plan(
       final List<Rule> rules,
       final Map<String, List<Rule>> classification,
@@ -32,6 +47,17 @@ public final class RulesetReviewPlanner {
     return plan(rules, classification, changedFiles, 0, 0);
   }
 
+  /**
+   * Plans batched review tasks for rules and changed files.
+   * 
+   * @param rules the rules
+   * @param classification the classification
+   * @param changedFiles the changedFiles
+   * @param maxAgentDiffKb the maxAgentDiffKb
+   * @param maxFilesPerAgent the maxFilesPerAgent
+   * @return the result
+   * @since 1.0.0
+ */
   public static List<RulesetReviewTask> plan(
       final List<Rule> rules,
       final Map<String, List<Rule>> classification,
@@ -47,6 +73,17 @@ public final class RulesetReviewPlanner {
     );
   }
 
+  /**
+   * Plans batched review tasks for rules and changed files.
+   * 
+   * @param rules the rules
+   * @param classification the classification
+   * @param changedFiles the changedFiles
+   * @param config the config
+   * @param contextTokens the contextTokens
+   * @return the result
+   * @since 1.0.0
+ */
   public static List<RulesetReviewTask> plan(
       final List<Rule> rules,
       final Map<String, List<Rule>> classification,
@@ -57,6 +94,18 @@ public final class RulesetReviewPlanner {
     return plan(rules, classification, changedFiles, config, contextTokens, ReviewContentMode.DIFF);
   }
 
+  /**
+   * Plans batched review tasks for rules and changed files.
+   * 
+   * @param rules the rules
+   * @param classification the classification
+   * @param changedFiles the changedFiles
+   * @param config the config
+   * @param contextTokens the contextTokens
+   * @param contentMode the contentMode
+   * @return the result
+   * @since 1.0.0
+ */
   public static List<RulesetReviewTask> plan(
       final List<Rule> rules,
       final Map<String, List<Rule>> classification,
@@ -68,6 +117,19 @@ public final class RulesetReviewPlanner {
     return plan(rules, classification, changedFiles, config, contextTokens, contentMode, ReviewPromptSupplements.empty());
   }
 
+  /**
+   * Plans batched review tasks for rules and changed files.
+   * 
+   * @param rules the rules
+   * @param classification the classification
+   * @param changedFiles the changedFiles
+   * @param config the config
+   * @param contextTokens the contextTokens
+   * @param contentMode the contentMode
+   * @param supplements the supplements
+   * @return the result
+   * @since 1.0.0
+ */
   public static List<RulesetReviewTask> plan(
       final List<Rule> rules,
       final Map<String, List<Rule>> classification,

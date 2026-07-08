@@ -7,6 +7,12 @@ import org.dempsay.codereview.support.ExceptionalSupport;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 import org.yaml.snakeyaml.Yaml;
 
+/**
+ * Parses YAML frontmatter from markdown rule files.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class FrontmatterParser {
 
   private static final Yaml YAML = new Yaml();
@@ -14,6 +20,13 @@ public final class FrontmatterParser {
   private FrontmatterParser() {
   }
 
+  /**
+   * Parses input into a structured result.
+   * 
+   * @param content the content
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<ParsedRuleDocument> parse(final String content) {
     return ExceptionalSupport.supply(() -> parseRequired(content));
   }
@@ -62,6 +75,14 @@ public final class FrontmatterParser {
     return paths;
   }
 
+  /**
+   * Parsed YAML frontmatter and markdown body from a rule file.
+   *
+   * @param pathGlobs path globs from frontmatter
+   * @param promptBody markdown body after frontmatter
+   * @since 1.0.0
+   * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+   */
   public record ParsedRuleDocument(List<String> pathGlobs, String promptBody) {
   }
 }

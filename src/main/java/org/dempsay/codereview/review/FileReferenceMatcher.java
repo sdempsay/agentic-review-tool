@@ -4,11 +4,25 @@ import java.util.List;
 import java.util.Optional;
 import org.dempsay.codereview.ingest.ChangedFile;
 
+/**
+ * Finds changed files referenced in chat messages.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class FileReferenceMatcher {
 
   private FileReferenceMatcher() {
   }
 
+  /**
+   * Finds a changed file referenced in a message.
+   * 
+   * @param message the message
+   * @param changedFiles the changedFiles
+   * @return the result
+   * @since 1.0.0
+ */
   public static Optional<ChangedFile> findReferencedFile(
       final String message,
       final List<ChangedFile> changedFiles

@@ -14,11 +14,27 @@ import org.dempsay.codereview.support.ExceptionalSupport;
 import org.dempsay.utils.exceptional.api.ExceptionalListener;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
+/**
+ * Runs the multi-agent LLM review pipeline.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class LlmReviewService {
 
   private LlmReviewService() {
   }
 
+  /**
+   * Runs the multi-agent review pipeline.
+   * 
+   * @param config the config
+   * @param rules the rules
+   * @param changedFiles the changedFiles
+   * @param progress the progress
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<String> review(
       final AppConfig config,
       final List<Rule> rules,
@@ -28,6 +44,17 @@ public final class LlmReviewService {
     return review(config, rules, changedFiles, progress, null);
   }
 
+  /**
+   * Runs the multi-agent review pipeline.
+   * 
+   * @param config the config
+   * @param rules the rules
+   * @param changedFiles the changedFiles
+   * @param progress the progress
+   * @param listener the listener
+   * @return the result
+   * @since 1.0.0
+ */
   public static ExceptionalResponse<String> review(
       final AppConfig config,
       final List<Rule> rules,

@@ -13,11 +13,28 @@ import org.dempsay.codereview.cli.ReviewProgress;
 import org.dempsay.codereview.config.ModelConfig;
 import org.dempsay.codereview.review.ChatResponseText;
 
+/**
+ * Completes LLM prompts with optional streaming output.
+ * 
+ * @since 1.0.0
+ * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
+ */
 public final class StreamingLlmClient {
 
   private StreamingLlmClient() {
   }
 
+  /**
+   * Completes an LLM prompt and returns the response text.
+   * 
+   * @param model the model
+   * @param maxTokens the maxTokens
+   * @param prompt the prompt
+   * @param progress the progress
+   * @param label the label
+   * @return the result
+   * @since 1.0.0
+ */
   public static String complete(
       final ModelConfig model,
       final int maxTokens,
@@ -53,17 +70,35 @@ public final class StreamingLlmClient {
 
     streamingModel.chat(prompt, new StreamingChatResponseHandler() {
       @Override
+      /**
+       * On partial response.
+       * 
+       * @param partialResponse the partialResponse
+       * @since 1.0.0
+ */
       public void onPartialResponse(final String partialResponse) {
         progress.streamToken(partialResponse);
         responseBuilder.append(partialResponse);
       }
 
       @Override
+      /**
+       * On partial thinking.
+       * 
+       * @param partialThinking the partialThinking
+       * @since 1.0.0
+ */
       public void onPartialThinking(final PartialThinking partialThinking) {
         progress.streamThinking(partialThinking.text());
       }
 
       @Override
+      /**
+       * On complete response.
+       * 
+       * @param response the response
+       * @since 1.0.0
+ */
       public void onCompleteResponse(final ChatResponse response) {
         completedResponse.set(response);
         if (responseBuilder.isEmpty()) {
@@ -75,6 +110,12 @@ public final class StreamingLlmClient {
       }
 
       @Override
+      /**
+       * On error.
+       * 
+       * @param throwable the throwable
+       * @since 1.0.0
+ */
       public void onError(final Throwable throwable) {
         error.set(throwable);
         latch.countDown();
