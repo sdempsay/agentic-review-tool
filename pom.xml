@@ -15,6 +15,18 @@
 
   <name>Code Review Pipeline</name>
   <description>Cost-effective agentic code review CLI using langchain4j</description>
+  <url>https://github.com/sdempsay/agentic-review-tool</url>
+  <organization>
+    <name>Dempsay.org</name>
+    <url>http://www.dempsay.org</url>
+  </organization>
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
 
   <properties>
     <exceptional.version>1.0.9</exceptional.version>

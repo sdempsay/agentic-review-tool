@@ -190,6 +190,8 @@ Agentic review makes scope explicit. It makes failure modes visible. It makes yo
 
 For more detail, see [WhyBeExceptional.md](https://github.com/sdempsay/exceptional-java/blob/master/WhyBeExceptional.md) — why the `java-exceptional` agent cares about your error handling — and `PRD.md` / `AGENTS.md` in this repo.
 
+Licensed under the [MIT License](LICENSE).
+
 ```bash
 mvn verify   # checkstyle included; no excuses
 ```
