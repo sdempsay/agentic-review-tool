@@ -94,7 +94,9 @@ public final class SummarizePromptBuilder {
     prompt.append("## Agent Findings").append(System.lineSeparator()).append(System.lineSeparator());
     for (final ReviewResult result : agentResults) {
       prompt.append("### ").append(result.agentName()).append(System.lineSeparator());
-      prompt.append(result.findings().trim()).append(System.lineSeparator()).append(System.lineSeparator());
+      prompt.append(AgentFindingsSanitizer.forSummarize(result.findings()))
+          .append(System.lineSeparator())
+          .append(System.lineSeparator());
     }
   }
 
@@ -126,6 +128,20 @@ public final class SummarizePromptBuilder {
     } else {
       prompt.append("### Summary").append(System.lineSeparator());
       prompt.append("2-4 sentences on overall change health.").append(System.lineSeparator());
+      prompt.append(System.lineSeparator());
+      prompt.append("Diff summarization rules:").append(System.lineSeparator());
+      prompt.append(
+          "- Ignore bullets an agent retracted, marked invalid, or replaced with a re-evaluation"
+      );
+      prompt.append(System.lineSeparator());
+      prompt.append(
+          "- When an agent's final verdict is `## Clean`, treat that agent as having zero findings"
+      );
+      prompt.append(System.lineSeparator());
+      prompt.append(
+          "- Base Health Score, Recommendation, and Top Actions only on findings agents stood by"
+      );
+      prompt.append(System.lineSeparator());
     }
 
     prompt.append(System.lineSeparator());

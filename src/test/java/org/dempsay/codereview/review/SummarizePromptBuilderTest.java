@@ -32,6 +32,27 @@ public class SummarizePromptBuilderTest {
     assertTrue(prompt.contains("### Health Score"));
     assertTrue(prompt.contains("APPROVE_WITH_NITS"));
     assertTrue(prompt.contains("### Top Actions"));
+    assertTrue(prompt.contains("Diff summarization rules"));
+    assertTrue(prompt.contains("final verdict is `## Clean`"));
+  }
+
+  @Test
+  public void buildSanitizesRetractedAgentFindingsBeforeSummarize() {
+    final String retracted = """
+        - `App.java:10` — nit — invalid context line
+        **Note**: **invalid** under diff discipline.
+        Re-evaluating strictly on `+` lines:
+        ## Clean
+        """;
+    final String prompt = SummarizePromptBuilder.build(
+        List.of(new ReviewResult("java-formatting", retracted)),
+        List.of(ChangedFile.included("src/App.java", ChangeType.MODIFIED, "+line"))
+    );
+
+    assertTrue(prompt.contains("### java-formatting"));
+    assertTrue(prompt.contains("## Clean"));
+    assertTrue(prompt.indexOf("### java-formatting") < prompt.indexOf("## Clean"));
+    assertFalse(prompt.contains("invalid context line"));
   }
 
   @Test
