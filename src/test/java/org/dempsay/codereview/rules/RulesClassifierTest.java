@@ -50,6 +50,33 @@ public class RulesClassifierTest {
   }
 
   @Test
+  public void matchesJavaFtlTemplatesAgainstExtendedJavaGlob() {
+    final List<Rule> rules = List.of(
+        new Rule("java-exceptional", Path.of("java-exceptional.md"), List.of("**/*.java", "**/*.java.ftl"), "body"),
+        new Rule("java-formatting", Path.of("java-formatting.md"), List.of("**/*.java", "**/*.java.ftl"), "body"),
+        new Rule("java-javadoc", Path.of("java-javadoc.md"), List.of("**/*.java", "**/*.java.ftl"), "body")
+    );
+
+    final List<Rule> matched = RulesClassifier.classifyFile(
+        rules,
+        "src/main/resources/templates/Builder.java.ftl"
+    );
+
+    assertEquals(3, matched.size());
+  }
+
+  @Test
+  public void plainFtlDoesNotMatchJavaGlob() {
+    final List<Rule> rules = List.of(
+        new Rule("java-exceptional", Path.of("java-exceptional.md"), List.of("**/*.java", "**/*.java.ftl"), "body")
+    );
+
+    final List<Rule> matched = RulesClassifier.classifyFile(rules, "src/main/resources/templates/Builder.ftl");
+
+    assertTrue(matched.isEmpty());
+  }
+
+  @Test
   public void nonMatchingFilesReturnEmptyRuleList() {
     final List<Rule> rules = List.of(
         new Rule("java-general", Path.of("java-general.md"), List.of("**/*.java"), "body")

@@ -1,6 +1,7 @@
 ---
 paths:
   - "**/*.java"
+  - "**/*.java.ftl"
 ---
 
 # Java Javadoc
@@ -24,6 +25,16 @@ When the prompt contains unified diffs (fenced `diff` blocks below each file):
   - Signature migrations (`throws` → `ExceptionalResponse`, renaming `*Required` helpers) unless a **brand-new public** type or method is introduced
   - Static factory helpers, package-private types, and internal refactorings
 - Do not infer a "new method" from context alone — the violation must attach to the **`+` line** that declares `public`/`protected` API.
+
+## FreeMarker Java templates (`*.java.ftl`)
+
+When reviewing files whose paths end in `.java.ftl`:
+
+- These are **code-generation templates**, not compiled Java.
+- **Ignore** FreeMarker directives and expressions entirely.
+- Flag missing Javadoc only on **static `public` API** visible as Java in the template (e.g. generated class or `public` method declarations in the emitted shape).
+- **Fragment templates** and FTL control flow — out of scope for Javadoc.
+- In diff mode, only flag `+` lines that introduce new public declarations without Javadoc above them in the hunk.
 
 ## 1. Javadoc
 

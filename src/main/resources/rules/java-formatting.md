@@ -1,6 +1,7 @@
 ---
 paths:
   - "**/*.java"
+  - "**/*.java.ftl"
 ---
 
 # Java formatting and style
@@ -19,6 +20,15 @@ When the prompt contains unified diffs (fenced `diff` blocks below each file):
 - Each finding must cite a **`+` line** (path:line and the added content or a faithful paraphrase). If you cannot point to a `+` line, **omit** the finding.
 - Do not flag brace placement, indentation, or block structure on `if`/`else`/`for` openers unless that opener is itself a **`+` line**.
 - Context lines shown only for orientation (e.g. `} else {` above your `+` strings) are **out of scope** — do not report them.
+
+## FreeMarker Java templates (`*.java.ftl`)
+
+When reviewing files whose paths end in `.java.ftl`:
+
+- These are **code-generation templates**, not compiled Java. Apply formatting rules to **static Java lines** the template would emit.
+- **Ignore** FreeMarker directives and expressions entirely.
+- **Fragment templates** (snippets without package/class) — check indentation and braces only on emitted Java statements, not file-level structure.
+- In diff mode, flag formatting violations only on `+` lines with emitted Java.
 
 ## 1. Generalized Java rules
 

@@ -1,6 +1,7 @@
 ---
 paths:
   - "**/*.java"
+  - "**/*.java.ftl"
 ---
 
 # Java exceptional error handling
@@ -20,6 +21,16 @@ When the prompt contains unified diffs (fenced `diff` blocks below each file):
 - Each finding must cite a **`+` line** (path:line and the added content or a faithful paraphrase). If you cannot point to a `+` line that introduces the violation, **omit** the finding.
 - Allowed on `+` lines: JDK I/O inside `ExceptionalSupport.supply` / `ExceptionalResource` lambdas; `ExceptionalSupport.fail(listener, error)` for expected failures; record compact-constructor `throw` (out of scope).
 - Context lines showing old `throws`/`throw` patterns above new `+` exceptional code are **out of scope** — judge only what the `+` lines add.
+
+## FreeMarker Java templates (`*.java.ftl`)
+
+When reviewing files whose paths end in `.java.ftl`:
+
+- These are **code-generation templates**, not compiled Java. Review the **Java source they would emit** after template expansion.
+- **Ignore** FreeMarker directives and expressions (`<#if>`, `<#list>`, `<#include>`, `<#assign>`, `${...}`, `<#-- ... -->`, etc.). Do not treat them as Java violations.
+- **Full-unit templates** emit a compilable Java type (package, imports, class). **Fragment templates** emit only a snippet — do not require package or class structure on fragments.
+- In diff mode, apply diff review discipline to static emitted Java on `+` lines only.
+- Flag `throws` or explicit `throw` only in **static emitted Java lines** inside the template. Prefer `ExceptionalResponse` and listener-based failure paths where the emitted code handles failures.
 
 ## 1. Exception Handling (Exceptional pattern)
 
