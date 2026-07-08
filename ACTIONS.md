@@ -2,6 +2,7 @@
 
 ## 2026-07-08
 
+- Tightened `java-javadoc.md` diff discipline: only new public API on `+` lines; private/test/listener overloads out of scope; Ollama origin/master v3 — all agents Clean, 10/10 APPROVE (~52s), matches OpenRouter
 - Tightened `java-exceptional.md` diff discipline: flag only `+` lines that introduce violations; never flag removed `throws`/`*Required` lines; removals are correct migrations
 - Tightened summarize for retracted agent bullets: `AgentFindingsSanitizer` collapses re-evaluated/`invalid` output ending in `## Clean` before summarize; diff summarization rules in `SummarizePromptBuilder`; Ollama v3 rerun — all agents Clean, summarize 10/10 APPROVE, Top Actions none
 - Tightened `java-formatting.md` diff discipline: flag only `+` lines, never context/`else` openers; omit non-`+` findings; Ollama rerun on same 3-file diff (~10s) — exceptional/javadoc Clean; formatting agent self-corrected context-line nits (v1 brace false positives gone) but still emitted then retracted bullets
