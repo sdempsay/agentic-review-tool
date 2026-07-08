@@ -124,6 +124,34 @@ java -jar target/code-review.jar repo --output repo-review.md
 
 Use `--no-chat` in CI. Use `--verbose` to watch Ollama stream its thinking in real time.
 
+### Sample output (Ollama)
+
+We keep a reproducible diff from this repo in [`samples/`](samples/). Commit `3bc265e` touches three Java files (diff-discipline prompting); regenerate anytime:
+
+```bash
+./samples/diff-discipline-small/reproduce.sh
+```
+
+Or read the checked-in report: [`samples/diff-discipline-small/report.md`](samples/diff-discipline-small/report.md).
+
+Excerpt — per-agent findings and suggested follow-ups:
+
+```markdown
+### Review: java-formatting
+- ReviewPromptBuilder.java:49–51 — nit — Opening brace on new line for `else` block
+- ReviewPromptBuilder.java:182–183 — nit — Opening brace on new line for `else` block
+- ReviewPromptBuilder.java:251–254 — nit — Opening brace on new line for `else` block
+
+### Recommendation
+APPROVE_WITH_NITS
+
+### Top Actions
+- Fix opening braces for `else` blocks in ReviewPromptBuilder.java (lines 49–51, 182–183, 251–254).
+- Remove trailing whitespace after `System.lineSeparator()` in ReviewPromptBuilder.java (~line 254).
+```
+
+`java-exceptional` was clean on this diff — no phantom must-fix items on removed `throws` lines. That is the point.
+
 ---
 
 ## Why This Matters

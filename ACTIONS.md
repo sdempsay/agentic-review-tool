@@ -2,6 +2,7 @@
 
 ## 2026-07-08
 
+- Added `samples/diff-discipline-small/` — checked-in Ollama report for commit `3bc265e` (3 Java files, APPROVE_WITH_NITS); `reproduce.sh` checks out the commit and runs `diff --base 3bc265e^`; README sample excerpt
 - Added witty `README.md` for GitHub engagement — quick start, agent cast, config, diff discipline, rules authoring
 - Added `reviewMaxTokens` config (default 4096): caps per-call LLM output for agent review, summarize, and chat; batch budgeting reserves `resolvedReviewMaxTokens()` instead of full `maxTokens`; bundled `maxTokens` 24000 unchanged for backward-compat fallback
 - Added `**/*.java.ftl` to java-exceptional/formatting/javadoc rules with project-agnostic FreeMarker preambles (review emitted Java, ignore FTL directives); classifier tests; aether already uses `Builder.java.ftl` / `validation.java.ftl`
