@@ -20,10 +20,10 @@ public final class ReportExporter {
       final String markdown,
       final ExceptionalListener listener
   ) {
+    if (outputPath == null) {
+      return ExceptionalSupport.fail(listener, new IllegalArgumentException("output path is required"));
+    }
     return ExceptionalSupport.supply(() -> {
-      if (outputPath == null) {
-        throw new IllegalArgumentException("output path is required");
-      }
       final Path parent = outputPath.toAbsolutePath().getParent();
       if (parent != null) {
         Files.createDirectories(parent);

@@ -6,9 +6,17 @@ import static org.junit.Assert.assertTrue;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.dempsay.codereview.support.ExceptionalSupport;
+import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 import org.junit.Test;
 
 public class ReportExporterTest {
+
+  @Test
+  public void writeRejectsNullOutputPath() {
+    final ExceptionalResponse<Path> response = ReportExporter.write(null, "# Report");
+
+    assertTrue(response.wasError());
+  }
 
   @Test
   public void writeCreatesParentDirectoriesAndWritesMarkdown() throws Exception {

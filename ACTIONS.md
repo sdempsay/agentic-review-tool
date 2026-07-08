@@ -2,6 +2,7 @@
 
 ## 2026-07-08
 
+- Fixed OpenRouter-flagged throws: `ReportExporter` null-path validation via `ExceptionalSupport.fail`; `DiffCommand`/`RepoCommand` chat chain passes `reviewListener` into `ReviewChatLoop.run`
 - Removed all production `ExceptionalSupport.response()` bridges: `ConfigLoader`, `RepoIngestService`, `RulesEngine`, `ModelHealthChecker`, `ReviewGuardrailsLoader`, `ReviewOutputFormatLoader`, `PromptBudgetEstimator`, `RulesetReviewPlanner`, `ReviewChatLoop`/`ReviewChatOrchestrator`; supplements flow via `.chain()` into batch planning and chat
 - Default Ollama model `qwen3-coder-next-256k:latest` (replaced `qwen3.6-35b-mlx-256k`); bundled `maxTokens` 24000
 

@@ -111,7 +111,8 @@ public class DiffCommand implements Runnable {
                         .chain((reviewListener, reviewText) -> {
                           System.out.println();
                           System.out.println(reviewText);
-                          return runChatIfEnabled(config, rules, changedFiles, classification, reviewText)
+                          return runChatIfEnabled(
+                                  config, rules, changedFiles, classification, reviewText, reviewListener)
                               .chain((chatListener, ignored) ->
                                   writeReportIfRequested(reviewText, changedFiles, classification, ingestListener),
                                   reviewListener);
@@ -147,14 +148,15 @@ public class DiffCommand implements Runnable {
       final List<Rule> rules,
       final List<ChangedFile> changedFiles,
       final Map<String, List<Rule>> classification,
-      final String reviewText
+      final String reviewText,
+      final ExceptionalListener listener
   ) {
     if (!ReviewChatLoop.shouldEnable(chat, noChat)) {
       return ExceptionalResponse.success(Boolean.TRUE);
     }
 
     return ReviewChatLoop.run(new ReviewSessionContext(config, rules, changedFiles, classification, reviewText))
-        .chain((listener, ignored) -> ExceptionalResponse.success(Boolean.TRUE));
+        .chain((chatListener, ignored) -> ExceptionalResponse.success(Boolean.TRUE), listener);
   }
 
   private ExceptionalResponse<Boolean> writeReportIfRequested(
