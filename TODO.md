@@ -42,6 +42,10 @@ Task tracker for the Code Review Pipeline MVP (`PRD.md`).
 | 26 | Enhanced CLI — live progress, per-agent/file status, streaming thinking | complete | `--quiet` / `--verbose`; stderr progress + Ollama streaming |
 | 27 | Ruleset batch splitting with configurable `maxAgentDiffKb` / `maxFilesPerAgent` | complete | Soft cap (`maxAgentDiffKb`) + hard cap (Ollama `num_ctx`); `OllamaModelInspector`, `AgentBatchLimits` |
 | 28 | MCP service — Maven dependency CVE lookup | pending | **Low priority.** Accept GAV coordinates (or `pom.xml` deps), return known CVEs; complements `pom-security.md` curated floors |
-| 29 | Parallel ruleset LLM calls (bounded executor) | pending | Independent specialists in `LlmReviewService.runAgentReviews()`; biggest wall-clock win on multi-ruleset diffs; aligns with langchain4j parallel workflow pattern |
+| 29 | Parallel ruleset LLM calls (bounded executor) | pending | Independent specialists in `LlmReviewService.runAgentReviews()`; biggest wall-clock win on multi-ruleset diffs; **after task 32** (validators/retry must be thread-safe) |
 | 30 | Doc alignment — workflow orchestration, not langchain4j-agentic | complete | PRD.md, README.md, AGENTS.md: langchain4j = ChatModel/streaming/tokens only; custom Java workflow orchestration |
 | 31 | Rule frontmatter `description` for agent metadata | pending | Optional YAML `description` per rule; `FrontmatterParser` + `ReviewPromptBuilder`; mirrors `@Agent("…")` from langchain4j tutorial |
+| 32 | Hard output guardrails (Java validators + one retry) | pending | `ReviewOutputValidator` after agent calls; `StreamingLlmClient` max-1 retry on format failure; `ChatInputGuard` for follow-up chat; adopt langchain4j guardrail *patterns*, not `AiServices` API |
+| 33 | Document guardrail layers in AGENTS.md | pending | Prompt guardrails (`rules/guardrails/*.md`) vs post-LLM Java (`AgentFindingsSanitizer`, validators) vs `reviewMaxTokens`; complements task 30 architecture section |
+
+**Suggested order:** 32 → 33 → 29 → 31
