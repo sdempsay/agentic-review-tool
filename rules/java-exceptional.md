@@ -45,7 +45,7 @@ At the **application boundary** (CLI `run()`, HTTP handler, job entry point), ch
 
 The exceptional library captures **unexpected** exceptions thrown by JDK I/O inside `ExceptionalSupplier` / `ExceptionalResource` lambdas. That is **not** permission to `throw` for **expected** business or validation failures inside those lambdas or inside `.chain()` callbacks.
 
-**Forbidden inside `.chain()` callbacks and `ExceptionalSupport.supply()` lambdas:**
+**Forbidden inside `.chain()` callbacks and `ExceptionalSupplier.of(() -> { ... })` lambdas:**
 
 - `throw new IllegalArgumentException(...)`
 - `throw new IllegalStateException(...)`
@@ -53,38 +53,39 @@ The exceptional library captures **unexpected** exceptions thrown by JDK I/O ins
 
 **Required instead:**
 
-- In `.chain()` callbacks — `return ExceptionalSupport.fail(listener, error);`
-- At method entry (no listener in scope) — `return ExceptionalSupport.fail(error);`
-- Composing steps — `.chain()` from the prior `ExceptionalResponse`; never `ExceptionalSupport.response(...)` in production code
+- In `.chain()` callbacks — `listener.onError(error);` then `return ExceptionalResponse.failure();`
+- At method entry (no listener in scope) — return a failure `ExceptionalResponse` via a shared project helper (not inline `throw` in application code)
+- Composing steps — `.chain()` from the prior `ExceptionalResponse`; never unwrap with a test-only helper in production code
 
 ```java
 // BAD — throw in chain callback
-return gitRun(repoRoot, "diff")
+return runExternal(command)
     .chain((listener, result) -> {
       if (result.exitCode() != 0) {
-        throw new IllegalStateException("git diff failed");
+        throw new IllegalStateException("external command failed");
       }
       return ExceptionalResponse.success(parse(result));
     });
 
 // GOOD
-return gitRun(repoRoot, "diff")
+return runExternal(command)
     .chain((listener, result) -> {
       if (result.exitCode() != 0) {
-        return ExceptionalSupport.fail(listener, new IllegalStateException("git diff failed"));
+        listener.onError(new IllegalStateException("external command failed"));
+        return ExceptionalResponse.failure();
       }
       return ExceptionalResponse.success(parse(result));
     });
 
-// BAD — response() bridge crashes the CLI on failure (AssertionError)
-final Supplements s = ExceptionalSupport.response(Supplements.load(dir));
+// BAD — unwrap without checking wasError() (often throws AssertionError in tests)
+final Config config = unwrap(loadConfig(path));
 
 // GOOD — chain propagates wasError() to the caller
-return Supplements.load(dir)
-    .chain((listener, supplements) -> buildReport(supplements), listener);
+return loadConfig(path)
+    .chain((listener, config) -> buildReport(config), listener);
 ```
 
-`ExceptionalSupport.response(...)` is for **tests only** — unwrapping a response you expect to succeed.
+Unwrapping an `ExceptionalResponse` without checking `wasError()` — including test helpers that throw on failure — is for **tests only**.
 
 JDK calls such as `Files.readString(path)` may throw inside a supply/resource lambda; the library captures those. Do not add a separate `throw` for the same failure path.
 
@@ -93,26 +94,26 @@ JDK calls such as `Files.readString(path)` may throw inside a supply/resource la
 **Record compact constructors** — `throw new IllegalArgumentException(...)` (or similar unchecked exception) in a record's compact constructor to reject invalid field combinations is allowed. Records are immutable value types, not I/O orchestration; if the args are illegal, the object must not exist. This is invariant enforcement at construction time, not an operational failure that should flow as `ExceptionalResponse`.
 
 ```java
-public record IngestRequest(Path repoRoot, DiffScope scope, int maxDiffKb) {
-  public IngestRequest {
-    if (repoRoot == null) {
-      throw new IllegalArgumentException("repoRoot is required");
+public record OrderRequest(String customerId, int quantity) {
+  public OrderRequest {
+    if (customerId == null || customerId.isBlank()) {
+      throw new IllegalArgumentException("customerId is required");
     }
-    if (maxDiffKb <= 0) {
-      throw new IllegalArgumentException("maxDiffKb must be positive");
+    if (quantity <= 0) {
+      throw new IllegalArgumentException("quantity must be positive");
     }
   }
 }
 ```
 
-Do **not** flag compact-constructor `throw` as a §1 violation. Do flag the same pattern inside `.chain()` callbacks or `ExceptionalSupport.supply()` lambdas.
+Do **not** flag compact-constructor `throw` as a §1 violation. Do flag the same pattern inside `.chain()` callbacks or `ExceptionalSupplier` lambdas.
 
 ### Report as findings
 
 - Methods that declare `throws` instead of returning `ExceptionalResponse`
-- `throw` used for expected failure paths (I/O, network, parse errors, operational validation, git exit codes) — not record compact constructors
-- Explicit `throw` inside `.chain()` callbacks or `ExceptionalSupport.supply()` lambdas (use `ExceptionalSupport.fail` instead)
-- `ExceptionalSupport.response(...)` in production code (tests only)
+- `throw` used for expected failure paths (I/O, network, parse errors, operational validation, external-process exit codes) — not record compact constructors
+- Explicit `throw` inside `.chain()` callbacks or `ExceptionalSupplier` lambdas (use `listener.onError` + `ExceptionalResponse.failure()` instead)
+- Unwrapping `ExceptionalResponse` without `wasError()` in production code (tests only)
 - Business `try/catch` where `ExceptionalResponse` should carry the failure
 - Swallowed errors (`catch (...) { return default; }`) — use `wasError()` at the call site instead
 - Broad `catch (Exception)` — checkstyle `IllegalCatch` rejects this
