@@ -14,9 +14,22 @@ Project-specific rules for agents working in this repository. Global rules in `~
 - **Not used:** `langchain4j-agentic`, `AiServices`, `@Tool`, framework `ChatMemory` — intentional; specialists are stateless single-shot completions with custom batching and output sanitization
 - **Terminology:** "Agents" in this repo = ruleset-scoped prompt personas, not langchain4j `@Agent` interfaces
 
+## Backlog (TODO.md + GitHub Issues)
+
+Hybrid tracker:
+
+- **`TODO.md`** — thin index: task ID, status, issue link (offline-friendly)
+- **GitHub Issues** — acceptance criteria, design, discussion ([open issues](https://github.com/sdempsay/agentic-review-tool/issues))
+- **`ACTIONS.md`** — work log when tasks ship
+
+**When starting work:** read TODO row → `gh issue view N` for full context (when network available).
+
+**When shipping:** PR with `Fixes #N` → issue closes → mark TODO `complete` → one line in `ACTIONS.md`.
+
 ## Session start
 
 - Read `TODO.md` for task status
+- For pending tasks with issue links, read the issue (`gh issue view N`) for acceptance criteria
 - Read `PRD.md` and `PRD-updated.md` for requirements
 - Read `~/.grok/rules/maven.md` (this project has `pom.xml`)
 

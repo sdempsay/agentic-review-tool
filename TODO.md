@@ -2,6 +2,8 @@
 
 Task tracker for the Code Review Pipeline MVP (`PRD.md`).
 
+**Backlog sync:** Pending work is tracked on [GitHub Issues](https://github.com/sdempsay/agentic-review-tool/issues). This file is a thin index (ID, status, issue link) for offline agent session start. Details and discussion live on the issue. When shipping: `Fixes #N` in PR → close issue → mark row `complete` here.
+
 ## Pipeline Tasks
 
 | ID | Task | Status | Notes |
@@ -27,25 +29,25 @@ Task tracker for the Code Review Pipeline MVP (`PRD.md`).
 
 ## Future / Out of Scope (MVP)
 
-| ID | Task | Status | Notes |
+| ID | Task | Status | Issue |
 |----|------|--------|-------|
-| 19 | OpenRouter model provider + token usage reporting | complete | `langchain4j-open-ai`; `LlmTokenLedger`; per-call + total tokens in report |
-| 20 | Full repository review (`code-review repo`) | complete | Phase 2 slices 20a–20e |
-| 20a | **Repo ingest** — `RepoIngestService`, tracked + untracked via `git ls-files` / `--others --exclude-standard`, default ext filter | complete | `code-review repo`; `RepoPathFilter`; default skip `.md`/`.json` |
-| 20b | **Review** — full-file `ReviewPromptBuilder` mode + wire `LlmReviewService` | complete | `ReviewContentMode.FULL_FILE`; repo review via `--dry-run=false` |
-| 20c | **CLI** — `RepoCommand` end-to-end, `--path` / `--exclude-ext`, report export | complete | Mirrors `DiffCommand`; default full review; `RepoScopeDescriber`; CLI tests |
-| 20d | **Summarize** — repo-level health, hotspots, cross-cutting findings | complete | `RepoHotspotAnalyzer`; repo summarize prompt + fixture tests |
-| 20e | **Config** — `repoExcludeExtensions` in `config.json`; update `PRD.md` §3 | complete | `AppConfig` + `RepoIngestRequest`; merged with `--exclude-ext` |
-| 23 | Advanced RAG over codebase | pending | Out of scope for MVP |
-| 24 | Classification beyond path globs | pending | Content analysis, commit messages, etc. |
-| 25 | Digitally signed prompts | pending | Security/auditability future item |
-| 26 | Enhanced CLI — live progress, per-agent/file status, streaming thinking | complete | `--quiet` / `--verbose`; stderr progress + Ollama streaming |
-| 27 | Ruleset batch splitting with configurable `maxAgentDiffKb` / `maxFilesPerAgent` | complete | Soft cap (`maxAgentDiffKb`) + hard cap (Ollama `num_ctx`); `OllamaModelInspector`, `AgentBatchLimits` |
-| 28 | MCP service — Maven dependency CVE lookup | pending | **Low priority.** Accept GAV coordinates (or `pom.xml` deps), return known CVEs; complements `pom-security.md` curated floors |
-| 29 | Parallel ruleset LLM calls (bounded executor) | pending | Independent specialists in `LlmReviewService.runAgentReviews()`; biggest wall-clock win on multi-ruleset diffs; **after task 32** (validators/retry must be thread-safe) |
-| 30 | Doc alignment — workflow orchestration, not langchain4j-agentic | complete | PRD.md, README.md, AGENTS.md: langchain4j = ChatModel/streaming/tokens only; custom Java workflow orchestration |
-| 31 | Rule frontmatter `description` for agent metadata | pending | Optional YAML `description` per rule; `FrontmatterParser` + `ReviewPromptBuilder`; mirrors `@Agent("…")` from langchain4j tutorial |
-| 32 | Hard output guardrails (Java validators + one retry) | pending | `ReviewOutputValidator` after agent calls; `StreamingLlmClient` max-1 retry on format failure; `ChatInputGuard` for follow-up chat; adopt langchain4j guardrail *patterns*, not `AiServices` API |
-| 33 | Document guardrail layers in AGENTS.md | pending | Prompt guardrails (`rules/guardrails/*.md`) vs post-LLM Java (`AgentFindingsSanitizer`, validators) vs `reviewMaxTokens`; complements task 30 architecture section |
+| 19 | OpenRouter model provider + token usage reporting | complete | — |
+| 20 | Full repository review (`code-review repo`) | complete | — |
+| 20a | **Repo ingest** — `RepoIngestService`, tracked + untracked | complete | — |
+| 20b | **Review** — full-file `ReviewPromptBuilder` mode | complete | — |
+| 20c | **CLI** — `RepoCommand` end-to-end | complete | — |
+| 20d | **Summarize** — repo-level health, hotspots | complete | — |
+| 20e | **Config** — `repoExcludeExtensions` | complete | — |
+| 23 | Advanced RAG over codebase | pending | — |
+| 24 | Classification beyond path globs | pending | — |
+| 25 | Digitally signed prompts | pending | — |
+| 26 | Enhanced CLI — live progress, streaming thinking | complete | — |
+| 27 | Ruleset batch splitting (`maxAgentDiffKb` / `maxFilesPerAgent`) | complete | — |
+| 28 | MCP service — Maven dependency CVE lookup | pending | — |
+| 29 | Parallel ruleset LLM calls (bounded executor) | pending | [#3](https://github.com/sdempsay/agentic-review-tool/issues/3) (blocked by #1) |
+| 30 | Doc alignment — workflow orchestration, not langchain4j-agentic | complete | — |
+| 31 | Rule frontmatter `description` for agent metadata | pending | [#4](https://github.com/sdempsay/agentic-review-tool/issues/4) |
+| 32 | Hard output guardrails (Java validators + one retry) | pending | [#1](https://github.com/sdempsay/agentic-review-tool/issues/1) |
+| 33 | Document guardrail layers in AGENTS.md | pending | [#2](https://github.com/sdempsay/agentic-review-tool/issues/2) |
 
 **Suggested order:** 32 → 33 → 29 → 31
