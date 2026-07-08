@@ -5,7 +5,7 @@ paths:
 
 # Java exceptional error handling
 
-**Mandatory.** Any code path that can fail — network, filesystem, parsing, git, external services — **must** use `org.dempsay.utils:exceptional` and return `ExceptionalResponse<T>`. No `throws`, no `throw` to callers, no business `try/catch` on those paths. Violations are **must-fix**. Pure domain logic, DTOs, and records do not need exceptional unless they perform I/O.
+**Mandatory.** Any code path that can fail — network, filesystem, parsing, git, external services — **must** use `org.dempsay.utils:exceptional` and return `ExceptionalResponse<T>`. No `throws`, no `throw` to callers, no business `try/catch` on those paths. Violations are **must-fix**. Pure domain logic, DTOs, and records do not need exceptional unless they perform I/O. **Record compact constructors** that throw to enforce invariants are explicitly out of scope (see below).
 
 When reviewing **diffs**, flag only added or changed lines that perform or orchestrate failing work. When reviewing **full files**, audit all I/O and external call paths.
 
@@ -88,10 +88,29 @@ return Supplements.load(dir)
 
 JDK calls such as `Files.readString(path)` may throw inside a supply/resource lambda; the library captures those. Do not add a separate `throw` for the same failure path.
 
+### Out of scope (do not report)
+
+**Record compact constructors** — `throw new IllegalArgumentException(...)` (or similar unchecked exception) in a record's compact constructor to reject invalid field combinations is allowed. Records are immutable value types, not I/O orchestration; if the args are illegal, the object must not exist. This is invariant enforcement at construction time, not an operational failure that should flow as `ExceptionalResponse`.
+
+```java
+public record IngestRequest(Path repoRoot, DiffScope scope, int maxDiffKb) {
+  public IngestRequest {
+    if (repoRoot == null) {
+      throw new IllegalArgumentException("repoRoot is required");
+    }
+    if (maxDiffKb <= 0) {
+      throw new IllegalArgumentException("maxDiffKb must be positive");
+    }
+  }
+}
+```
+
+Do **not** flag compact-constructor `throw` as a §1 violation. Do flag the same pattern inside `.chain()` callbacks or `ExceptionalSupport.supply()` lambdas.
+
 ### Report as findings
 
 - Methods that declare `throws` instead of returning `ExceptionalResponse`
-- `throw` used for expected failure paths (I/O, network, parse errors, validation, git exit codes)
+- `throw` used for expected failure paths (I/O, network, parse errors, operational validation, git exit codes) — not record compact constructors
 - Explicit `throw` inside `.chain()` callbacks or `ExceptionalSupport.supply()` lambdas (use `ExceptionalSupport.fail` instead)
 - `ExceptionalSupport.response(...)` in production code (tests only)
 - Business `try/catch` where `ExceptionalResponse` should carry the failure

@@ -63,10 +63,14 @@ At the **application boundary** (`DiffCommand.run()`, `RepoCommand.run()`, etc.)
 
 Prefer `ExceptionalResource.of(() -> open(), resource -> use(resource))` over manual `try-with-resources` + catch.
 
+### Out of scope
+
+- **Record compact constructors** — `throw new IllegalArgumentException(...)` in a record compact constructor to enforce invariants is allowed (e.g. `IngestRequest`, `ChangedFile`). Not the same as `throw` inside `.chain()` or `supply()` lambdas.
+
 ### Forbidden in `src/main/java`
 
 - **`throws` declarations** on application methods — return `ExceptionalResponse` instead
-- **`throw` for expected failure paths** (I/O, network, parse errors, validation, git exit codes) — including inside `.chain()` callbacks and `ExceptionalSupport.supply()` lambdas; use `ExceptionalSupport.fail(listener, error)` or `ExceptionalSupport.fail(error)` instead
+- **`throw` for expected failure paths** (I/O, network, parse errors, operational validation, git exit codes) — including inside `.chain()` callbacks and `ExceptionalSupport.supply()` lambdas; use `ExceptionalSupport.fail(listener, error)` or `ExceptionalSupport.fail(error)` instead
 - **`ExceptionalSupport.response(...)` in production** — tests only; use `.chain()` to compose `ExceptionalResponse` steps
 - **`try/catch` for business error handling** — use `ExceptionalResponse` instead
 - **Swallowing exceptions** — `catch (...) { return default; }` belongs at the call site via `wasError()`, never inside a catch block
