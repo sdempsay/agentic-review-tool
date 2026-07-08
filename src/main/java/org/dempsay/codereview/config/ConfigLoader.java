@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import org.dempsay.utils.exceptional.api.ExceptionalListener;
 import org.dempsay.utils.exceptional.api.ExceptionalResource;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
@@ -21,9 +22,16 @@ public final class ConfigLoader {
   }
 
   public static ExceptionalResponse<AppConfig> load(final Path explicitConfigPath) {
+    return load(explicitConfigPath, null);
+  }
+
+  public static ExceptionalResponse<AppConfig> load(
+      final Path explicitConfigPath,
+      final ExceptionalListener listener
+  ) {
     final Path configPath = resolveConfigPath(explicitConfigPath);
-    return readConfig(configPath)
-        .chain((listener, root) -> ExceptionalResponse.success(toAppConfig(root)));
+    return readConfig(configPath, listener)
+        .chain((readListener, root) -> ExceptionalResponse.success(toAppConfig(root)), listener);
   }
 
   public static String describeSource(final Path explicitConfigPath) {
@@ -46,18 +54,23 @@ public final class ConfigLoader {
     return null;
   }
 
-  private static ExceptionalResponse<JsonNode> readConfig(final Path configPath) {
+  private static ExceptionalResponse<JsonNode> readConfig(
+      final Path configPath,
+      final ExceptionalListener listener
+  ) {
     if (configPath != null) {
       return ExceptionalResource.of(
           () -> Files.newBufferedReader(configPath),
           MAPPER::readTree
-      ).execute();
+      ).execute()
+          .chain((readListener, root) -> ExceptionalResponse.success(root), listener);
     }
 
     return ExceptionalResource.of(
         ConfigLoader::openDefaultConfigStream,
         MAPPER::readTree
-    ).execute();
+    ).execute()
+        .chain((readListener, root) -> ExceptionalResponse.success(root), listener);
   }
 
   private static InputStream openDefaultConfigStream() {

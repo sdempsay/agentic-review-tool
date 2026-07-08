@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import org.dempsay.codereview.support.ExceptionalSupport;
+import org.dempsay.utils.exceptional.api.ExceptionalListener;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
 final class GitRunner {
@@ -20,8 +21,12 @@ final class GitRunner {
   }
 
   static ExceptionalResponse<Boolean> hasCommits(final Path repoRoot) {
+    return hasCommits(repoRoot, null);
+  }
+
+  static ExceptionalResponse<Boolean> hasCommits(final Path repoRoot, final ExceptionalListener listener) {
     return run(repoRoot, "rev-parse", "HEAD")
-        .chain((listener, result) -> ExceptionalResponse.success(result.exitCode() == 0));
+        .chain((runListener, result) -> ExceptionalResponse.success(result.exitCode() == 0), listener);
   }
 
   static ExceptionalResponse<GitResult> run(final Path repoRoot, final String... command) {
@@ -54,11 +59,19 @@ final class GitRunner {
   }
 
   static ExceptionalResponse<List<String>> runLines(final Path repoRoot, final String... command) {
+    return runLines(repoRoot, null, command);
+  }
+
+  static ExceptionalResponse<List<String>> runLines(
+      final Path repoRoot,
+      final ExceptionalListener listener,
+      final String... command
+  ) {
     return run(repoRoot, command)
-        .chain((listener, result) -> {
+        .chain((runListener, result) -> {
           if (result.exitCode() != 0) {
             return ExceptionalSupport.fail(
-                listener,
+                runListener,
                 new IllegalStateException(
                     "git " + String.join(" ", command) + " failed with exit code " + result.exitCode()
                 )
@@ -74,7 +87,7 @@ final class GitRunner {
             }
           }
           return ExceptionalResponse.success(List.copyOf(lines));
-        });
+        }, listener);
   }
 
   record GitResult(int exitCode, String output) {

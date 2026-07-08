@@ -25,10 +25,21 @@ public final class LlmReviewService {
       final List<ChangedFile> changedFiles,
       final ReviewProgress progress
   ) {
-    return ReviewPromptSupplements.load(config.rulesDir())
-        .chain((listener, supplements) ->
-            ExceptionalSupport.supply(() -> runReviewPhase(config, rules, changedFiles, progress, supplements))
-                .chain((phaseListener, phase) -> completeReview(config, phase, progress, listener), listener)
+    return review(config, rules, changedFiles, progress, null);
+  }
+
+  public static ExceptionalResponse<String> review(
+      final AppConfig config,
+      final List<Rule> rules,
+      final List<ChangedFile> changedFiles,
+      final ReviewProgress progress,
+      final ExceptionalListener listener
+  ) {
+    return ReviewPromptSupplements.load(config.rulesDir(), listener)
+        .chain((loadListener, supplements) ->
+            ExceptionalSupport.supply(() -> runReviewPhase(config, rules, changedFiles, progress, supplements), loadListener)
+                .chain((phaseListener, phase) -> completeReview(config, phase, progress, loadListener), loadListener),
+            listener
         );
   }
 
@@ -88,7 +99,8 @@ public final class LlmReviewService {
         phase.agentResults(),
         phase.changedFiles(),
         progress,
-        phase.contentMode()
+        phase.contentMode(),
+        listener
     ).chain((summarizeListener, summary) -> {
       progress.stageComplete("Summarize", phase.summarizeStageStart());
       progress.printTokenSummary(config.model());

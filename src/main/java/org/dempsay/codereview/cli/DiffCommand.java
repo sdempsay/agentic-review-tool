@@ -89,12 +89,12 @@ public class DiffCommand implements Runnable {
 
   private ExceptionalResponse<Boolean> runLlmReview(final FailureCapture failures) {
     final ReviewProgress progress = ReviewProgress.create(CliVerbosity.fromFlags(quiet, verbose));
-    return ConfigLoader.load(configPath)
+    return ConfigLoader.load(configPath, failures.listener())
         .chain((listener, config) -> RulesEngine.load(config.rulesDir(), listener)
             .chain((rulesListener, rules) -> {
               final long ingestStageStart = System.currentTimeMillis();
               progress.stageStart("Ingest");
-              return GitIngestService.ingest(buildIngestRequest(config))
+              return GitIngestService.ingest(buildIngestRequest(config), rulesListener)
                   .chain((ingestListener, changedFiles) -> {
                     progress.stageComplete("Ingest", ingestStageStart);
                     final long classifyStageStart = System.currentTimeMillis();
@@ -107,7 +107,7 @@ public class DiffCommand implements Runnable {
                       DryRunRenderer.render(classification);
                     }
 
-                    return LlmReviewService.review(config, rules, changedFiles, progress)
+                    return LlmReviewService.review(config, rules, changedFiles, progress, ingestListener)
                         .chain((reviewListener, reviewText) -> {
                           System.out.println();
                           System.out.println(reviewText);
@@ -123,12 +123,12 @@ public class DiffCommand implements Runnable {
 
   private ExceptionalResponse<Boolean> runDryRun(final FailureCapture failures) {
     final ReviewProgress progress = ReviewProgress.create(CliVerbosity.fromFlags(quiet, verbose));
-    return ConfigLoader.load(configPath)
+    return ConfigLoader.load(configPath, failures.listener())
         .chain((listener, config) -> RulesEngine.load(config.rulesDir(), listener)
             .chain((rulesListener, rules) -> {
               final long ingestStageStart = System.currentTimeMillis();
               progress.stageStart("Ingest");
-              return GitIngestService.ingest(buildIngestRequest(config))
+              return GitIngestService.ingest(buildIngestRequest(config), rulesListener)
                   .chain((ingestListener, changedFiles) -> {
                     progress.stageComplete("Ingest", ingestStageStart);
                     final long classifyStageStart = System.currentTimeMillis();
@@ -155,7 +155,10 @@ public class DiffCommand implements Runnable {
       return ExceptionalResponse.success(Boolean.TRUE);
     }
 
-    return ReviewChatLoop.run(new ReviewSessionContext(config, rules, changedFiles, classification, reviewText))
+    return ReviewChatLoop.run(
+            new ReviewSessionContext(config, rules, changedFiles, classification, reviewText),
+            listener
+        )
         .chain((chatListener, ignored) -> ExceptionalResponse.success(Boolean.TRUE), listener);
   }
 

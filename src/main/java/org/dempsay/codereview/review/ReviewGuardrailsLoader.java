@@ -30,14 +30,18 @@ public final class ReviewGuardrailsLoader {
   }
 
   public static ExceptionalResponse<String> load(final Path rulesDir) {
+    return load(rulesDir, null);
+  }
+
+  public static ExceptionalResponse<String> load(final Path rulesDir, final ExceptionalListener listener) {
     if (rulesDir != null) {
       final Path guardrailsDir = rulesDir.resolve(SUBDIRECTORY);
       if (Files.isDirectory(guardrailsDir)) {
-        return listMarkdownFiles(guardrailsDir)
-            .chain((listener, files) -> formatGuardrails(files, listener));
+        return listMarkdownFiles(guardrailsDir, listener)
+            .chain((listListener, files) -> formatGuardrails(files, listListener), listener);
       }
     }
-    return formatBundledGuardrails();
+    return formatBundledGuardrails(listener);
   }
 
   private static ExceptionalResponse<String> formatGuardrails(
@@ -68,7 +72,7 @@ public final class ReviewGuardrailsLoader {
     }
 
     final Path file = files.get(index);
-    return ExceptionalSupport.supply(() -> Files.readString(file))
+    return ExceptionalSupport.supply(() -> Files.readString(file), listener)
         .chain((fileListener, content) -> {
           sections.add(content);
           headings.add(fileNameStem(file));
@@ -86,7 +90,10 @@ public final class ReviewGuardrailsLoader {
     return builder.toString().trim();
   }
 
-  private static ExceptionalResponse<List<Path>> listMarkdownFiles(final Path directory) {
+  private static ExceptionalResponse<List<Path>> listMarkdownFiles(
+      final Path directory,
+      final ExceptionalListener listener
+  ) {
     return ExceptionalSupport.supply(() -> {
       try (Stream<Path> paths = Files.list(directory)) {
         return paths
@@ -95,7 +102,7 @@ public final class ReviewGuardrailsLoader {
             .sorted(Comparator.comparing(path -> path.getFileName().toString()))
             .toList();
       }
-    });
+    }, listener);
   }
 
   private static String fileNameStem(final Path file) {
@@ -103,11 +110,11 @@ public final class ReviewGuardrailsLoader {
     return name.endsWith(".md") ? name.substring(0, name.length() - 3) : name;
   }
 
-  private static ExceptionalResponse<String> formatBundledGuardrails() {
-    return readBundledResources(BUNDLED_RESOURCES, 0, new ArrayList<>(), new ArrayList<>(), null)
-        .chain((listener, sections) -> ExceptionalResponse.success(
+  private static ExceptionalResponse<String> formatBundledGuardrails(final ExceptionalListener listener) {
+    return readBundledResources(BUNDLED_RESOURCES, 0, new ArrayList<>(), new ArrayList<>(), listener)
+        .chain((readListener, sections) -> ExceptionalResponse.success(
             joinSections(sections.sections(), sections.headings())
-        ));
+        ), listener);
   }
 
   private static ExceptionalResponse<GuardrailSections> readBundledResources(
@@ -122,7 +129,7 @@ public final class ReviewGuardrailsLoader {
     }
 
     final String resourcePath = resourcePaths.get(index);
-    return loadBundledResource(resourcePath)
+    return loadBundledResource(resourcePath, listener)
         .chain((resourceListener, content) -> {
           sections.add(content);
           headings.add(headingFromResource(resourcePath));
@@ -130,11 +137,15 @@ public final class ReviewGuardrailsLoader {
         }, listener);
   }
 
-  private static ExceptionalResponse<String> loadBundledResource(final String resourcePath) {
+  private static ExceptionalResponse<String> loadBundledResource(
+      final String resourcePath,
+      final ExceptionalListener listener
+  ) {
     return ExceptionalResource.of(
         () -> openBundledStream(resourcePath),
         input -> new String(input.readAllBytes(), StandardCharsets.UTF_8)
-    ).execute();
+    ).execute()
+        .chain((readListener, content) -> ExceptionalResponse.success(content), listener);
   }
 
   private static InputStream openBundledStream(final String resourcePath) {

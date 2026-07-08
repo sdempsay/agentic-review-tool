@@ -26,8 +26,8 @@ public class DoctorCommand implements Runnable {
   @Override
   public void run() {
     final FailureCapture failures = new FailureCapture();
-    final ExceptionalResponse<Boolean> outcome = ConfigLoader.load(configPath)
-        .chain((listener, config) -> ModelHealthChecker.check(config.model())
+    final ExceptionalResponse<Boolean> outcome = ConfigLoader.load(configPath, failures.listener())
+        .chain((listener, config) -> ModelHealthChecker.check(config.model(), listener)
             .chain((healthListener, report) -> {
               System.out.println("Config: " + ConfigLoader.describeSource(configPath));
               System.out.printf(

@@ -73,12 +73,12 @@ public final class RulesEngine {
     }
 
     final Path ruleFile = ruleFiles.get(index);
-    return hasRuleFrontmatter(ruleFile)
+    return hasRuleFrontmatter(ruleFile, listener)
         .chain((frontmatterListener, hasFrontmatter) -> {
           if (!hasFrontmatter) {
             return loadRulesFromPaths(ruleFiles, index + 1, rules, listener);
           }
-          return loadRule(ruleFile)
+          return loadRule(ruleFile, frontmatterListener)
               .chain((ruleListener, rule) -> {
                 rules.add(rule);
                 return loadRulesFromPaths(ruleFiles, index + 1, rules, listener);
@@ -86,12 +86,15 @@ public final class RulesEngine {
         }, listener);
   }
 
-  private static ExceptionalResponse<Boolean> hasRuleFrontmatter(final Path ruleFile) {
-    return ExceptionalSupport.supply(() -> Files.readString(ruleFile))
-        .chain((listener, content) -> {
+  private static ExceptionalResponse<Boolean> hasRuleFrontmatter(
+      final Path ruleFile,
+      final ExceptionalListener listener
+  ) {
+    return ExceptionalSupport.supply(() -> Files.readString(ruleFile), listener)
+        .chain((readListener, content) -> {
           final String normalized = content.startsWith("\uFEFF") ? content.substring(1) : content;
           return ExceptionalResponse.success(normalized.startsWith("---"));
-        });
+        }, listener);
   }
 
   private static ExceptionalResponse<List<Rule>> loadBundledRules(final ExceptionalListener listener) {
@@ -108,7 +111,7 @@ public final class RulesEngine {
       return ExceptionalResponse.success(List.copyOf(rules));
     }
 
-    return loadRuleFromClasspath(resourcePaths.get(index))
+    return loadRuleFromClasspath(resourcePaths.get(index), listener)
         .chain((ruleListener, rule) -> {
           rules.add(rule);
           return loadBundledRulesFromResources(resourcePaths, index + 1, rules, listener);
@@ -116,27 +119,38 @@ public final class RulesEngine {
   }
 
   static ExceptionalResponse<Rule> loadRule(final Path ruleFile) {
+    return loadRule(ruleFile, null);
+  }
+
+  static ExceptionalResponse<Rule> loadRule(final Path ruleFile, final ExceptionalListener listener) {
     return ExceptionalResource.of(
         () -> Files.newBufferedReader(ruleFile),
         reader -> reader.lines().collect(Collectors.joining(System.lineSeparator()))
     ).execute()
-        .chain((listener, content) -> toRule(
+        .chain((readListener, content) -> toRule(
             stripExtension(ruleFile.getFileName().toString()),
             ruleFile,
             content,
-            listener
-        ));
+            readListener
+        ), listener);
   }
 
   static ExceptionalResponse<Rule> loadRuleFromClasspath(final String resourcePath) {
+    return loadRuleFromClasspath(resourcePath, null);
+  }
+
+  static ExceptionalResponse<Rule> loadRuleFromClasspath(
+      final String resourcePath,
+      final ExceptionalListener listener
+  ) {
     return ExceptionalResource.of(
         () -> openBundledRuleStream(resourcePath),
         input -> new String(input.readAllBytes())
     ).execute()
-        .chain((listener, content) -> {
+        .chain((readListener, content) -> {
           final String fileName = Path.of(resourcePath).getFileName().toString();
-          return toRule(stripExtension(fileName), null, content, listener);
-        });
+          return toRule(stripExtension(fileName), null, content, readListener);
+        }, listener);
   }
 
   private static ExceptionalResponse<Rule> toRule(

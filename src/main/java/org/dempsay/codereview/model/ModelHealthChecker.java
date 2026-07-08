@@ -23,39 +23,50 @@ public final class ModelHealthChecker {
   }
 
   public static ExceptionalResponse<HealthReport> check(final ModelConfig model) {
+    return check(model, null);
+  }
+
+  public static ExceptionalResponse<HealthReport> check(
+      final ModelConfig model,
+      final ExceptionalListener listener
+  ) {
     if (model.isOllama()) {
-      return checkOllama(model);
+      return checkOllama(model, listener);
     }
     if (model.isOpenRouter()) {
-      return checkOpenRouter(model);
+      return checkOpenRouter(model, listener);
     }
     return ExceptionalSupport.fail(
+        listener,
         new IllegalArgumentException(
             "Health check is only supported for ollama and openrouter providers (got: " + model.provider() + ")"
         )
     );
   }
 
-  private static ExceptionalResponse<HealthReport> checkOllama(final ModelConfig model) {
+  private static ExceptionalResponse<HealthReport> checkOllama(
+      final ModelConfig model,
+      final ExceptionalListener listener
+  ) {
     final URI tagsUri = URI.create(model.resolveBaseUrl() + "/api/tags");
     final HttpRequest request = HttpRequest.newBuilder(tagsUri)
         .timeout(Duration.ofSeconds(10))
         .GET()
         .build();
 
-    return ExceptionalSupport.supply(() -> HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString()))
-        .chain((listener, response) -> {
+    return ExceptionalSupport.supply(() -> HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString()), listener)
+        .chain((httpListener, response) -> {
           if (response.statusCode() != 200) {
             return ExceptionalSupport.fail(
-                listener,
+                httpListener,
                 new IllegalStateException(
                     "Ollama health check failed: HTTP " + response.statusCode() + " from " + tagsUri
                 )
             );
           }
-          return ExceptionalSupport.supply(() -> MAPPER.readTree(response.body()))
-              .chain((parseListener, root) -> validateOllamaModel(model, root, listener), listener);
-        });
+          return ExceptionalSupport.supply(() -> MAPPER.readTree(response.body()), httpListener)
+              .chain((parseListener, root) -> validateOllamaModel(model, root, httpListener), httpListener);
+        }, listener);
   }
 
   private static ExceptionalResponse<HealthReport> validateOllamaModel(
@@ -92,7 +103,10 @@ public final class ModelHealthChecker {
     );
   }
 
-  private static ExceptionalResponse<HealthReport> checkOpenRouter(final ModelConfig model) {
+  private static ExceptionalResponse<HealthReport> checkOpenRouter(
+      final ModelConfig model,
+      final ExceptionalListener listener
+  ) {
     final String apiKey = ChatModelFactory.requireApiKey(model);
     final URI modelsUri = URI.create(model.resolveBaseUrl() + "/models");
     final HttpRequest request = HttpRequest.newBuilder(modelsUri)
@@ -101,19 +115,19 @@ public final class ModelHealthChecker {
         .GET()
         .build();
 
-    return ExceptionalSupport.supply(() -> HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString()))
-        .chain((listener, response) -> {
+    return ExceptionalSupport.supply(() -> HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString()), listener)
+        .chain((httpListener, response) -> {
           if (response.statusCode() != 200) {
             return ExceptionalSupport.fail(
-                listener,
+                httpListener,
                 new IllegalStateException(
                     "OpenRouter health check failed: HTTP " + response.statusCode() + " from " + modelsUri
                 )
             );
           }
-          return ExceptionalSupport.supply(() -> MAPPER.readTree(response.body()))
-              .chain((parseListener, root) -> validateOpenRouterModel(model, root, listener), listener);
-        });
+          return ExceptionalSupport.supply(() -> MAPPER.readTree(response.body()), httpListener)
+              .chain((parseListener, root) -> validateOpenRouterModel(model, root, httpListener), httpListener);
+        }, listener);
   }
 
   private static ExceptionalResponse<HealthReport> validateOpenRouterModel(

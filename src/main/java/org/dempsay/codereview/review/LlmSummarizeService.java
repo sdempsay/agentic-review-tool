@@ -6,6 +6,7 @@ import org.dempsay.codereview.config.AppConfig;
 import org.dempsay.codereview.ingest.ChangedFile;
 import org.dempsay.codereview.model.StreamingLlmClient;
 import org.dempsay.codereview.support.ExceptionalSupport;
+import org.dempsay.utils.exceptional.api.ExceptionalListener;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
 public final class LlmSummarizeService {
@@ -29,8 +30,19 @@ public final class LlmSummarizeService {
       final ReviewProgress progress,
       final ReviewContentMode contentMode
   ) {
-    return ReviewPromptSupplements.load(config.rulesDir())
-        .chain((listener, supplements) -> ExceptionalSupport.supply(() -> {
+    return summarize(config, agentResults, changedFiles, progress, contentMode, null);
+  }
+
+  public static ExceptionalResponse<String> summarize(
+      final AppConfig config,
+      final List<ReviewResult> agentResults,
+      final List<ChangedFile> changedFiles,
+      final ReviewProgress progress,
+      final ReviewContentMode contentMode,
+      final ExceptionalListener listener
+  ) {
+    return ReviewPromptSupplements.load(config.rulesDir(), listener)
+        .chain((loadListener, supplements) -> ExceptionalSupport.supply(() -> {
           final String prompt = SummarizePromptBuilder.build(
               agentResults,
               changedFiles,
@@ -44,6 +56,6 @@ public final class LlmSummarizeService {
               progress,
               "summarize"
           ).trim();
-        }, listener));
+        }, loadListener), listener);
   }
 }

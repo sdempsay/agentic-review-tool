@@ -16,20 +16,32 @@ public final class RepoIngestService {
   }
 
   public static ExceptionalResponse<List<ChangedFile>> ingest(final RepoIngestRequest request) {
+    return ingest(request, null);
+  }
+
+  public static ExceptionalResponse<List<ChangedFile>> ingest(
+      final RepoIngestRequest request,
+      final ExceptionalListener listener
+  ) {
     if (!GitRunner.isGitRepository(request.repoRoot())) {
       return ExceptionalSupport.fail(
+          listener,
           new IllegalArgumentException("Not a git repository: " + request.repoRoot().toAbsolutePath())
       );
     }
 
-    return listReviewablePaths(request)
-        .chain((listener, paths) -> readAllRepoFiles(request, paths, 0, new ArrayList<>(), listener));
+    return listReviewablePaths(request, listener)
+        .chain((pathsListener, paths) -> readAllRepoFiles(request, paths, 0, new ArrayList<>(), pathsListener), listener);
   }
 
-  private static ExceptionalResponse<List<String>> listReviewablePaths(final RepoIngestRequest request) {
-    return GitRunner.runLines(request.repoRoot(), "ls-files")
-        .chain((listener, tracked) -> GitRunner.runLines(
+  private static ExceptionalResponse<List<String>> listReviewablePaths(
+      final RepoIngestRequest request,
+      final ExceptionalListener listener
+  ) {
+    return GitRunner.runLines(request.repoRoot(), listener, "ls-files")
+        .chain((trackedListener, tracked) -> GitRunner.runLines(
             request.repoRoot(),
+            trackedListener,
             "ls-files",
             "--others",
             "--exclude-standard"
@@ -45,7 +57,7 @@ public final class RepoIngestService {
             }
           }
           return ExceptionalResponse.success(List.copyOf(reviewable));
-        }, listener));
+        }, trackedListener), listener);
   }
 
   private static ExceptionalResponse<List<ChangedFile>> readAllRepoFiles(
@@ -59,7 +71,7 @@ public final class RepoIngestService {
       return ExceptionalResponse.success(List.copyOf(files));
     }
 
-    return readRepoFile(request.repoRoot(), paths.get(index), request.maxFileKb() * 1024)
+    return readRepoFile(request.repoRoot(), paths.get(index), request.maxFileKb() * 1024, listener)
         .chain((fileListener, changedFile) ->
             readAllRepoFiles(request, paths, index + 1, append(files, changedFile), listener),
             listener
@@ -75,7 +87,8 @@ public final class RepoIngestService {
   private static ExceptionalResponse<ChangedFile> readRepoFile(
       final Path repoRoot,
       final String relativePath,
-      final int maxFileBytes
+      final int maxFileBytes,
+      final ExceptionalListener listener
   ) {
     final Path filePath = repoRoot.resolve(relativePath);
     if (!Files.isRegularFile(filePath)) {
@@ -84,8 +97,8 @@ public final class RepoIngestService {
       );
     }
 
-    return ExceptionalSupport.supply(() -> Files.readString(filePath))
-        .chain((listener, content) -> {
+    return ExceptionalSupport.supply(() -> Files.readString(filePath), listener)
+        .chain((readListener, content) -> {
           if (isBinaryContent(content)) {
             return ExceptionalResponse.success(
                 ChangedFile.skipped(relativePath, ChangeType.EXISTING, "Binary file")
@@ -101,7 +114,7 @@ public final class RepoIngestService {
             );
           }
           return ExceptionalResponse.success(ChangedFile.included(relativePath, ChangeType.EXISTING, content));
-        });
+        }, listener);
   }
 
   private static boolean isBinaryContent(final String content) {

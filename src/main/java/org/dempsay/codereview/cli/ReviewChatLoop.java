@@ -6,6 +6,7 @@ import org.dempsay.codereview.review.ReviewChatOrchestrator;
 import org.dempsay.codereview.review.ReviewPromptSupplements;
 import org.dempsay.codereview.review.ReviewSessionContext;
 import org.dempsay.codereview.support.ExceptionalSupport;
+import org.dempsay.utils.exceptional.api.ExceptionalListener;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
 public final class ReviewChatLoop {
@@ -14,8 +15,15 @@ public final class ReviewChatLoop {
   }
 
   public static ExceptionalResponse<Void> run(final ReviewSessionContext session) {
-    return ReviewPromptSupplements.load(session.config().rulesDir())
-        .chain((listener, supplements) -> ExceptionalSupport.supply(() -> {
+    return run(session, null);
+  }
+
+  public static ExceptionalResponse<Void> run(
+      final ReviewSessionContext session,
+      final ExceptionalListener listener
+  ) {
+    return ReviewPromptSupplements.load(session.config().rulesDir(), listener)
+        .chain((loadListener, supplements) -> ExceptionalSupport.supply(() -> {
       System.out.println();
       System.out.println("--- Follow-up Chat ---");
       System.out.println("Ask questions about this review (exit to end).");
@@ -37,7 +45,7 @@ public final class ReviewChatLoop {
         System.out.println(orchestrator.respond(line.trim()));
       }
       return null;
-    }, listener));
+    }, loadListener), listener);
   }
 
   public static boolean isExit(final String input) {
