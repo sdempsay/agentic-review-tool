@@ -2,6 +2,7 @@
 
 ## 2026-07-08
 
+- Tightened `java-formatting.md` diff discipline: flag only `+` lines, never context/`else` openers; omit non-`+` findings; Ollama rerun on same 3-file diff (~10s) — exceptional/javadoc Clean; formatting agent self-corrected context-line nits (v1 brace false positives gone) but still emitted then retracted bullets
 - Added diff review discipline prompting: `review-output-format.md` section (`+`/`-` line rules, cite only added lines, exceptional carve-outs); `ReviewPromptBuilder` diff-mode intro + ` ```diff ` fences; unit tests updated; Ollama dogfood on 3-file uncommitted diff completed in ~106s (java-exceptional Clean, no loop)
 - Removed explicit `throw` from git/health exceptional chains: `GitRunner.run` passes listener into `supply`; `GitIngestService` threads listener into git runs; `OllamaModelInspector` uses HTTP `.chain()` + `ExceptionalSupport.fail`; `ModelHealthChecker` resolves OpenRouter API key via `ExceptionalSupport.fail` instead of `requireApiKey`
 - Threaded `ExceptionalListener` through chain callbacks: supplements loaders, `LlmReviewService`/`LlmSummarizeService`, `ReviewChatLoop`, `GitIngestService`/`RepoIngestService`, `GitRunner`, `ModelHealthChecker`, `RulesEngine`, `ConfigLoader`; CLI passes `failures.listener()` and stage listeners into ingest/review/chat

@@ -7,7 +7,18 @@ paths:
 
 Review the Java files provided in this prompt against the sections below. Report concrete violations with file and line context.
 
-When reviewing **diffs**, flag only added or changed lines unless a change clearly breaks surrounding code. Do not report pre-existing style outside the diff. When reviewing **full files**, apply all sections to the entire file.
+When reviewing **full files** (no diff fences), apply all sections to the entire file.
+
+## Diff review discipline
+
+When the prompt contains unified diffs (fenced `diff` blocks below each file):
+
+- Lines starting with `+` are **added**; `-` are **removed**; leading-space lines are **unchanged context**.
+- Report a formatting violation **only** if it appears on a **`+` line** in the diff.
+- **Never** flag context lines or removed `-` lines — even when they violate §1–§7, they are not introduced by this change.
+- Each finding must cite a **`+` line** (path:line and the added content or a faithful paraphrase). If you cannot point to a `+` line, **omit** the finding.
+- Do not flag brace placement, indentation, or block structure on `if`/`else`/`for` openers unless that opener is itself a **`+` line**.
+- Context lines shown only for orientation (e.g. `} else {` above your `+` strings) are **out of scope** — do not report them.
 
 ## 1. Generalized Java rules
 
@@ -80,6 +91,8 @@ Flag when visible in the diff. Full enforcement runs via `mvn verify`, not in th
 ## 9. Response format
 
 - One bullet per finding: `path:line — [must-fix|nit] — §N — brief description`
+- In diff mode, every bullet must correspond to a **`+` line**; otherwise output `## Clean`
+- In diff mode, do not emit a finding and later retract it — if it is not on a `+` line, omit the bullet on the first pass
 - **Clean** — `## Clean` only when there are zero findings; otherwise omit Clean or say `Clean: all other files in scope` — never enumerate every clean file
 - Do not restate the rules; only report violations
-- If the diff lacks context to judge a rule, say "insufficient context" — do not guess
+- If the diff lacks context to judge a rule on a `+` line, omit the finding — do not guess or emit "insufficient context" bullets
