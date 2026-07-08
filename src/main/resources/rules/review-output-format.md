@@ -1,3 +1,13 @@
+## Diff review discipline
+
+Applies when reviewing unified diffs (lines below each file marked as a diff).
+
+- Lines starting with `+` are **added** in the resulting code; `-` are **removed**; context lines (leading space) are unchanged.
+- Report a finding **only** if the violation is on a **`+` line** (or you can tie it unambiguously to new code introduced in the hunk).
+- **Never** cite removed `-` lines as current violations — they are not in the code after the change.
+- Each finding must identify a **`+` line** (path:line and the added content or a faithful paraphrase). If you cannot point to a `+` line, omit the finding.
+- Do not flag patterns the rules explicitly allow (e.g. JDK I/O inside `ExceptionalSupport.supply`, `ExceptionalResource`, or the `ExceptionalSupport.fail()` capture helper).
+
 ## Output
 
 - One bullet per finding: `path:line — [must-fix|nit] — brief description`

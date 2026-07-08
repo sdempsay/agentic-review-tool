@@ -46,7 +46,9 @@ public final class ReviewPromptBuilder {
     if (contentMode == ReviewContentMode.FULL_FILE) {
       prompt.append("Review the full file contents below using the ruleset instructions.");
     } else {
-      prompt.append("Review only the files below using the ruleset instructions.");
+      prompt.append(
+          "Review only added/changed lines in the unified diffs below (see Diff review discipline)."
+      );
     }
     prompt.append(System.lineSeparator()).append(System.lineSeparator());
     appendPromptSection(prompt, guardrailsFrom(supplements));
@@ -177,7 +179,8 @@ public final class ReviewPromptBuilder {
       );
     } else {
       prompt.append(
-          "You are a code reviewer. Apply the review rules below when reviewing each file's diff."
+          "You are a code reviewer. Apply the review rules below to added/changed lines in each "
+              + "unified diff (see Diff review discipline)."
       );
     }
     prompt.append(System.lineSeparator()).append(System.lineSeparator());
@@ -245,7 +248,12 @@ public final class ReviewPromptBuilder {
           }
           prompt.append("```");
         } else {
+          prompt.append("```diff").append(System.lineSeparator());
           prompt.append(file.diff());
+          if (!file.diff().endsWith(System.lineSeparator())) {
+            prompt.append(System.lineSeparator());
+          }
+          prompt.append("```");
         }
       } else {
         prompt.append("(skipped: ").append(file.skipReason() == null ? "no content" : file.skipReason()).append(")");

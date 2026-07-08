@@ -28,6 +28,7 @@ public class ReviewOutputFormatLoaderTest {
   public void loadFallsBackToBundledWhenRulesDirMissingFile() {
     final String body = ExceptionalSupport.response(ReviewOutputFormatLoader.load(null));
 
+    assertTrue(body.contains("## Diff review discipline"));
     assertTrue(body.contains("## Output"));
     assertTrue(body.contains("insufficient context"));
   }

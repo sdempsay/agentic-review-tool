@@ -80,6 +80,7 @@ public class ReviewPromptBuilderTest {
     assertTrue(prompt.contains("Check Java indentation and naming."));
     assertTrue(prompt.contains("src/App.java"));
     assertTrue(prompt.contains("+new line"));
+    assertTrue(prompt.contains("```diff"));
     assertTrue(prompt.contains("pom.xml"));
     assertTrue(prompt.contains("not in scope"));
   }
@@ -102,10 +103,11 @@ public class ReviewPromptBuilderTest {
 
     assertTrue(prompt.contains("## Guardrails"));
     assertTrue(prompt.contains("no-modify"));
+    assertTrue(prompt.contains("## Diff review discipline"));
     assertTrue(prompt.contains("## Output"));
     assertTrue(prompt.contains("insufficient context"));
     assertTrue(prompt.indexOf("## Guardrails") < prompt.indexOf("## Ruleset Instructions"));
-    assertTrue(prompt.indexOf("## Output") < prompt.indexOf("## Changed Files"));
+    assertTrue(prompt.indexOf("## Diff review discipline") < prompt.indexOf("## Changed Files"));
   }
 
   @Test
