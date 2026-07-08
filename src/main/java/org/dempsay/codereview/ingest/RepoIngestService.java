@@ -15,11 +15,13 @@ public final class RepoIngestService {
   }
 
   public static ExceptionalResponse<List<ChangedFile>> ingest(final RepoIngestRequest request) {
-    return ExceptionalSupport.supply(() -> {
-      if (!GitRunner.isGitRepository(request.repoRoot())) {
-        throw new IllegalArgumentException("Not a git repository: " + request.repoRoot().toAbsolutePath());
-      }
+    if (!GitRunner.isGitRepository(request.repoRoot())) {
+      return ExceptionalSupport.fail(
+          new IllegalArgumentException("Not a git repository: " + request.repoRoot().toAbsolutePath())
+      );
+    }
 
+    return ExceptionalSupport.supply(() -> {
       final List<String> paths = listReviewablePaths(request);
       final List<ChangedFile> files = new ArrayList<>();
       final int maxFileBytes = request.maxFileKb() * 1024;

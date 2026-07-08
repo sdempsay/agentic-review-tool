@@ -29,22 +29,21 @@ public final class LlmSummarizeService {
       final ReviewProgress progress,
       final ReviewContentMode contentMode
   ) {
-    return ExceptionalSupport.supply(() -> {
-      final ReviewPromptSupplements supplements =
-          ExceptionalSupport.response(ReviewPromptSupplements.load(config.rulesDir()));
-      final String prompt = SummarizePromptBuilder.build(
-          agentResults,
-          changedFiles,
-          contentMode,
-          supplements.guardrails()
-      );
-      return StreamingLlmClient.complete(
-          config.model(),
-          config.maxTokens(),
-          prompt,
-          progress,
-          "summarize"
-      ).trim();
-    });
+    return ReviewPromptSupplements.load(config.rulesDir())
+        .chain((listener, supplements) -> ExceptionalSupport.supply(() -> {
+          final String prompt = SummarizePromptBuilder.build(
+              agentResults,
+              changedFiles,
+              contentMode,
+              supplements.guardrails()
+          );
+          return StreamingLlmClient.complete(
+              config.model(),
+              config.maxTokens(),
+              prompt,
+              progress,
+              "summarize"
+          ).trim();
+        }), listener);
   }
 }

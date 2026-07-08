@@ -2,6 +2,9 @@
 
 ## 2026-07-07
 
+- Fixed summarize pipeline failure path: `LlmReviewService` chains `LlmSummarizeService` (no `ExceptionalSupport.response()` bridge); `ReviewPhase` carries `changedFiles` into summarize; summarize errors return `wasError()` instead of crashing with `AssertionError`
+- Tightened `java-exceptional.md`: explicit `throw` inside `.chain()` / `supply()` lambdas is must-fix; use `ExceptionalSupport.fail`; `ExceptionalSupport.response()` is tests-only; updated `AGENTS.md` to match
+- Replaced `throw` in exceptional lambdas with `ExceptionalSupport.fail` in `GitIngestService`, `GitRunner`, `RepoIngestService`
 - Refactored `GitIngestService` to compose git/file I/O via `.chain()` and `ExceptionalResource` (no `ExceptionalSupport.response()` bridges)
 - Fixed diff-review nits: EOF newlines on 7 Java files; extracted `final String content` in `GitIngestService.ingestUntrackedFile`
 - Refactored I/O and service layers to exceptional contract: removed public `*Required` methods and `throws` declarations; `GitRunner` returns `ExceptionalResponse`; `ReviewChatLoop.run` returns `ExceptionalResponse<Void>`; CLI chat wired via `.chain()`

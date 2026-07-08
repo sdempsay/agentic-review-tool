@@ -57,8 +57,11 @@ final class GitRunner {
     return run(repoRoot, command)
         .chain((listener, result) -> {
           if (result.exitCode() != 0) {
-            throw new IllegalStateException(
-                "git " + String.join(" ", command) + " failed with exit code " + result.exitCode()
+            return ExceptionalSupport.fail(
+                listener,
+                new IllegalStateException(
+                    "git " + String.join(" ", command) + " failed with exit code " + result.exitCode()
+                )
             );
           }
           if (result.output().isBlank()) {

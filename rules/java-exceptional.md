@@ -41,10 +41,59 @@ public static int resolveLimit(final Config config) {
 
 At the **application boundary** (CLI `run()`, HTTP handler, job entry point), check the final `ExceptionalResponse`, surface the root cause to the user (stderr, response body, exit code), and stop — still without adding `throws` or re-throwing through the stack.
 
+### No explicit `throw` inside exceptional lambdas
+
+The exceptional library captures **unexpected** exceptions thrown by JDK I/O inside `ExceptionalSupplier` / `ExceptionalResource` lambdas. That is **not** permission to `throw` for **expected** business or validation failures inside those lambdas or inside `.chain()` callbacks.
+
+**Forbidden inside `.chain()` callbacks and `ExceptionalSupport.supply()` lambdas:**
+
+- `throw new IllegalArgumentException(...)`
+- `throw new IllegalStateException(...)`
+- Any other explicit `throw` for an expected failure you are handling
+
+**Required instead:**
+
+- In `.chain()` callbacks — `return ExceptionalSupport.fail(listener, error);`
+- At method entry (no listener in scope) — `return ExceptionalSupport.fail(error);`
+- Composing steps — `.chain()` from the prior `ExceptionalResponse`; never `ExceptionalSupport.response(...)` in production code
+
+```java
+// BAD — throw in chain callback
+return gitRun(repoRoot, "diff")
+    .chain((listener, result) -> {
+      if (result.exitCode() != 0) {
+        throw new IllegalStateException("git diff failed");
+      }
+      return ExceptionalResponse.success(parse(result));
+    });
+
+// GOOD
+return gitRun(repoRoot, "diff")
+    .chain((listener, result) -> {
+      if (result.exitCode() != 0) {
+        return ExceptionalSupport.fail(listener, new IllegalStateException("git diff failed"));
+      }
+      return ExceptionalResponse.success(parse(result));
+    });
+
+// BAD — response() bridge crashes the CLI on failure (AssertionError)
+final Supplements s = ExceptionalSupport.response(Supplements.load(dir));
+
+// GOOD — chain propagates wasError() to the caller
+return Supplements.load(dir)
+    .chain((listener, supplements) -> buildReport(supplements), listener);
+```
+
+`ExceptionalSupport.response(...)` is for **tests only** — unwrapping a response you expect to succeed.
+
+JDK calls such as `Files.readString(path)` may throw inside a supply/resource lambda; the library captures those. Do not add a separate `throw` for the same failure path.
+
 ### Report as findings
 
 - Methods that declare `throws` instead of returning `ExceptionalResponse`
-- `throw` used for expected failure paths (I/O, network, parse errors)
+- `throw` used for expected failure paths (I/O, network, parse errors, validation, git exit codes)
+- Explicit `throw` inside `.chain()` callbacks or `ExceptionalSupport.supply()` lambdas (use `ExceptionalSupport.fail` instead)
+- `ExceptionalSupport.response(...)` in production code (tests only)
 - Business `try/catch` where `ExceptionalResponse` should carry the failure
 - Swallowed errors (`catch (...) { return default; }`) — use `wasError()` at the call site instead
 - Broad `catch (Exception)` — checkstyle `IllegalCatch` rejects this

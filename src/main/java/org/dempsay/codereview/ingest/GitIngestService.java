@@ -20,9 +20,9 @@ public final class GitIngestService {
 
   public static ExceptionalResponse<List<ChangedFile>> ingest(final IngestRequest request) {
     if (!GitRunner.isGitRepository(request.repoRoot())) {
-      return ExceptionalSupport.supply(() -> {
-        throw new IllegalArgumentException("Not a git repository: " + request.repoRoot().toAbsolutePath());
-      });
+      return ExceptionalSupport.fail(
+          new IllegalArgumentException("Not a git repository: " + request.repoRoot().toAbsolutePath())
+      );
     }
 
     return switch (request.scope()) {
@@ -92,8 +92,11 @@ public final class GitIngestService {
     return GitRunner.run(request.repoRoot(), gitDiffCommand)
         .chain((listener, result) -> {
           if (result.exitCode() != 0) {
-            throw new IllegalStateException(
-                "git " + String.join(" ", gitDiffCommand) + " failed with exit code " + result.exitCode()
+            return ExceptionalSupport.fail(
+                listener,
+                new IllegalStateException(
+                    "git " + String.join(" ", gitDiffCommand) + " failed with exit code " + result.exitCode()
+                )
             );
           }
 
@@ -128,7 +131,10 @@ public final class GitIngestService {
     return GitRunner.run(repoRoot, "diff", "--no-index", DEV_NULL, path)
         .chain((listener, diffResult) -> {
           if (diffResult.exitCode() > 1) {
-            throw new IllegalStateException("git diff --no-index failed for " + path);
+            return ExceptionalSupport.fail(
+                listener,
+                new IllegalStateException("git diff --no-index failed for " + path)
+            );
           }
           if (DiffParser.isBinaryDiffChunk(diffResult.output())) {
             return ExceptionalResponse.success(ChangedFile.skipped(path, ChangeType.ADDED, "Binary file"));

@@ -17,7 +17,7 @@ This project uses the [exceptional](https://github.com/dempsay/exceptional) libr
 Every service that can fail (network, filesystem, parsing, git, LLM) must follow this shape:
 
 1. **Public methods** — return `ExceptionalResponse<T>` (never `throws`)
-2. **Failing work** — wrap in `ExceptionalSupplier.of(() -> { ... }).execute()`, `ExceptionalResource.of(...)`, or `ExceptionalSupport.supply(() -> { ... })` — JDK calls that throw stay inside the lambda
+2. **Failing work** — wrap in `ExceptionalSupplier.of(() -> { ... }).execute()`, `ExceptionalResource.of(...)`, or `ExceptionalSupport.supply(() -> { ... })` — only JDK I/O that throws unchecked/checked exceptions belongs inside the lambda; do not `throw` for expected validation/git failures inside supply or chain lambdas
 3. **Callers** — `.chain()` / `.then()` with `ExceptionalListener`, or `wasError()` / `wasNoError()` at decision points
 
 Canonical references in this repo (copy these, do not invent a new pattern):
@@ -32,9 +32,19 @@ Canonical references in this repo (copy these, do not invent a new pattern):
 ```java
 public static ExceptionalResponse<HealthReport> check(final ModelConfig model) {
   return ExceptionalSupport.supply(() -> {
-    // HTTP, parse, validate — throws inside lambda are captured
+    // HTTP, parse — JDK throws inside lambda are captured by exceptional
     return probeHealth(model);
   });
+}
+
+public static ExceptionalResponse<List<ChangedFile>> ingestFromDiff(final Path repoRoot) {
+  return GitRunner.run(repoRoot, "diff")
+      .chain((listener, result) -> {
+        if (result.exitCode() != 0) {
+          return ExceptionalSupport.fail(listener, new IllegalStateException("git diff failed"));
+        }
+        return ExceptionalResponse.success(parse(result));
+      });
 }
 
 public static ExceptionalResponse<HealthReport> checkAndLog(final ModelConfig model) {
@@ -56,7 +66,8 @@ Prefer `ExceptionalResource.of(() -> open(), resource -> use(resource))` over ma
 ### Forbidden in `src/main/java`
 
 - **`throws` declarations** on application methods — return `ExceptionalResponse` instead
-- **`throw` for expected failure paths** (I/O, network, parse errors)
+- **`throw` for expected failure paths** (I/O, network, parse errors, validation, git exit codes) — including inside `.chain()` callbacks and `ExceptionalSupport.supply()` lambdas; use `ExceptionalSupport.fail(listener, error)` or `ExceptionalSupport.fail(error)` instead
+- **`ExceptionalSupport.response(...)` in production** — tests only; use `.chain()` to compose `ExceptionalResponse` steps
 - **`try/catch` for business error handling** — use `ExceptionalResponse` instead
 - **Swallowing exceptions** — `catch (...) { return default; }` belongs at the call site via `wasError()`, never inside a catch block
 - **`catch (Exception)`** — checkstyle `IllegalCatch` rejects this; do not work around it with broad catches
