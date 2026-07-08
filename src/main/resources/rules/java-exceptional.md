@@ -7,7 +7,19 @@ paths:
 
 **Mandatory.** Any code path that can fail — network, filesystem, parsing, git, external services — **must** use `org.dempsay.utils:exceptional` and return `ExceptionalResponse<T>`. No `throws`, no `throw` to callers, no business `try/catch` on those paths. Violations are **must-fix**. Pure domain logic, DTOs, and records do not need exceptional unless they perform I/O. **Record compact constructors** that throw to enforce invariants are explicitly out of scope (see below).
 
-When reviewing **diffs**, flag only added or changed lines that perform or orchestrate failing work. When reviewing **full files**, audit all I/O and external call paths.
+When reviewing **full files** (no diff fences), audit all I/O and external call paths.
+
+## Diff review discipline
+
+When the prompt contains unified diffs (fenced `diff` blocks below each file):
+
+- Lines starting with `+` are **added**; `-` are **removed**; leading-space lines are **unchanged context**.
+- Report an exceptional violation **only** if it appears on a **`+` line** in the diff.
+- **Never** flag context lines or removed `-` lines — even when they show `throws`, `throw`, or `*Required` methods, they are not in the code after the change.
+- **Removals are not violations** — deleting `throws` declarations, removing `*Required` helpers, replacing `throw` with `ExceptionalSupport.fail(listener, error)`, and returning `ExceptionalResponse` instead of throwing are **correct migrations**; do not flag the removed `-` lines.
+- Each finding must cite a **`+` line** (path:line and the added content or a faithful paraphrase). If you cannot point to a `+` line that introduces the violation, **omit** the finding.
+- Allowed on `+` lines: JDK I/O inside `ExceptionalSupport.supply` / `ExceptionalResource` lambdas; `ExceptionalSupport.fail(listener, error)` for expected failures; record compact-constructor `throw` (out of scope).
+- Context lines showing old `throws`/`throw` patterns above new `+` exceptional code are **out of scope** — judge only what the `+` lines add.
 
 ## 1. Exception Handling (Exceptional pattern)
 
@@ -130,6 +142,8 @@ Use `ExceptionalResource.of(() -> open(), resource -> use(resource))` so cleanup
 ## 3. Response format
 
 - One bullet per finding: `path:line — must-fix — §1 — brief description`
+- In diff mode, every bullet must correspond to a **`+` line** that **introduces** a violation; otherwise output `## Clean`
+- In diff mode, do not emit a finding and later retract it — if it is not on a `+` line, omit the bullet on the first pass
 - **Clean** — `## Clean` only when there are zero findings; otherwise omit Clean or say `Clean: all other files in scope` — never enumerate every clean file
 - Do not restate the rules; only report violations
-- If the diff lacks context to judge exceptional handling, say "insufficient context" — do not guess
+- If the diff lacks context to judge exceptional handling on a `+` line, omit the finding — do not guess or emit "insufficient context" bullets
