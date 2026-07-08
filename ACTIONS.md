@@ -2,6 +2,7 @@
 
 ## 2026-07-08
 
+- Task 30 doc alignment: PRD.md, README.md, AGENTS.md now state workflow orchestration in plain Java; langchain4j limited to ChatModel/streaming/tokens; explicitly not `langchain4j-agentic`
 - Version convention: `pom.xml` → `1.1.0-SNAPSHOT`; Javadoc `@since 1.0.0` + `@author` on all public API (64 types); `java-javadoc.md` and `AGENTS.md` document the baseline
 - Added `samples/diff-discipline-small/` — checked-in Ollama report for commit `3bc265e` (3 Java files, APPROVE_WITH_NITS); `reproduce.sh` checks out the commit and runs `diff --base 3bc265e^`; README sample excerpt
 - Added witty `README.md` for GitHub engagement — quick start, agent cast, config, diff discipline, rules authoring

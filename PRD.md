@@ -7,7 +7,7 @@
 
 ## 1. Overview
 
-Commercial code review tools using frontier models incur high costs due to large context windows and prompt bloat. This project builds a cost-effective alternative using **langchain-4j** with local (Ollama) or lower-cost (OpenRouter) LLMs.
+Commercial code review tools using frontier models incur high costs due to large context windows and prompt bloat. This project builds a cost-effective alternative using local (Ollama) or lower-cost (OpenRouter) LLMs, with **langchain4j** limited to model access (`ChatModel`, streaming, token usage).
 
 **Goal:** Create an extensible, agentic code review pipeline that supports differential reviews (primary) and repository-wide reviews, with strong customization for organizational rules.
 
@@ -51,8 +51,8 @@ Commercial code review tools using frontier models incur high costs due to large
 - **CLI Layer**: Interactive command line.
 - **Configuration**: JSON file for models, rules directory, etc.
 - **Rules Engine**: Load markdown files from directory. Each file contains YAML frontmatter (`paths:` globs) + prompt content.
-- **Orchestration**: langchain-4j (chains + agentic module).
-- **Models**: Configurable via JSON.
+- **Orchestration**: Plain Java workflow — `RulesetReviewPlanner` → per-ruleset LLM calls → summarizer (`LlmReviewService`, `LlmSummarizeService`). Follow-up chat uses `ReviewChatOrchestrator` (deterministic file routing + optional delegation). This is a **workflow-style agentic system** (predictable steps), not langchain4j's experimental `langchain4j-agentic` module.
+- **Models**: Configurable via JSON; created through `ChatModelFactory` (Ollama / OpenRouter).
 
 ### Extensibility Notes
 - **Primary Classification (MVP)**: Path-based globs (e.g. `**/*.java`, `**/service/**`).

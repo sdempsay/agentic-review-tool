@@ -7,6 +7,13 @@ Project-specific rules for agents working in this repository. Global rules in `~
 - **Maven:** `1.1.0-SNAPSHOT` in `pom.xml` (development after the 1.0.0 release line)
 - **Javadoc `@since`:** `1.0.0` on all first-release public API; bump `@since` only when adding API in a later release
 
+## Architecture / langchain4j
+
+- **Orchestration:** Plain Java workflow — ingest → classify → `LlmReviewService` (per-ruleset prompts) → `LlmSummarizeService` → report; optional `ReviewChatOrchestrator` for follow-up
+- **langchain4j role:** `ChatModel` / `StreamingChatModel`, message types, `TokenUsage` extraction (`ChatModelFactory`, `StreamingLlmClient`, `LlmTokenLedger`)
+- **Not used:** `langchain4j-agentic`, `AiServices`, `@Tool`, framework `ChatMemory` — intentional; specialists are stateless single-shot completions with custom batching and output sanitization
+- **Terminology:** "Agents" in this repo = ruleset-scoped prompt personas, not langchain4j `@Agent` interfaces
+
 ## Session start
 
 - Read `TODO.md` for task status

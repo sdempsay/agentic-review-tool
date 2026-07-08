@@ -57,6 +57,8 @@ summarize agent         → findings → health score + APPROVE / REQUEST_CHANGE
 
 Rules live in markdown files. Add a rule, add a glob, done. No Java changes in the pipeline itself.
 
+Orchestration is **workflow-style plain Java** — plan specialist tasks, run them, summarize. [langchain4j](https://docs.langchain4j.dev/) supplies `ChatModel`, streaming, and token accounting only; we do **not** use the experimental `langchain4j-agentic` module (`@Agent`, `AgenticServices`). That is intentional: predictable pipelines beat framework magic for cost-controlled review.
+
 ---
 
 ## Quick Start
