@@ -2,6 +2,13 @@
 
 Requirements learned during implementation that extend or refine `PRD.md`.
 
+## 2026-07-08 — Review output cap (`reviewMaxTokens`)
+
+- `reviewMaxTokens` caps generation per LLM call (agent review, summarize, chat) — maps to Ollama `numPredict` and OpenRouter `maxTokens`.
+- Default `4096` in bundled config; `maxTokens` (24000 bundled) remains for backward compatibility when `reviewMaxTokens` is unset (0).
+- `AgentBatchLimits` / `PromptBudgetEstimator` reserve `resolvedReviewMaxTokens()` for output when sizing batches — not the full `maxTokens` value.
+- `doctor` prints `reviewMaxTokens` alongside batch caps.
+
 ## 2026-07-07 — Rules directory
 
 - Default `rulesDir` is `rules` (relative to the working directory). Override in `~/.code-review/config.json` as needed.

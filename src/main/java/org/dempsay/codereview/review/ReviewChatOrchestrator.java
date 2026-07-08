@@ -20,7 +20,10 @@ public final class ReviewChatOrchestrator {
 
   public ReviewChatOrchestrator(final ReviewSessionContext session, final ReviewPromptSupplements supplements) {
     this.session = session;
-    this.chatModel = ChatModelFactory.create(session.config().model(), session.config().maxTokens());
+    this.chatModel = ChatModelFactory.create(
+        session.config().model(),
+        session.config().resolvedReviewMaxTokens()
+    );
     this.supplements = supplements;
     this.conversation = new ArrayList<>();
     this.conversation.add(SystemMessage.from(

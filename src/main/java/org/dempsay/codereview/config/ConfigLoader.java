@@ -93,6 +93,7 @@ public final class ConfigLoader {
     );
     final String rulesDir = requiredText(root, "rulesDir");
     final int maxTokens = root.path("maxTokens").asInt(8000);
+    final int reviewMaxTokens = root.path("reviewMaxTokens").asInt(4096);
     final int maxDiffKb = root.path("maxDiffKb").asInt(512);
     final int maxAgentDiffKb = root.path("maxAgentDiffKb").asInt(256);
     final int maxFilesPerAgent = root.path("maxFilesPerAgent").asInt(0);
@@ -101,6 +102,7 @@ public final class ConfigLoader {
         model,
         expandHome(rulesDir),
         maxTokens,
+        reviewMaxTokens,
         maxDiffKb,
         maxAgentDiffKb,
         maxFilesPerAgent,

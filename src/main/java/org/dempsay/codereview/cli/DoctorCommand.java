@@ -43,6 +43,10 @@ public class DoctorCommand implements Runnable {
   }
 
   private static void printBatchCapInfo(final AppConfig config) {
+    System.out.printf(
+        "Review output cap: reviewMaxTokens=%d (per agent/summarize/chat call)%n",
+        config.resolvedReviewMaxTokens()
+    );
     if (config.model().isOpenRouter()) {
       System.out.printf(
           "Batch caps: maxAgentDiffKb=%d (soft and hard; OpenRouter has no num_ctx probe)%n",

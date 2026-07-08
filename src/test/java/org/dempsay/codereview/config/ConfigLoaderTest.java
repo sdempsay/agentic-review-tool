@@ -40,6 +40,8 @@ public class ConfigLoaderTest {
     assertEquals(90, appConfig.model().timeoutSeconds());
     assertEquals(Path.of(System.getProperty("user.home"), "custom-rules"), appConfig.rulesDir());
     assertEquals(4096, appConfig.maxTokens());
+    assertEquals(4096, appConfig.reviewMaxTokens());
+    assertEquals(4096, appConfig.resolvedReviewMaxTokens());
     assertEquals(512, appConfig.maxDiffKb());
     assertEquals(256, appConfig.maxAgentDiffKb());
     assertEquals(0, appConfig.maxFilesPerAgent());
@@ -105,6 +107,8 @@ public class ConfigLoaderTest {
     assertEquals("qwen3-coder-next-256k:latest", appConfig.model().name());
     assertEquals(Path.of("rules"), appConfig.rulesDir());
     assertEquals(24000, appConfig.maxTokens());
+    assertEquals(4096, appConfig.reviewMaxTokens());
+    assertEquals(4096, appConfig.resolvedReviewMaxTokens());
     assertEquals(512, appConfig.maxDiffKb());
     assertEquals(256, appConfig.maxAgentDiffKb());
     assertEquals(0, appConfig.maxFilesPerAgent());

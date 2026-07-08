@@ -2,6 +2,7 @@
 
 ## 2026-07-08
 
+- Added `reviewMaxTokens` config (default 4096): caps per-call LLM output for agent review, summarize, and chat; batch budgeting reserves `resolvedReviewMaxTokens()` instead of full `maxTokens`; bundled `maxTokens` 24000 unchanged for backward-compat fallback
 - Added `**/*.java.ftl` to java-exceptional/formatting/javadoc rules with project-agnostic FreeMarker preambles (review emitted Java, ignore FTL directives); classifier tests; aether already uses `Builder.java.ftl` / `validation.java.ftl`
 - Tightened `java-javadoc.md` diff discipline: only new public API on `+` lines; private/test/listener overloads out of scope; Ollama origin/master v3 — all agents Clean, 10/10 APPROVE (~52s), matches OpenRouter
 - Tightened `java-exceptional.md` diff discipline: flag only `+` lines that introduce violations; never flag removed `throws`/`*Required` lines; removals are correct migrations

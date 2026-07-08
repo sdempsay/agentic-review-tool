@@ -83,6 +83,7 @@ public class RulesetReviewPlannerTest {
         new org.dempsay.codereview.config.ModelConfig("ollama", "qwen3", 0.2, null, 0, null),
         Path.of("/tmp"),
         8000,
+        4096,
         512,
         1,
         0,

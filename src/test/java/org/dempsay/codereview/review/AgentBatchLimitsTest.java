@@ -17,6 +17,7 @@ public class AgentBatchLimitsTest {
         new ModelConfig("ollama", "qwen3", 0.2, null, 0, null),
         Path.of("/tmp"),
         8000,
+        4096,
         512,
         256,
         0,
@@ -28,6 +29,36 @@ public class AgentBatchLimitsTest {
 
     assertTrue(limits.softDiffBytes() == 256 * 1024);
     assertTrue(limits.hardDiffBytes() > limits.softDiffBytes());
+  }
+
+  @Test
+  public void forRulesetReservesReviewMaxTokensNotFullMaxTokens() {
+    final AppConfig largeOutputCap = new AppConfig(
+        new ModelConfig("ollama", "qwen3", 0.2, null, 0, null),
+        Path.of("/tmp"),
+        24000,
+        4096,
+        512,
+        256,
+        0,
+        List.of()
+    );
+    final AppConfig hugeReserve = new AppConfig(
+        new ModelConfig("ollama", "qwen3", 0.2, null, 0, null),
+        Path.of("/tmp"),
+        24000,
+        24000,
+        512,
+        256,
+        0,
+        List.of()
+    );
+    final Rule rule = new Rule("java-general", null, List.of("**/*.java"), "Rules");
+
+    final AgentBatchLimits capped = AgentBatchLimits.forRuleset(largeOutputCap, 262144, rule);
+    final AgentBatchLimits overReserved = AgentBatchLimits.forRuleset(hugeReserve, 262144, rule);
+
+    assertTrue(capped.hardDiffBytes() > overReserved.hardDiffBytes());
   }
 
   @Test

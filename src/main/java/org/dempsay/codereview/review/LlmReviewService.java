@@ -136,7 +136,7 @@ public final class LlmReviewService {
           : ReviewPromptBuilder.buildForRuleset(task.rule(), task.files(), contentMode, supplements);
       final String findings = StreamingLlmClient.complete(
           config.model(),
-          config.maxTokens(),
+          config.resolvedReviewMaxTokens(),
           prompt,
           progress,
           task.agentName()

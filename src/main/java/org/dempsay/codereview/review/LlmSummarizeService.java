@@ -51,7 +51,7 @@ public final class LlmSummarizeService {
           );
           return StreamingLlmClient.complete(
               config.model(),
-              config.maxTokens(),
+              config.resolvedReviewMaxTokens(),
               prompt,
               progress,
               "summarize"

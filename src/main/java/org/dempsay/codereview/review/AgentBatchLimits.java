@@ -76,7 +76,7 @@ public record AgentBatchLimits(
     final int soft = config.maxAgentDiffKb() > 0 ? config.maxAgentDiffKb() * 1024 : 0;
     final int hardFromContext = PromptBudgetEstimator.diffBudgetBytes(
         contextTokens,
-        config.maxTokens(),
+        config.resolvedReviewMaxTokens(),
         overheadBytes
     );
     final int hard = hardFromContext > 0 ? hardFromContext : (soft > 0 ? soft : Integer.MAX_VALUE);

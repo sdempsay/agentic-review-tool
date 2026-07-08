@@ -8,6 +8,7 @@
   },
   "rulesDir": "rules",
   "maxTokens": 24000,
+  "reviewMaxTokens": 4096,
   "maxDiffKb": 512,
   "maxAgentDiffKb": 256,
   "maxFilesPerAgent": 0

@@ -176,6 +176,7 @@ public class ReviewPromptBuilderTest {
                 new org.dempsay.codereview.config.ModelConfig("ollama", "qwen3", 0.2, null, 0, null),
                 java.nio.file.Path.of("/tmp"),
                 8000,
+                4096,
                 512,
                 256,
                 0,
