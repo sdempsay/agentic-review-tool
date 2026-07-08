@@ -153,9 +153,5 @@ public final class LlmReviewService {
     ) {
       return new ReviewPhase(null, agentResults, contentMode, summarizeStageStart, changedFiles);
     }
-
-    List<ChangedFile> changedFiles() {
-      return changedFiles != null ? changedFiles : List.of();
-    }
   }
 }
