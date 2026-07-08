@@ -21,20 +21,18 @@ public final class ReviewOutputFormatLoader {
   }
 
   public static ExceptionalResponse<String> load(final Path rulesDir) {
-    return ExceptionalSupport.supply(() -> {
-      if (rulesDir != null) {
-        final Path file = rulesDir.resolve(FILE_NAME);
-        if (Files.isRegularFile(file)) {
-          return ExceptionalSupport.response(ExceptionalSupport.supply(() -> Files.readString(file)));
-        }
+    if (rulesDir != null) {
+      final Path file = rulesDir.resolve(FILE_NAME);
+      if (Files.isRegularFile(file)) {
+        return ExceptionalSupport.supply(() -> Files.readString(file));
       }
-      return ExceptionalSupport.response(loadBundled());
-    });
+    }
+    return loadBundled();
   }
 
   private static ExceptionalResponse<String> loadBundled() {
     return ExceptionalResource.of(
-        () -> openBundledStream(),
+        ReviewOutputFormatLoader::openBundledStream,
         input -> new String(input.readAllBytes(), StandardCharsets.UTF_8)
     ).execute();
   }

@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 import org.dempsay.codereview.support.ExceptionalSupport;
+import org.dempsay.utils.exceptional.api.ExceptionalListener;
 import org.dempsay.utils.exceptional.api.ExceptionalResource;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
@@ -29,28 +30,50 @@ public final class ReviewGuardrailsLoader {
   }
 
   public static ExceptionalResponse<String> load(final Path rulesDir) {
-    return ExceptionalSupport.supply(() -> {
-      if (rulesDir != null) {
-        final Path guardrailsDir = rulesDir.resolve(SUBDIRECTORY);
-        if (Files.isDirectory(guardrailsDir)) {
-          return formatGuardrails(listMarkdownFiles(guardrailsDir));
-        }
+    if (rulesDir != null) {
+      final Path guardrailsDir = rulesDir.resolve(SUBDIRECTORY);
+      if (Files.isDirectory(guardrailsDir)) {
+        return listMarkdownFiles(guardrailsDir)
+            .chain((listener, files) -> formatGuardrails(files, listener));
       }
-      return formatBundledGuardrails();
-    });
+    }
+    return formatBundledGuardrails();
   }
 
-  private static String formatGuardrails(final List<Path> files) {
+  private static ExceptionalResponse<String> formatGuardrails(
+      final List<Path> files,
+      final ExceptionalListener listener
+  ) {
     if (files.isEmpty()) {
-      return "";
+      return ExceptionalResponse.success("");
     }
-    final List<String> sections = new ArrayList<>();
-    final List<String> headings = new ArrayList<>();
-    for (final Path file : files) {
-      sections.add(ExceptionalSupport.response(ExceptionalSupport.supply(() -> Files.readString(file))));
-      headings.add(fileNameStem(file));
+    return readGuardrailFiles(files, 0, new ArrayList<>(), new ArrayList<>(), listener)
+        .chain((readListener, sections) -> ExceptionalResponse.success(
+            joinSections(sections.sections(), sections.headings())
+        ), listener);
+  }
+
+  private record GuardrailSections(List<String> sections, List<String> headings) {
+  }
+
+  private static ExceptionalResponse<GuardrailSections> readGuardrailFiles(
+      final List<Path> files,
+      final int index,
+      final List<String> sections,
+      final List<String> headings,
+      final ExceptionalListener listener
+  ) {
+    if (index >= files.size()) {
+      return ExceptionalResponse.success(new GuardrailSections(List.copyOf(sections), List.copyOf(headings)));
     }
-    return joinSections(sections, headings);
+
+    final Path file = files.get(index);
+    return ExceptionalSupport.supply(() -> Files.readString(file))
+        .chain((fileListener, content) -> {
+          sections.add(content);
+          headings.add(fileNameStem(file));
+          return readGuardrailFiles(files, index + 1, sections, headings, listener);
+        }, listener);
   }
 
   private static String joinSections(final List<String> sections, final List<String> headings) {
@@ -63,8 +86,8 @@ public final class ReviewGuardrailsLoader {
     return builder.toString().trim();
   }
 
-  private static List<Path> listMarkdownFiles(final Path directory) {
-    return ExceptionalSupport.response(ExceptionalSupport.supply(() -> {
+  private static ExceptionalResponse<List<Path>> listMarkdownFiles(final Path directory) {
+    return ExceptionalSupport.supply(() -> {
       try (Stream<Path> paths = Files.list(directory)) {
         return paths
             .filter(Files::isRegularFile)
@@ -72,7 +95,7 @@ public final class ReviewGuardrailsLoader {
             .sorted(Comparator.comparing(path -> path.getFileName().toString()))
             .toList();
       }
-    }));
+    });
   }
 
   private static String fileNameStem(final Path file) {
@@ -80,14 +103,31 @@ public final class ReviewGuardrailsLoader {
     return name.endsWith(".md") ? name.substring(0, name.length() - 3) : name;
   }
 
-  private static String formatBundledGuardrails() {
-    final List<String> sections = new ArrayList<>();
-    final List<String> headings = new ArrayList<>();
-    for (final String resourcePath : BUNDLED_RESOURCES) {
-      sections.add(ExceptionalSupport.response(loadBundledResource(resourcePath)));
-      headings.add(headingFromResource(resourcePath));
+  private static ExceptionalResponse<String> formatBundledGuardrails() {
+    return readBundledResources(BUNDLED_RESOURCES, 0, new ArrayList<>(), new ArrayList<>(), null)
+        .chain((listener, sections) -> ExceptionalResponse.success(
+            joinSections(sections.sections(), sections.headings())
+        ));
+  }
+
+  private static ExceptionalResponse<GuardrailSections> readBundledResources(
+      final List<String> resourcePaths,
+      final int index,
+      final List<String> sections,
+      final List<String> headings,
+      final ExceptionalListener listener
+  ) {
+    if (index >= resourcePaths.size()) {
+      return ExceptionalResponse.success(new GuardrailSections(List.copyOf(sections), List.copyOf(headings)));
     }
-    return joinSections(sections, headings);
+
+    final String resourcePath = resourcePaths.get(index);
+    return loadBundledResource(resourcePath)
+        .chain((resourceListener, content) -> {
+          sections.add(content);
+          headings.add(headingFromResource(resourcePath));
+          return readBundledResources(resourcePaths, index + 1, sections, headings, listener);
+        }, listener);
   }
 
   private static ExceptionalResponse<String> loadBundledResource(final String resourcePath) {

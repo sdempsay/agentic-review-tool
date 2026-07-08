@@ -57,7 +57,8 @@ public final class LlmReviewService {
         changedFiles,
         config,
         contextTokens,
-        contentMode
+        contentMode,
+        supplements
     );
     if (tasks.isEmpty()) {
       progress.stageComplete("Review", reviewStageStart);

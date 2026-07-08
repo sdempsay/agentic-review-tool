@@ -34,45 +34,85 @@ public final class RulesEngine {
       final Path rulesDir,
       final ExceptionalListener listener
   ) {
-    return ExceptionalSupport.supply(() -> {
-      final List<Rule> fromDirectory = loadFromDirectory(rulesDir);
-      if (!fromDirectory.isEmpty()) {
-        return fromDirectory;
-      }
-      return loadBundledRules();
-    }, listener);
+    if (rulesDir != null && Files.isDirectory(rulesDir)) {
+      return loadFromDirectory(rulesDir, listener);
+    }
+    return loadBundledRules(listener);
   }
 
-  private static List<Rule> loadFromDirectory(final Path rulesDir) {
-    if (rulesDir == null || !Files.isDirectory(rulesDir)) {
-      return List.of();
-    }
+  private static ExceptionalResponse<List<Rule>> loadFromDirectory(
+      final Path rulesDir,
+      final ExceptionalListener listener
+  ) {
+    return listRuleFiles(rulesDir)
+        .chain((listListener, ruleFiles) ->
+            loadRulesFromPaths(ruleFiles, 0, new ArrayList<>(), listener),
+            listener
+        );
+  }
 
-    final List<Path> ruleFiles = ExceptionalSupport.response(ExceptionalSupport.supply(() -> {
+  private static ExceptionalResponse<List<Path>> listRuleFiles(final Path rulesDir) {
+    return ExceptionalSupport.supply(() -> {
       try (Stream<Path> files = Files.list(rulesDir)) {
         return files
             .filter(path -> Files.isRegularFile(path) && path.getFileName().toString().endsWith(".md"))
             .sorted(Comparator.comparing(path -> path.getFileName().toString()))
             .toList();
       }
-    }));
-
-    final List<Rule> rules = new ArrayList<>();
-    for (final Path ruleFile : ruleFiles) {
-      if (!hasRuleFrontmatter(ruleFile)) {
-        continue;
-      }
-      rules.add(ExceptionalSupport.response(loadRule(ruleFile)));
-    }
-    return rules;
+    });
   }
 
-  private static List<Rule> loadBundledRules() {
-    final List<Rule> rules = new ArrayList<>();
-    for (final String resourcePath : BUNDLED_RULE_RESOURCES) {
-      rules.add(ExceptionalSupport.response(loadRuleFromClasspath(resourcePath)));
+  private static ExceptionalResponse<List<Rule>> loadRulesFromPaths(
+      final List<Path> ruleFiles,
+      final int index,
+      final List<Rule> rules,
+      final ExceptionalListener listener
+  ) {
+    if (index >= ruleFiles.size()) {
+      return ExceptionalResponse.success(List.copyOf(rules));
     }
-    return List.copyOf(rules);
+
+    final Path ruleFile = ruleFiles.get(index);
+    return hasRuleFrontmatter(ruleFile)
+        .chain((frontmatterListener, hasFrontmatter) -> {
+          if (!hasFrontmatter) {
+            return loadRulesFromPaths(ruleFiles, index + 1, rules, listener);
+          }
+          return loadRule(ruleFile)
+              .chain((ruleListener, rule) -> {
+                rules.add(rule);
+                return loadRulesFromPaths(ruleFiles, index + 1, rules, listener);
+              }, listener);
+        }, listener);
+  }
+
+  private static ExceptionalResponse<Boolean> hasRuleFrontmatter(final Path ruleFile) {
+    return ExceptionalSupport.supply(() -> Files.readString(ruleFile))
+        .chain((listener, content) -> {
+          final String normalized = content.startsWith("\uFEFF") ? content.substring(1) : content;
+          return ExceptionalResponse.success(normalized.startsWith("---"));
+        });
+  }
+
+  private static ExceptionalResponse<List<Rule>> loadBundledRules(final ExceptionalListener listener) {
+    return loadBundledRulesFromResources(BUNDLED_RULE_RESOURCES, 0, new ArrayList<>(), listener);
+  }
+
+  private static ExceptionalResponse<List<Rule>> loadBundledRulesFromResources(
+      final List<String> resourcePaths,
+      final int index,
+      final List<Rule> rules,
+      final ExceptionalListener listener
+  ) {
+    if (index >= resourcePaths.size()) {
+      return ExceptionalResponse.success(List.copyOf(rules));
+    }
+
+    return loadRuleFromClasspath(resourcePaths.get(index))
+        .chain((ruleListener, rule) -> {
+          rules.add(rule);
+          return loadBundledRulesFromResources(resourcePaths, index + 1, rules, listener);
+        }, listener);
   }
 
   static ExceptionalResponse<Rule> loadRule(final Path ruleFile) {
@@ -80,14 +120,12 @@ public final class RulesEngine {
         () -> Files.newBufferedReader(ruleFile),
         reader -> reader.lines().collect(Collectors.joining(System.lineSeparator()))
     ).execute()
-        .chain((listener, content) -> {
-          final FrontmatterParser.ParsedRuleDocument document =
-              ExceptionalSupport.response(FrontmatterParser.parse(content));
-          final String id = stripExtension(ruleFile.getFileName().toString());
-          return ExceptionalResponse.success(
-              new Rule(id, ruleFile, List.copyOf(document.pathGlobs()), document.promptBody())
-          );
-        });
+        .chain((listener, content) -> toRule(
+            stripExtension(ruleFile.getFileName().toString()),
+            ruleFile,
+            content,
+            listener
+        ));
   }
 
   static ExceptionalResponse<Rule> loadRuleFromClasspath(final String resourcePath) {
@@ -96,14 +134,21 @@ public final class RulesEngine {
         input -> new String(input.readAllBytes())
     ).execute()
         .chain((listener, content) -> {
-          final FrontmatterParser.ParsedRuleDocument document =
-              ExceptionalSupport.response(FrontmatterParser.parse(content));
           final String fileName = Path.of(resourcePath).getFileName().toString();
-          final String id = stripExtension(fileName);
-          return ExceptionalResponse.success(
-              new Rule(id, null, List.copyOf(document.pathGlobs()), document.promptBody())
-          );
+          return toRule(stripExtension(fileName), null, content, listener);
         });
+  }
+
+  private static ExceptionalResponse<Rule> toRule(
+      final String id,
+      final Path sourceFile,
+      final String content,
+      final ExceptionalListener listener
+  ) {
+    return FrontmatterParser.parse(content)
+        .chain((parseListener, document) -> ExceptionalResponse.success(
+            new Rule(id, sourceFile, List.copyOf(document.pathGlobs()), document.promptBody())
+        ), listener);
   }
 
   private static InputStream openBundledRuleStream(final String resourcePath) {
@@ -112,12 +157,6 @@ public final class RulesEngine {
       throw new IllegalStateException("Bundled rule is missing: " + resourcePath);
     }
     return input;
-  }
-
-  private static boolean hasRuleFrontmatter(final Path ruleFile) {
-    final String content = ExceptionalSupport.response(ExceptionalSupport.supply(() -> Files.readString(ruleFile)));
-    final String normalized = content.startsWith("\uFEFF") ? content.substring(1) : content;
-    return normalized.startsWith("---");
   }
 
   private static String stripExtension(final String fileName) {

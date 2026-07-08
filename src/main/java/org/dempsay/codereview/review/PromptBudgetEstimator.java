@@ -2,7 +2,6 @@ package org.dempsay.codereview.review;
 
 import java.util.List;
 import org.dempsay.codereview.rules.Rule;
-import org.dempsay.codereview.support.ExceptionalSupport;
 
 public final class PromptBudgetEstimator {
 
@@ -13,20 +12,33 @@ public final class PromptBudgetEstimator {
   }
 
   public static int rulesetOverheadBytes(final Rule rule) {
-    return rulesetOverheadBytes(rule, ReviewContentMode.DIFF);
+    return rulesetOverheadBytes(rule, ReviewContentMode.DIFF, ReviewPromptSupplements.empty());
   }
 
   public static int rulesetOverheadBytes(final Rule rule, final ReviewContentMode contentMode) {
-    final ReviewPromptSupplements supplements = ExceptionalSupport.response(ReviewPromptSupplements.load(null));
+    return rulesetOverheadBytes(rule, contentMode, ReviewPromptSupplements.empty());
+  }
+
+  public static int rulesetOverheadBytes(
+      final Rule rule,
+      final ReviewContentMode contentMode,
+      final ReviewPromptSupplements supplements
+  ) {
     return ReviewPromptBuilder.buildForRuleset(rule, List.of(), contentMode, supplements).length();
   }
 
   public static int generalOverheadBytes() {
-    return generalOverheadBytes(ReviewContentMode.DIFF);
+    return generalOverheadBytes(ReviewContentMode.DIFF, ReviewPromptSupplements.empty());
   }
 
   public static int generalOverheadBytes(final ReviewContentMode contentMode) {
-    final ReviewPromptSupplements supplements = ExceptionalSupport.response(ReviewPromptSupplements.load(null));
+    return generalOverheadBytes(contentMode, ReviewPromptSupplements.empty());
+  }
+
+  public static int generalOverheadBytes(
+      final ReviewContentMode contentMode,
+      final ReviewPromptSupplements supplements
+  ) {
     return ReviewPromptBuilder.buildGeneralFallback(List.of(), contentMode, supplements).length();
   }
 

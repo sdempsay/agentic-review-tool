@@ -16,7 +16,8 @@ public final class RulesetReviewPlanner {
       int contextTokens,
       int maxAgentDiffKb,
       int maxFilesPerAgent,
-      ReviewContentMode contentMode
+      ReviewContentMode contentMode,
+      ReviewPromptSupplements supplements
   ) {
   }
 
@@ -42,7 +43,7 @@ public final class RulesetReviewPlanner {
         rules,
         classification,
         changedFiles,
-        new PlanOptions(null, 0, maxAgentDiffKb, maxFilesPerAgent, ReviewContentMode.DIFF)
+        new PlanOptions(null, 0, maxAgentDiffKb, maxFilesPerAgent, ReviewContentMode.DIFF, ReviewPromptSupplements.empty())
     );
   }
 
@@ -64,11 +65,23 @@ public final class RulesetReviewPlanner {
       final int contextTokens,
       final ReviewContentMode contentMode
   ) {
+    return plan(rules, classification, changedFiles, config, contextTokens, contentMode, ReviewPromptSupplements.empty());
+  }
+
+  public static List<RulesetReviewTask> plan(
+      final List<Rule> rules,
+      final Map<String, List<Rule>> classification,
+      final List<ChangedFile> changedFiles,
+      final AppConfig config,
+      final int contextTokens,
+      final ReviewContentMode contentMode,
+      final ReviewPromptSupplements supplements
+  ) {
     return plan(
         rules,
         classification,
         changedFiles,
-        new PlanOptions(config, contextTokens, config.maxAgentDiffKb(), config.maxFilesPerAgent(), contentMode)
+        new PlanOptions(config, contextTokens, config.maxAgentDiffKb(), config.maxFilesPerAgent(), contentMode, supplements)
     );
   }
 
@@ -142,15 +155,26 @@ public final class RulesetReviewPlanner {
   ) {
     if (options.config() != null && options.contextTokens() > 0) {
       return general
-          ? AgentBatchLimits.forGeneral(options.config(), options.contextTokens(), options.contentMode())
-          : AgentBatchLimits.forRuleset(options.config(), options.contextTokens(), rule, options.contentMode());
+          ? AgentBatchLimits.forGeneral(
+              options.config(),
+              options.contextTokens(),
+              options.contentMode(),
+              options.supplements()
+          )
+          : AgentBatchLimits.forRuleset(
+              options.config(),
+              options.contextTokens(),
+              rule,
+              options.contentMode(),
+              options.supplements()
+          );
     }
     return AgentBatchLimits.fromLegacyCaps(
         options.maxAgentDiffKb(),
         options.maxFilesPerAgent(),
         general
-            ? PromptBudgetEstimator.generalOverheadBytes(options.contentMode())
-            : PromptBudgetEstimator.rulesetOverheadBytes(rule, options.contentMode())
+            ? PromptBudgetEstimator.generalOverheadBytes(options.contentMode(), options.supplements())
+            : PromptBudgetEstimator.rulesetOverheadBytes(rule, options.contentMode(), options.supplements())
     );
   }
 

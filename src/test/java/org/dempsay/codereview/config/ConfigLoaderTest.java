@@ -102,9 +102,9 @@ public class ConfigLoaderTest {
     final AppConfig appConfig = ExceptionalSupport.response(ConfigLoader.load(null));
 
     assertEquals("ollama", appConfig.model().provider());
-    assertEquals("qwen3.6-35b-mlx-256k:latest", appConfig.model().name());
+    assertEquals("qwen3-coder-next-256k:latest", appConfig.model().name());
     assertEquals(Path.of("rules"), appConfig.rulesDir());
-    assertEquals(8000, appConfig.maxTokens());
+    assertEquals(24000, appConfig.maxTokens());
     assertEquals(512, appConfig.maxDiffKb());
     assertEquals(256, appConfig.maxAgentDiffKb());
     assertEquals(0, appConfig.maxFilesPerAgent());

@@ -1,5 +1,10 @@
 # ACTIONS.md
 
+## 2026-07-08
+
+- Removed all production `ExceptionalSupport.response()` bridges: `ConfigLoader`, `RepoIngestService`, `RulesEngine`, `ModelHealthChecker`, `ReviewGuardrailsLoader`, `ReviewOutputFormatLoader`, `PromptBudgetEstimator`, `RulesetReviewPlanner`, `ReviewChatLoop`/`ReviewChatOrchestrator`; supplements flow via `.chain()` into batch planning and chat
+- Default Ollama model `qwen3-coder-next-256k:latest` (replaced `qwen3.6-35b-mlx-256k`); bundled `maxTokens` 24000
+
 ## 2026-07-07
 
 - Tightened review output rules: findings first; `## Clean` only when zero findings; do not enumerate every clean file in large batches (`review-output-format.md` + java rules)

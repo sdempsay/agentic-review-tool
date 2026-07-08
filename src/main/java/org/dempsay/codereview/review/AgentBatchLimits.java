@@ -24,7 +24,17 @@ public record AgentBatchLimits(
       final Rule rule,
       final ReviewContentMode contentMode
   ) {
-    return build(config, contextTokens, PromptBudgetEstimator.rulesetOverheadBytes(rule, contentMode));
+    return forRuleset(config, contextTokens, rule, contentMode, ReviewPromptSupplements.empty());
+  }
+
+  public static AgentBatchLimits forRuleset(
+      final AppConfig config,
+      final int contextTokens,
+      final Rule rule,
+      final ReviewContentMode contentMode,
+      final ReviewPromptSupplements supplements
+  ) {
+    return build(config, contextTokens, PromptBudgetEstimator.rulesetOverheadBytes(rule, contentMode, supplements));
   }
 
   public static AgentBatchLimits forGeneral(final AppConfig config, final int contextTokens) {
@@ -36,7 +46,16 @@ public record AgentBatchLimits(
       final int contextTokens,
       final ReviewContentMode contentMode
   ) {
-    return build(config, contextTokens, PromptBudgetEstimator.generalOverheadBytes(contentMode));
+    return forGeneral(config, contextTokens, contentMode, ReviewPromptSupplements.empty());
+  }
+
+  public static AgentBatchLimits forGeneral(
+      final AppConfig config,
+      final int contextTokens,
+      final ReviewContentMode contentMode,
+      final ReviewPromptSupplements supplements
+  ) {
+    return build(config, contextTokens, PromptBudgetEstimator.generalOverheadBytes(contentMode, supplements));
   }
 
   public static AgentBatchLimits fromLegacyCaps(

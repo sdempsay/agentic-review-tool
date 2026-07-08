@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import org.dempsay.codereview.support.ExceptionalSupport;
 import org.dempsay.utils.exceptional.api.ExceptionalResource;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 
@@ -22,11 +21,9 @@ public final class ConfigLoader {
   }
 
   public static ExceptionalResponse<AppConfig> load(final Path explicitConfigPath) {
-    return ExceptionalSupport.supply(() -> {
-      final Path configPath = resolveConfigPath(explicitConfigPath);
-      final JsonNode root = ExceptionalSupport.response(readConfig(configPath));
-      return toAppConfig(root);
-    });
+    final Path configPath = resolveConfigPath(explicitConfigPath);
+    return readConfig(configPath)
+        .chain((listener, root) -> ExceptionalResponse.success(toAppConfig(root)));
   }
 
   public static String describeSource(final Path explicitConfigPath) {

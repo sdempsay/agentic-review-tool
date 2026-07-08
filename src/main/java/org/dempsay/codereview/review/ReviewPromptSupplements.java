@@ -6,6 +6,10 @@ import org.dempsay.utils.exceptional.api.ExceptionalResponse;
 /** Shared prompt fragments loaded from the rules directory (guardrails, output format). */
 public record ReviewPromptSupplements(String guardrails, String outputFormat) {
 
+  public static ReviewPromptSupplements empty() {
+    return new ReviewPromptSupplements("", "");
+  }
+
   public static ExceptionalResponse<ReviewPromptSupplements> load(final Path rulesDir) {
     return ReviewGuardrailsLoader.load(rulesDir)
         .chain((listener, guardrails) -> ReviewOutputFormatLoader.load(rulesDir)

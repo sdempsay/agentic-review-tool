@@ -3,6 +3,7 @@ package org.dempsay.codereview.cli;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import org.dempsay.codereview.review.ReviewChatOrchestrator;
+import org.dempsay.codereview.review.ReviewPromptSupplements;
 import org.dempsay.codereview.review.ReviewSessionContext;
 import org.dempsay.codereview.support.ExceptionalSupport;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
@@ -13,12 +14,13 @@ public final class ReviewChatLoop {
   }
 
   public static ExceptionalResponse<Void> run(final ReviewSessionContext session) {
-    return ExceptionalSupport.supply(() -> {
+    return ReviewPromptSupplements.load(session.config().rulesDir())
+        .chain((listener, supplements) -> ExceptionalSupport.supply(() -> {
       System.out.println();
       System.out.println("--- Follow-up Chat ---");
       System.out.println("Ask questions about this review (exit to end).");
 
-      final ReviewChatOrchestrator orchestrator = new ReviewChatOrchestrator(session);
+      final ReviewChatOrchestrator orchestrator = new ReviewChatOrchestrator(session, supplements);
       final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
       while (true) {
@@ -35,7 +37,7 @@ public final class ReviewChatLoop {
         System.out.println(orchestrator.respond(line.trim()));
       }
       return null;
-    });
+    }, listener));
   }
 
   public static boolean isExit(final String input) {

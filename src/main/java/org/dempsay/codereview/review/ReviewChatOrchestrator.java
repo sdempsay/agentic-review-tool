@@ -11,8 +11,6 @@ import java.util.Optional;
 import org.dempsay.codereview.ingest.ChangedFile;
 import org.dempsay.codereview.model.ChatModelFactory;
 import org.dempsay.codereview.rules.Rule;
-import org.dempsay.codereview.support.ExceptionalSupport;
-
 public final class ReviewChatOrchestrator {
 
   private final ReviewSessionContext session;
@@ -20,10 +18,10 @@ public final class ReviewChatOrchestrator {
   private final List<ChatMessage> conversation;
   private final ReviewPromptSupplements supplements;
 
-  public ReviewChatOrchestrator(final ReviewSessionContext session) {
+  public ReviewChatOrchestrator(final ReviewSessionContext session, final ReviewPromptSupplements supplements) {
     this.session = session;
     this.chatModel = ChatModelFactory.create(session.config().model(), session.config().maxTokens());
-    this.supplements = ExceptionalSupport.response(ReviewPromptSupplements.load(session.config().rulesDir()));
+    this.supplements = supplements;
     this.conversation = new ArrayList<>();
     this.conversation.add(SystemMessage.from(
         ReviewChatPromptBuilder.buildOrchestratorSystemPrompt(session.reportText(), supplements.guardrails())
