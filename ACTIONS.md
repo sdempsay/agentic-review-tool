@@ -2,6 +2,7 @@
 
 ## 2026-07-07
 
+- Tightened review output rules: findings first; `## Clean` only when zero findings; do not enumerate every clean file in large batches (`review-output-format.md` + java rules)
 - Diff ingest skips `.md` and `.json` by default (same as repo); shared `IngestExtensionFilter` with `RepoPathFilter`
 - Generalized `java-exceptional.md`: removed repo-specific types (`IngestRequest`, `ExceptionalSupport`); examples use `ExceptionalSupplier`, `listener.onError`, and generic `OrderRequest` record
 - Added record compact-constructor carve-out to `java-exceptional.md` and `AGENTS.md` (invariant `throw` in compact constructors is out of scope; not exceptional lambdas)

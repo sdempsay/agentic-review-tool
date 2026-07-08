@@ -24,6 +24,6 @@ When reviewing **diffs**, flag only added or changed lines. When reviewing **ful
 ## 3. Response format
 
 - One bullet per finding: `path:line — nit — §1 — brief description`
-- List files with no issues under **Clean**
+- **Clean** — `## Clean` only when there are zero findings; otherwise omit Clean or say `Clean: all other files in scope` — never enumerate every clean file
 - Do not restate the rules; only report violations
 - If the diff lacks context to judge Javadoc requirements, say "insufficient context" — do not guess

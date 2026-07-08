@@ -80,6 +80,6 @@ Flag when visible in the diff. Full enforcement runs via `mvn verify`, not in th
 ## 9. Response format
 
 - One bullet per finding: `path:line — [must-fix|nit] — §N — brief description`
-- List files with no issues under **Clean**
+- **Clean** — `## Clean` only when there are zero findings; otherwise omit Clean or say `Clean: all other files in scope` — never enumerate every clean file
 - Do not restate the rules; only report violations
 - If the diff lacks context to judge a rule, say "insufficient context" — do not guess
