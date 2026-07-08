@@ -49,5 +49,6 @@ Task tracker for the Code Review Pipeline MVP (`PRD.md`).
 | 31 | Rule frontmatter `description` for agent metadata | pending | [#4](https://github.com/sdempsay/agentic-review-tool/issues/4) |
 | 32 | Hard output guardrails (Java validators + one retry) | pending | [#1](https://github.com/sdempsay/agentic-review-tool/issues/1) |
 | 33 | Document guardrail layers in AGENTS.md | pending | [#2](https://github.com/sdempsay/agentic-review-tool/issues/2) |
+| 35 | MCP stdio server for code review (Grok/Claude/OpenCode) | pending | [#5](https://github.com/sdempsay/agentic-review-tool/issues/5) (after #1; host resolves findings) |
 
-**Suggested order:** 32 → 33 → 29 → 31
+**Suggested order:** 32 → 33 → 29 → 31 → 35

@@ -2,6 +2,7 @@
 
 ## 2026-07-08
 
+- Backlog issue #5 (task 35): MCP stdio server via langchain4j-community-mcp-server for Grok/Claude/OpenCode chat integration
 - Hybrid backlog: GitHub issues #1 (task 32), #2 (33), #3 (29, blocked by #1), #4 (31); TODO.md Issue column + AGENTS.md sync rules
 - Task 30 doc alignment: PRD.md, README.md, AGENTS.md now state workflow orchestration in plain Java; langchain4j limited to ChatModel/streaming/tokens; explicitly not `langchain4j-agentic`
 - Version convention: `pom.xml` → `1.1.0-SNAPSHOT`; Javadoc `@since 1.0.0` + `@author` on all public API (64 types); `java-javadoc.md` and `AGENTS.md` document the baseline
