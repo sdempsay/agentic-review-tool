@@ -1,0 +1,61 @@
+[Pipeline] Ingest ...
+[Pipeline] Ingest complete (0.0s)
+[Pipeline] Classify ...
+[Pipeline] Classify complete (0.0s)
+[Pipeline] Review ...
+[Pipeline] Ollama num_ctx=262144 tokens; soft batch target=256 KB diffs
+[Review] java-exceptional (19 files)
+[LLM] java-exceptional — waiting for response...
+
+[Review] java-exceptional complete (148.2s)
+[Review] java-formatting (19 files)
+[LLM] java-formatting — waiting for response...
+
+[Review] java-formatting complete (146.3s)
+[Review] java-javadoc (19 files)
+[LLM] java-javadoc — waiting for response...
+**Clean**
+- `src/main/java/org/dempsay/codereview/cli/DiffCommand.java`
+- `src/main/java/org/dempsay/codereview/cli/RepoCommand.java`
+- `src/main/java/org/dempsay/codereview/cli/ReportExporter.java`
+- `src/main/java/org/dempsay/codereview/cli/ReviewChatLoop.java`
+- `src/main/java/org/dempsay/codereview/config/ConfigLoader.java`
+- `src/main/java/org/dempsay/codereview/ingest/GitChangeLister.java`
+- `src/main/java/org/dempsay/codereview/ingest/GitIngestService.java`
+- `src/main/java/org/dempsay/codereview/ingest/GitRunner.java`
+- `src/main/java/org/dempsay/codereview/ingest/RepoIngestService.java`
+- `src/main/java/org/dempsay/codereview/model/ModelHealthChecker.java`
+- `src/main/java/org/dempsay/codereview/model/OllamaModelInspector.java`
+- `src/main/java/org/dempsay/codereview/review/LlmReviewService.java`
+- `src/main/java/org/dempsay/codereview/review/LlmSummarizeService.java`
+- `src/main/java/org/dempsay/codereview/review/ReviewGuardrailsLoader.java`
+- `src/main/java/org/dempsay/codereview/review/ReviewOutputFormatLoader.java`
+- `src/main/java/org/dempsay/codereview/review/ReviewPromptSupplements.java`
+- `src/main/java/org/dempsay/codereview/rules/RulesEngine.java`
+- `src/main/java/org/dempsay/codereview/support/ExceptionalSupport.java`
+- `src/test/java/org/dempsay/codereview/review/ReviewPromptBuilderTest.java`
+[Review] java-javadoc complete (114.0s)
+[Review] general (4 files)
+[LLM] general — waiting for response...
+AGENTS.md:35 — [must-fix] — Example uses `ExceptionalSupport.fail(listener, error)` but `rules/java-exceptional.md` describes using `listener.onError(error); return ExceptionalResponse.failure();`. Align documentation on the correct API usage; if `fail` is a helper, document it in `rules/java-exceptional.md`, otherwise update the example.
+rules/java-exceptional.md:75 — [nit] — Reference to "§1 violation" may be stale; verify section numbering matches current file structure and the reference resolves correctly.
+ACTIONS.md:6 — [nit] — Phrasing "no `ExceptionalSupport.response()` bridge" is ambiguous; clarify if the bridge was removed or simply not used in the fix.
+[Review] general complete (109.4s)
+[Pipeline] Review complete (518.1s)
+[Pipeline] Summarize ...
+[LLM] summarize — waiting for response...
+### Health Score
+9/10
+
+### Recommendation
+REQUEST_CHANGES
+
+### Summary
+The codebase exhibits high quality with clean Java exception handling, formatting, and Javadoc across all 23 reviewed files. Documentation requires attention due to a critical API usage mismatch in `AGENTS.md` that must be aligned with the actual implementation or helper documentation. Minor nits regarding stale section references and ambiguous phrasing should also be resolved to maintain clarity.
+
+### Top Actions
+*   **Fix API Alignment:** Update `AGENTS.md` example to use `listener.onError(error); return ExceptionalResponse.failure();` or document `ExceptionalSupport.fail` as a valid helper in `rules/java-exceptional.md`.
+*   **Verify Section References:** Check and update the "§1 violation" reference in `rules/java-exceptional.md` to ensure it matches current file structure.
+*   **Clarify Phrasing:** Refine the ambiguous phrasing regarding the `ExceptionalSupport.response()` bridge in `ACTIONS.md`.
+[Pipeline] Summarize complete (43.0s)
+[Tokens] ollama (qwen3.6-35b-mlx-256k:latest) — 59108 input, 28307 output, 87415 total across 5 LLM call(s)

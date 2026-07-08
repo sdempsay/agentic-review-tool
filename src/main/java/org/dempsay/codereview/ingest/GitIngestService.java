@@ -74,6 +74,9 @@ public final class GitIngestService {
     }
 
     final String path = untracked.get(index);
+    if (IngestExtensionFilter.defaultExclusionReason(path).isPresent()) {
+      return processUntrackedPaths(repoRoot, untracked, files, maxDiffBytes, index + 1, listener);
+    }
     if (files.containsKey(path)) {
       return processUntrackedPaths(repoRoot, untracked, files, maxDiffBytes, index + 1, listener);
     }
@@ -112,6 +115,9 @@ public final class GitIngestService {
       final int maxDiffBytes
   ) {
     for (final DiffParser.ParsedDiffEntry entry : DiffParser.parse(rawDiff)) {
+      if (IngestExtensionFilter.defaultExclusionReason(entry.path()).isPresent()) {
+        continue;
+      }
       files.put(entry.path(), toChangedFile(entry, maxDiffBytes));
     }
   }

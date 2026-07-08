@@ -2,6 +2,7 @@
 
 ## 2026-07-07
 
+- Diff ingest skips `.md` and `.json` by default (same as repo); shared `IngestExtensionFilter` with `RepoPathFilter`
 - Generalized `java-exceptional.md`: removed repo-specific types (`IngestRequest`, `ExceptionalSupport`); examples use `ExceptionalSupplier`, `listener.onError`, and generic `OrderRequest` record
 - Added record compact-constructor carve-out to `java-exceptional.md` and `AGENTS.md` (invariant `throw` in compact constructors is out of scope; not exceptional lambdas)
 - Fixed summarize pipeline failure path: `LlmReviewService` chains `LlmSummarizeService` (no `ExceptionalSupport.response()` bridge); `ReviewPhase` carries `changedFiles` into summarize; summarize errors return `wasError()` instead of crashing with `AssertionError`

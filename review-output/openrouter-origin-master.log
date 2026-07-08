@@ -1,0 +1,140 @@
+[Pipeline] Ingest ...
+[Pipeline] Ingest complete (0.0s)
+[Pipeline] Classify ...
+[Pipeline] Classify complete (0.0s)
+[Pipeline] Review ...
+[Pipeline] Ollama num_ctx unavailable; using 128 KB as soft and hard diff cap
+[Review] java-exceptional (19 files)
+[LLM] java-exceptional — waiting for response...
+Looking at the diff, I can see extensive refactoring to convert methods from throwing exceptions to returning `ExceptionalResponse<T>`. Let me review each file for compliance with the java-exceptional ruleset.
+
+## Findings
+
+**Clean**
+- src/main/java/org/dempsay/codereview/cli/DiffCommand.java
+- src/main/java/org/dempsay/codereview/cli/RepoCommand.java
+- src/main/java/org/dempsay/codereview/cli/ReportExporter.java
+- src/main/java/org/dempsay/codereview/cli/ReviewChatLoop.java
+- src/main/java/org/dempsay/codereview/ingest/GitChangeLister.java
+- src/main/java/org/dempsay/codereview/ingest/GitIngestService.java
+- src/main/java/org/dempsay/codereview/ingest/GitRunner.java
+- src/main/java/org/dempsay/codereview/model/ModelHealthChecker.java
+- src/main/java/org/dempsay/codereview/model/OllamaModelInspector.java
+- src/main/java/org/dempsay/codereview/review/LlmReviewService.java
+- src/main/java/org/dempsay/codereview/review/LlmSummarizeService.java
+- src/main/java/org/dempsay/codereview/review/ReviewGuardrailsLoader.java
+- src/main/java/org/dempsay/codereview/review/ReviewOutputFormatLoader.java
+- src/main/java/org/dempsay/codereview/review/ReviewPromptSupplements.java
+- src/main/java/org/dempsay/codereview/rules/RulesEngine.java
+- src/main/java/org/dempsay/codereview/support/ExceptionalSupport.java
+
+• src/main/java/org/dempsay/codereview/config/ConfigLoader.java:27 — must-fix — §1 — unwrapping ExceptionalResponse without checking wasError() in production code
+
+• src/main/java/org/dempsay/codereview/ingest/RepoIngestService.java:38 — must-fix — §1 — unwrapping ExceptionalResponse without checking wasError() in production code
+
+• src/main/java/org/dempsay/codereview/ingest/RepoIngestService.java:39 — must-fix — §1 — unwrapping ExceptionalResponse without checking wasError() in production code
+
+• src/main/java/org/dempsay/codereview/ingest/RepoIngestService.java:62 — must-fix — §1 — unwrapping ExceptionalResponse without checking wasError() in production code
+
+The violations are all instances of `ExceptionalSupport.response()` being used to unwrap `ExceptionalResponse` objects without checking `wasError()` first. According to the ruleset, this pattern is only allowed in tests, but these are in production code and should use `.chain()` to propagate the exceptional response instead.
+[Review] java-exceptional complete (13.2s)
+[Review] java-formatting (19 files)
+[LLM] java-formatting — waiting for response...
+Looking at the provided diffs, I'll review them against the Java formatting and style rules.
+
+## Findings
+
+- `src/main/java/org/dempsay/codereview/cli/ReportExporter.java:25` — **nit** — §1 — File does not end with an empty newline
+- `src/main/java/org/dempsay/codereview/ingest/GitChangeLister.java:17` — **nit** — §1 — File does not end with an empty newline
+- `src/main/java/org/dempsay/codereview/review/LlmReviewService.java:157` — **nit** — §1 — File does not end with an empty newline
+- `src/main/java/org/dempsay/codereview/review/LlmSummarizeService.java:49` — **nit** — §1 — File does not end with an empty newline
+- `src/main/java/org/dempsay/codereview/review/ReviewGuardrailsLoader.java:113` — **nit** — §1 — File does not end with an empty newline
+- `src/main/java/org/dempsay/codereview/review/ReviewOutputFormatLoader.java:48` — **nit** — §1 — File does not end with an empty newline
+- `src/main/java/org/dempsay/codereview/review/ReviewPromptSupplements.java:16` — **nit** — §1 — File does not end with an empty newline
+- `src/main/java/org/dempsay/codereview/rules/RulesEngine.java:127` — **nit** — §1 — File does not end with an empty newline
+
+## Clean
+
+- `src/main/java/org/dempsay/codereview/cli/DiffCommand.java`
+- `src/main/java/org/dempsay/codereview/cli/RepoCommand.java`
+- `src/main/java/org/dempsay/codereview/cli/ReviewChatLoop.java`
+- `src/main/java/org/dempsay/codereview/config/ConfigLoader.java`
+- `src/main/java/org/dempsay/codereview/ingest/GitIngestService.java`
+- `src/main/java/org/dempsay/codereview/ingest/GitRunner.java`
+- `src/main/java/org/dempsay/codereview/ingest/RepoIngestService.java`
+- `src/main/java/org/dempsay/codereview/model/ModelHealthChecker.java`
+- `src/main/java/org/dempsay/codereview/model/OllamaModelInspector.java`
+- `src/main/java/org/dempsay/codereview/support/ExceptionalSupport.java`
+- `src/test/java/org/dempsay/codereview/review/ReviewPromptBuilderTest.java`
+[Review] java-formatting complete (10.5s)
+[Review] java-javadoc (19 files)
+[LLM] java-javadoc — waiting for response...
+## Clean
+
+- src/main/java/org/dempsay/codereview/cli/DiffCommand.java
+- src/main/java/org/dempsay/codereview/cli/RepoCommand.java
+- src/main/java/org/dempsay/codereview/cli/ReportExporter.java
+- src/main/java/org/dempsay/codereview/cli/ReviewChatLoop.java
+- src/main/java/org/dempsay/codereview/config/ConfigLoader.java
+- src/main/java/org/dempsay/codereview/ingest/GitChangeLister.java
+- src/main/java/org/dempsay/codereview/ingest/GitIngestService.java
+- src/main/java/org/dempsay/codereview/ingest/GitRunner.java
+- src/main/java/org/dempsay/codereview/ingest/RepoIngestService.java
+- src/main/java/org/dempsay/codereview/model/ModelHealthChecker.java
+- src/main/java/org/dempsay/codereview/model/OllamaModelInspector.java
+- src/main/java/org/dempsay/codereview/review/LlmReviewService.java
+- src/main/java/org/dempsay/codereview/review/LlmSummarizeService.java
+- src/main/java/org/dempsay/codereview/review/ReviewGuardrailsLoader.java
+- src/main/java/org/dempsay/codereview/review/ReviewOutputFormatLoader.java
+- src/main/java/org/dempsay/codereview/review/ReviewPromptSupplements.java
+- src/main/java/org/dempsay/codereview/rules/RulesEngine.java
+- src/main/java/org/dempsay/codereview/support/ExceptionalSupport.java
+- src/test/java/org/dempsay/codereview/review/ReviewPromptBuilderTest.java
+
+The changes in these files are refactoring existing code to use a different exception handling pattern (ExceptionalResponse) rather than introducing new public API. No new public types or methods are being added that would require Javadoc documentation.
+[Review] java-javadoc complete (8.1s)
+[Review] general (4 files)
+[LLM] general — waiting for response...
+Looking at these documentation updates for Java exceptional error handling patterns:
+
+## Clean
+
+- ACTIONS.md
+- AGENTS.md  
+- rules/java-exceptional.md
+- src/main/resources/rules/java-exceptional.md
+
+The changes appear to be comprehensive documentation updates that:
+
+1. **Generalize examples** - Remove repo-specific types and use more generic examples like `OrderRequest` and `ExceptionalSupplier`
+
+2. **Add important clarifications** - Explicitly carve out record compact constructors as allowed to use `throw` for invariant validation, which is a reasonable distinction between construction-time validation vs operational error handling
+
+3. **Tighten restrictions** - Make it clear that explicit `throw` statements inside `.chain()` callbacks and `ExceptionalSupplier` lambdas are forbidden, requiring use of `listener.onError()` + `ExceptionalResponse.failure()` instead
+
+4. **Provide clear examples** - Show both "BAD" and "GOOD" patterns for common scenarios like handling external command failures
+
+5. **Maintain consistency** - The same content appears in both `rules/java-exceptional.md` and `src/main/resources/rules/java-exceptional.md`, suggesting proper synchronization
+
+The documentation changes are well-structured, provide clear guidance on the exceptional library usage patterns, and include appropriate examples. The distinction between construction-time invariant validation (allowed) vs operational error handling (must use ExceptionalResponse) is particularly well articulated.
+[Review] general complete (5.6s)
+[Pipeline] Review complete (37.5s)
+[Pipeline] Summarize ...
+[LLM] summarize — waiting for response...
+### Health Score
+7/10
+
+### Recommendation
+REQUEST_CHANGES
+
+### Summary
+This is a comprehensive refactoring to adopt an ExceptionalResponse pattern for error handling across the codebase. The changes are well-structured and include thorough documentation updates. However, there are critical violations where ExceptionalResponse objects are being unwrapped without proper error checking in production code, which defeats the purpose of the new error handling pattern.
+
+### Top Actions
+• Fix ConfigLoader.java:27 - check wasError() before unwrapping ExceptionalResponse
+• Fix RepoIngestService.java:38,39,62 - use .chain() instead of direct unwrapping with ExceptionalSupport.response()
+• Add missing newlines at end of 8 Java files (ReportExporter, GitChangeLister, LlmReviewService, LlmSummarizeService, ReviewGuardrailsLoader, ReviewOutputFormatLoader, ReviewPromptSupplements, RulesEngine)
+• Review error propagation strategy to ensure ExceptionalResponse failures are properly handled throughout the call chain
+• Consider adding integration tests to verify the new error handling pattern works end-to-end
+[Pipeline] Summarize complete (4.3s)
+[Tokens] openrouter (anthropic/claude-sonnet-4) — 73222 input, 2692 output, 75914 total across 5 LLM call(s)

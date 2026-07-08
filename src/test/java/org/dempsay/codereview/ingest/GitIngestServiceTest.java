@@ -102,6 +102,22 @@ public class GitIngestServiceTest {
   }
 
   @Test
+  public void ingestSkipsMarkdownAndJsonByDefault() throws Exception {
+    final Path repoRoot = initGitRepo();
+    Files.writeString(repoRoot.resolve("README.md"), "# docs\n");
+    Files.writeString(repoRoot.resolve("config.json"), "{}\n");
+    Files.writeString(repoRoot.resolve("App.java"), "class App {}\n");
+
+    final var files = ExceptionalSupport.response(
+        GitIngestService.ingest(IngestRequest.uncommitted(repoRoot, 512))
+    );
+
+    assertEquals(1, files.size());
+    assertEquals("App.java", files.get(0).path());
+    assertTrue(files.get(0).hasDiff());
+  }
+
+  @Test
   public void rejectNonGitDirectory() throws Exception {
     final Path directory = Files.createTempDirectory("not-a-git-repo");
     assertTrue(GitIngestService.ingest(IngestRequest.uncommitted(directory, 512)).wasError());

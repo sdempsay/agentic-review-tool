@@ -12,8 +12,6 @@ public record RepoIngestRequest(
     List<String> excludeExtensions
 ) {
 
-  private static final List<String> DEFAULT_EXCLUDE_EXTENSIONS = List.of(".md", ".json");
-
   public RepoIngestRequest {
     if (repoRoot == null) {
       throw new IllegalArgumentException("repoRoot is required");
@@ -33,31 +31,12 @@ public record RepoIngestRequest(
 
   public List<String> resolvedExcludeExtensions() {
     if (!includeExtensions.isEmpty()) {
-      return normalizeExtensions(excludeExtensions);
+      return IngestExtensionFilter.normalizeExtensions(excludeExtensions);
     }
-    final java.util.LinkedHashSet<String> merged = new java.util.LinkedHashSet<>(DEFAULT_EXCLUDE_EXTENSIONS);
-    merged.addAll(normalizeExtensions(configExcludeExtensions));
-    merged.addAll(normalizeExtensions(excludeExtensions));
-    return List.copyOf(merged);
+    return IngestExtensionFilter.resolvedExcludeExtensions(configExcludeExtensions, excludeExtensions);
   }
 
   public List<String> resolvedIncludeExtensions() {
-    return normalizeExtensions(includeExtensions);
-  }
-
-  private static List<String> normalizeExtensions(final List<String> extensions) {
-    return extensions.stream()
-        .map(RepoIngestRequest::normalizeExtension)
-        .filter(extension -> !extension.isBlank())
-        .distinct()
-        .toList();
-  }
-
-  private static String normalizeExtension(final String extension) {
-    if (extension == null || extension.isBlank()) {
-      return "";
-    }
-    final String trimmed = extension.trim().toLowerCase();
-    return trimmed.startsWith(".") ? trimmed : "." + trimmed;
+    return IngestExtensionFilter.normalizeExtensions(includeExtensions);
   }
 }

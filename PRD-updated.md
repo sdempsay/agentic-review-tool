@@ -75,7 +75,7 @@ directories are skipped.
 
 ### Default file-type exclusions
 
-Repo review targets reviewable source, not docs/config noise. **By default, skip files
+Diff and repo ingest target reviewable source, not docs/config noise. **By default, skip files
 whose extension is in the built-in deny list:**
 
 - `.md` — documentation and rule prompt files

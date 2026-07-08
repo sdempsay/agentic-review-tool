@@ -14,19 +14,12 @@ public final class RepoPathFilter {
       return Optional.of("Outside --path scope");
     }
 
-    final String extension = fileExtension(path);
-    final List<String> includeExtensions = request.resolvedIncludeExtensions();
-    if (!includeExtensions.isEmpty()) {
-      if (!includeExtensions.contains(extension)) {
-        return Optional.of("Extension not in --include-ext (" + extension + ")");
-      }
-      return Optional.empty();
-    }
-
-    if (request.resolvedExcludeExtensions().contains(extension)) {
-      return Optional.of("Excluded file type (" + extension + ")");
-    }
-    return Optional.empty();
+    return IngestExtensionFilter.exclusionReason(
+        path,
+        request.resolvedIncludeExtensions(),
+        request.configExcludeExtensions(),
+        request.excludeExtensions()
+    );
   }
 
   private static boolean matchesPathGlobs(final String path, final List<String> pathGlobs) {
