@@ -44,6 +44,6 @@ public final class LlmSummarizeService {
               progress,
               "summarize"
           ).trim();
-        }), listener);
+        }, listener));
   }
 }
