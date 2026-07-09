@@ -17,7 +17,9 @@ final class GitRunner {
   }
 
   static boolean isGitRepository(final Path repoRoot) {
-    return Files.isDirectory(repoRoot.resolve(".git"));
+    final Path dotGit = repoRoot.resolve(".git");
+    // Submodules and linked worktrees use a .git file (gitdir: ...) instead of a .git directory.
+    return Files.isDirectory(dotGit) || Files.isRegularFile(dotGit);
   }
 
   static ExceptionalResponse<Boolean> hasCommits(final Path repoRoot) {
