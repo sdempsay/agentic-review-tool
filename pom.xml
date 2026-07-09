@@ -39,6 +39,7 @@
     <picocli.version>4.7.6</picocli.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <dist.dir>${project.build.directory}/code-review-dist</dist.dir>
+    <dist.archive>${project.build.directory}/code-review-${project.version}.tar.gz</dist.archive>
   </properties>
 
   <dependencyManagement>
@@ -168,6 +169,9 @@
                 <copy todir="${dist.dir}/rules">
                   <fileset dir="${project.basedir}/rules"/>
                 </copy>
+                <tar destfile="${dist.archive}" compression="gzip">
+                  <tarfileset dir="${dist.dir}" prefix="code-review"/>
+                </tar>
               </target>
             </configuration>
           </execution>
