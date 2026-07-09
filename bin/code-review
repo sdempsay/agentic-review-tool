@@ -16,12 +16,15 @@ if [[ ! -f "${JAR}" ]]; then
   exit 1
 fi
 
-JAVA_BIN="${JAVA_HOME:+${JAVA_HOME}/bin/java}"
-JAVA_BIN="${JAVA_BIN:-java}"
-
-if ! command -v "${JAVA_BIN}" >/dev/null 2>&1; then
-  echo "code-review: java not found (set JAVA_HOME or install Java 21+)" >&2
-  exit 1
+JAVA_BIN="$(which java 2>/dev/null || true)"
+if [[ -z "${JAVA_BIN}" ]]; then
+  if [[ -n "${JAVA_HOME:-}" && -x "${JAVA_HOME}/bin/java" ]]; then
+    JAVA_BIN="${JAVA_HOME}/bin/java"
+  else
+    echo "code-review: java not found on PATH (which java) and JAVA_HOME is unset or invalid" >&2
+    echo "Install Java 21+ or set JAVA_HOME." >&2
+    exit 1
+  fi
 fi
 
 exec "${JAVA_BIN}" ${JAVA_OPTS:-} -jar "${JAR}" "$@"
