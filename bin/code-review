@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Run from a directory on your PATH with code-review.jar beside this script:
+#   ~/tools/code-review/code-review
+#   ~/tools/code-review/code-review.jar
+#
+# Build the JAR: mvn package -DskipTests  (output: target/code-review.jar)
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+JAR="${SCRIPT_DIR}/code-review.jar"
+
+if [[ ! -f "${JAR}" ]]; then
+  echo "code-review: missing ${JAR}" >&2
+  echo "Copy target/code-review.jar next to this script." >&2
+  exit 1
+fi
+
+JAVA_BIN="${JAVA_HOME:+${JAVA_HOME}/bin/java}"
+JAVA_BIN="${JAVA_BIN:-java}"
+
+if ! command -v "${JAVA_BIN}" >/dev/null 2>&1; then
+  echo "code-review: java not found (set JAVA_HOME or install Java 21+)" >&2
+  exit 1
+fi
+
+exec "${JAVA_BIN}" ${JAVA_OPTS:-} -jar "${JAR}" "$@"

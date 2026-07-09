@@ -2,6 +2,7 @@
 
 ## 2026-07-08
 
+- Added `bin/code-review` bash wrapper — resolves sibling `code-review.jar`; add `bin/` to PATH for `code-review diff` without `java -jar`
 - Backlog issue #5 (task 35): MCP stdio server via langchain4j-community-mcp-server for Grok/Claude/OpenCode chat integration
 - Hybrid backlog: GitHub issues #1 (task 32), #2 (33), #3 (29, blocked by #1), #4 (31); TODO.md Issue column + AGENTS.md sync rules
 - Task 30 doc alignment: PRD.md, README.md, AGENTS.md now state workflow orchestration in plain Java; langchain4j limited to ChatModel/streaming/tokens; explicitly not `langchain4j-agentic`
