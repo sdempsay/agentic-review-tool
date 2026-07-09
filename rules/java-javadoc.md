@@ -19,12 +19,16 @@ When the prompt contains unified diffs (fenced `diff` blocks below each file):
 - **Never** flag context lines or removed `-` lines.
 - Each finding must cite the **`+` line** of the new public declaration (path:line and the added signature). If you cannot point to that `+` line, **omit** the finding.
 - **Out of scope on `+` lines** — do not report:
-  - `private` methods (including new helpers and `ExceptionalListener` overloads)
+  - `private` or package-private members (methods, fields, nested types) — verify the **`+` line** actually declares `public`/`protected` before reporting
   - Methods under `src/test/**`
   - Listener-threading overloads that mirror an existing public method (e.g. adding `ExceptionalListener` beside an established API)
   - Signature migrations (`throws` → `ExceptionalResponse`, renaming `*Required` helpers) unless a **brand-new public** type or method is introduced
   - Static factory helpers, package-private types, and internal refactorings
+  - **`@Override` methods** — Javadoc is inherited from the supertype; do not require duplicate Javadoc on overrides unless the override introduces materially new contract (rare)
+  - **Interface `default` methods** that already have Javadoc in the same hunk (context or `+` lines above the method) — do not report "missing" when a `/** ... */` block is visible above the declaration
+  - **OSGi / DI lifecycle** — `@Activate` / `@Deactivate` constructors, `@Reference` setters, and internal `@ObjectClassDefinition` / metatype `Config` nested interfaces (the annotation `name` / `description` attributes are sufficient documentation)
 - Do not infer a "new method" from context alone — the violation must attach to the **`+` line** that declares `public`/`protected` API.
+- **Verify before reporting** — if the finding claims `public` but the `+` line shows `private`, `protected`, or package-private, omit the finding. Do not misread field or method visibility.
 
 ## FreeMarker Java templates (`*.java.ftl`)
 
@@ -42,7 +46,7 @@ When reviewing files whose paths end in `.java.ftl`:
 - New public API should include `@since 1.0.0` (first-release baseline; use the introducing release version after 1.0.0 ships) and `@author Shawn Dempsay {@literal <shawn@dempsay.org>}`
 - Document parameters and return values on non-obvious public methods
 - Only require `@return` when behavior is not obvious from the signature
-- Do not require Javadoc on private helpers, package-private types, tests, or trivial one-line changes
+- Do not require Javadoc on private helpers, private constants, package-private types, tests, OSGi wiring, or trivial one-line changes
 
 ## 2. Severity
 
