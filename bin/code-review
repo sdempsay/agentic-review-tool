@@ -6,6 +6,11 @@ set -euo pipefail
 #   ~/tools/code-review/code-review.jar
 #
 # Build the JAR: mvn package -DskipTests  (output: target/code-review.jar)
+#
+# Bash tab completion for subcommands and flags (once per shell, or add to ~/.bashrc):
+#   source <(code-review generate-completion)
+# or copy bin/code-review_completion next to this script and:
+#   source ~/tools/code-review/code-review_completion
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 JAR="${SCRIPT_DIR}/code-review.jar"

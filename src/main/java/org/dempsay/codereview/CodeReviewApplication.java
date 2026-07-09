@@ -22,11 +22,19 @@ public final class CodeReviewApplication {
  */
   public static void main(final String[] args) {
     final CommandLine commandLine = new CommandLine(new CodeReviewCommand());
+    hideGenerateCompletionHelp(commandLine);
     commandLine.setExecutionExceptionHandler((exception, cmd, parseResult) -> {
       cmd.getErr().println(cmd.getColorScheme().errorText(exception.getMessage()));
       return 1;
     });
     final int exitCode = commandLine.execute(args);
     System.exit(exitCode);
+  }
+
+  private static void hideGenerateCompletionHelp(final CommandLine commandLine) {
+    final CommandLine generateCompletion = commandLine.getSubcommands().get("generate-completion");
+    if (generateCompletion != null) {
+      generateCompletion.getCommandSpec().usageMessage().hidden(true);
+    }
   }
 }
