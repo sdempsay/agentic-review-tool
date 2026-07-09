@@ -27,7 +27,7 @@ public final class ReviewChatLoop {
    * @return the result
    * @since 1.0.0
  */
-  public static ExceptionalResponse<Void> run(final ReviewSessionContext session) {
+  public static ExceptionalResponse<Boolean> run(final ReviewSessionContext session) {
     return run(session, null);
   }
 
@@ -39,34 +39,42 @@ public final class ReviewChatLoop {
    * @return the result
    * @since 1.0.0
  */
-  public static ExceptionalResponse<Void> run(
+  public static ExceptionalResponse<Boolean> run(
       final ReviewSessionContext session,
       final ExceptionalListener listener
   ) {
     return ReviewPromptSupplements.load(session.config().rulesDir(), listener)
         .chain((loadListener, supplements) -> ExceptionalSupport.supply(() -> {
-      System.out.println();
-      System.out.println("--- Follow-up Chat ---");
-      System.out.println("Ask questions about this review (exit to end).");
+          runInteractiveChat(session, supplements);
+          // exceptional treats null results as failure in both supply() and success().
+          return Boolean.TRUE;
+        }, loadListener), listener);
+  }
 
-      final ReviewChatOrchestrator orchestrator = new ReviewChatOrchestrator(session, supplements);
-      final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+  private static void runInteractiveChat(
+      final ReviewSessionContext session,
+      final ReviewPromptSupplements supplements
+  ) throws java.io.IOException {
+    System.out.println();
+    System.out.println("--- Follow-up Chat ---");
+    System.out.println("Ask questions about this review (exit to end).");
 
-      while (true) {
-        System.out.print(System.lineSeparator() + "You> ");
-        final String line = reader.readLine();
-        if (line == null || isExit(line.trim())) {
-          break;
-        }
-        if (line.isBlank()) {
-          continue;
-        }
+    final ReviewChatOrchestrator orchestrator = new ReviewChatOrchestrator(session, supplements);
+    final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-        System.out.println();
-        System.out.println(orchestrator.respond(line.trim()));
+    while (true) {
+      System.out.print(System.lineSeparator() + "You> ");
+      final String line = reader.readLine();
+      if (line == null || isExit(line.trim())) {
+        break;
       }
-      return null;
-    }, loadListener), listener);
+      if (line.isBlank()) {
+        continue;
+      }
+
+      System.out.println();
+      System.out.println(orchestrator.respond(line.trim()));
+    }
   }
 
   /**
