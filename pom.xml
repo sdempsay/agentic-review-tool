@@ -37,6 +37,8 @@
     <maven-shade-plugin.version>3.6.0</maven-shade-plugin.version>
     <junit.version>4.13.2</junit.version>
     <picocli.version>4.7.6</picocli.version>
+    <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
+    <dist.dir>${project.build.directory}/code-review-dist</dist.dir>
   </properties>
 
   <dependencyManagement>
@@ -140,6 +142,33 @@
                 <argument>generate-completion</argument>
               </arguments>
               <outputFile>${project.basedir}/bin/code-review_completion</outputFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>${maven-antrun-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>assemble-code-review-dist</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <mkdir dir="${dist.dir}"/>
+                <copy file="${project.build.directory}/code-review.jar" tofile="${dist.dir}/code-review.jar"/>
+                <copy file="${project.basedir}/bin/code-review" tofile="${dist.dir}/code-review"/>
+                <chmod file="${dist.dir}/code-review" perm="ugo+rx"/>
+                <copy file="${project.basedir}/bin/code-review_completion" tofile="${dist.dir}/code-review_completion"/>
+                <copy file="${project.basedir}/dist/config.json" tofile="${dist.dir}/config.json"/>
+                <copy todir="${dist.dir}/rules">
+                  <fileset dir="${project.basedir}/rules"/>
+                </copy>
+              </target>
             </configuration>
           </execution>
         </executions>

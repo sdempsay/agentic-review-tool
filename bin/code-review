@@ -1,16 +1,44 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Run from a directory on your PATH with code-review.jar beside this script:
-#   ~/tools/code-review/code-review
-#   ~/tools/code-review/code-review.jar
+# Install: copy target/code-review-dist/ to a directory on your PATH, e.g.
+#   ~/tools/code-review/
+# or run in place from target/code-review-dist/ after mvn package.
 #
-# Build the JAR: mvn package -DskipTests  (output: target/code-review.jar)
+# Build: mvn package -DskipTests
+#   target/code-review.jar              shaded JAR only
+#   target/code-review-dist/            install tree (wrapper, JAR, completion, config.json, rules/)
 #
 # Bash tab completion for subcommands and flags (once per shell, or add to ~/.bashrc):
 #   source <(code-review generate-completion)
 # or copy bin/code-review_completion next to this script and:
 #   source ~/tools/code-review/code-review_completion
+#
+# rulesDir layout (config.json "rulesDir"; default "rules" in the repo or your project):
+#
+#   rules/
+#     java-exceptional.md      ruleset agent — one specialist per top-level .md file
+#     java-formatting.md
+#     java-javadoc.md
+#     pom-security.md
+#     xml-formatter.md
+#     review-output-format.md  shared output instructions for all review agents
+#     guardrails/
+#       no-modify.md           safety prompts prepended to every review call
+#       no-internet.md
+#
+# Ruleset files must start with YAML frontmatter (paths globs) then a markdown prompt body:
+#
+#   ---
+#   paths:
+#     - "**/*.java"
+#   ---
+#
+#   # Your team standards
+#   ...
+#
+# guardrails/ and review-output-format.md are plain markdown (no frontmatter).
+# Point rulesDir at your own tree when ready; copy rules/ as a starting set.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 JAR="${SCRIPT_DIR}/code-review.jar"

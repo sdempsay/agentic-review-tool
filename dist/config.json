@@ -1,0 +1,15 @@
+{
+  "model": {
+    "provider": "ollama",
+    "name": "qwen3-coder-next-256k:latest",
+    "temperature": 0.2,
+    "baseUrl": "http://localhost:11434",
+    "timeoutSeconds": 300
+  },
+  "rulesDir": "rules",
+  "maxTokens": 24000,
+  "reviewMaxTokens": 4096,
+  "maxDiffKb": 512,
+  "maxAgentDiffKb": 256,
+  "maxFilesPerAgent": 0
+}
