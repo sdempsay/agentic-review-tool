@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Build and install code-review to a directory on PATH (default ~/tools/code-review).
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+INSTALL_DIR="${CODE_REVIEW_HOME:-${HOME}/tools/code-review}"
+SKIP_BUILD=false
+
+usage() {
+  echo "Usage: $(basename "$0") [--skip-build] [--install-dir DIR]" >&2
+  echo "  Builds target/code-review-dist/ (unless --skip-build) and syncs to INSTALL_DIR." >&2
+  exit 1
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --skip-build) SKIP_BUILD=true; shift ;;
+    --install-dir) INSTALL_DIR="$2"; shift 2 ;;
+    -h|--help) usage ;;
+    *) echo "Unknown option: $1" >&2; usage ;;
+  esac
+done
+
+if [[ "${SKIP_BUILD}" == "false" ]]; then
+  echo "[install-local] mvn package -DskipTests ..."
+  (cd "${REPO_ROOT}" && mvn package -q -DskipTests)
+fi
+
+DIST="${REPO_ROOT}/target/code-review-dist"
+if [[ ! -f "${DIST}/code-review.jar" ]]; then
+  echo "install-local: missing ${DIST}/code-review.jar — run mvn package first" >&2
+  exit 1
+fi
+
+mkdir -p "${INSTALL_DIR}"
+rsync -a --delete "${DIST}/" "${INSTALL_DIR}/"
+chmod ugo+rx "${INSTALL_DIR}/code-review"
+
+echo "[install-local] Installed to ${INSTALL_DIR}"
+echo "[install-local] Add to PATH: export PATH=\"${INSTALL_DIR}:\$PATH\""
+echo "[install-local] Completion: source \"${INSTALL_DIR}/code-review_completion\""

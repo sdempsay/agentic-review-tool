@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Install: copy target/code-review-dist/ to a directory on your PATH, e.g.
-#   ~/tools/code-review/
-# or run in place from target/code-review-dist/ after mvn package.
+# Install (dev machine): bin/setup-dev-machine  → ~/tools/code-review on PATH + pre-push sync
+# Manual: bin/install-local  or copy target/code-review-dist/ after mvn package.
 #
 # Build: mvn package -DskipTests
 #   target/code-review.jar                      shaded JAR only

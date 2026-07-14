@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# One-time dev machine setup: PATH, bash completion, git pre-push sync hook, initial install.
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+INSTALL_DIR="${CODE_REVIEW_HOME:-${HOME}/tools/code-review}"
+HOOK_SRC="${REPO_ROOT}/bin/git-hooks/pre-push"
+HOOK_DEST="${REPO_ROOT}/.git/hooks/pre-push"
+
+MARKER_BEGIN="# >>> code-review local install >>>"
+MARKER_END="# <<< code-review local install <<<"
+PATH_LINE="export PATH=\"${INSTALL_DIR}:\$PATH\""
+COMP_LINE="[[ -f \"${INSTALL_DIR}/code-review_completion\" ]] && source \"${INSTALL_DIR}/code-review_completion\""
+
+pick_shell_rc() {
+  if [[ -f "${HOME}/.bashrc" ]]; then
+    echo "${HOME}/.bashrc"
+  elif [[ -f "${HOME}/.bash_profile" ]]; then
+    echo "${HOME}/.bash_profile"
+  else
+    echo "${HOME}/.bashrc"
+  fi
+}
+
+install_shell_snippet() {
+  local rc
+  rc="$(pick_shell_rc)"
+  if grep -qF "${MARKER_BEGIN}" "${rc}" 2>/dev/null; then
+    echo "[setup-dev-machine] Shell snippet already present in ${rc}"
+    return
+  fi
+  cat >>"${rc}" <<EOF
+
+${MARKER_BEGIN}
+${PATH_LINE}
+${COMP_LINE}
+${MARKER_END}
+EOF
+  echo "[setup-dev-machine] Updated ${rc}"
+}
+
+install_git_hook() {
+  if [[ ! -d "${REPO_ROOT}/.git/hooks" ]]; then
+    echo "setup-dev-machine: not a git repo — skipping hook" >&2
+    return
+  fi
+  cp "${HOOK_SRC}" "${HOOK_DEST}"
+  chmod ugo+rx "${HOOK_DEST}"
+  echo "[setup-dev-machine] Installed ${HOOK_DEST}"
+}
+
+chmod ugo+rx "${REPO_ROOT}/bin/install-local"
+chmod ugo+rx "${HOOK_SRC}"
+install_git_hook
+install_shell_snippet
+"${REPO_ROOT}/bin/install-local" --install-dir "${INSTALL_DIR}"
+
+echo "[setup-dev-machine] Done. Open a new shell or: source $(pick_shell_rc)"

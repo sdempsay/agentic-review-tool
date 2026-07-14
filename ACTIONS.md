@@ -2,6 +2,7 @@
 
 ## 2026-07-14
 
+- Local dev install: `bin/setup-dev-machine` → `~/tools/code-review` on PATH, bash completion, `pre-push` hook via `bin/install-local`; tarball preserves launcher `755` via ant `tarfileset`
 - Task 32 (Fixes #1): hard output guardrails — `ReviewOutputValidator` (diff-line evidence, severity tiers, re-eval ban, wildcard-import and bogus-spacing checks), `GuardedLlmCompletion` (max 1 retry with format hint), `ChatInputGuard` on follow-up chat; wired into `LlmReviewService` and `ReviewChatOrchestrator`; verbose retry logging in `ReviewProgress`
 - Dogfood fix: trailing newlines on task-32 Java files (OpenRouter formatting nits); `ReviewOutputValidator` preamble parse crash fix
 

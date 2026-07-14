@@ -162,6 +162,7 @@
               <target>
                 <mkdir dir="${dist.dir}"/>
                 <copy file="${project.build.directory}/code-review.jar" tofile="${dist.dir}/code-review.jar"/>
+                <chmod file="${project.basedir}/bin/code-review" perm="ugo+rx"/>
                 <copy file="${project.basedir}/bin/code-review" tofile="${dist.dir}/code-review"/>
                 <chmod file="${dist.dir}/code-review" perm="ugo+rx"/>
                 <copy file="${project.basedir}/bin/code-review_completion" tofile="${dist.dir}/code-review_completion"/>
@@ -170,7 +171,12 @@
                   <fileset dir="${project.basedir}/rules"/>
                 </copy>
                 <tar destfile="${dist.archive}" compression="gzip">
-                  <tarfileset dir="${dist.dir}" prefix="code-review"/>
+                  <tarfileset dir="${dist.dir}" prefix="code-review" filemode="755">
+                    <include name="code-review"/>
+                  </tarfileset>
+                  <tarfileset dir="${dist.dir}" prefix="code-review" filemode="644">
+                    <exclude name="code-review"/>
+                  </tarfileset>
                 </tar>
               </target>
             </configuration>

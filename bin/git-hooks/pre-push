@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Sync ~/tools/code-review (or CODE_REVIEW_HOME) before push so the local install matches HEAD.
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+INSTALL_SCRIPT="${REPO_ROOT}/bin/install-local"
+
+if [[ ! -x "${INSTALL_SCRIPT}" ]]; then
+  echo "pre-push: missing ${INSTALL_SCRIPT}" >&2
+  exit 1
+fi
+
+echo "[pre-push] Building and syncing local code-review install ..."
+"${INSTALL_SCRIPT}"
