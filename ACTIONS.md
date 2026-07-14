@@ -3,6 +3,7 @@
 ## 2026-07-14
 
 - Task 32 (Fixes #1): hard output guardrails — `ReviewOutputValidator` (diff-line evidence, severity tiers, re-eval ban, wildcard-import and bogus-spacing checks), `GuardedLlmCompletion` (max 1 retry with format hint), `ChatInputGuard` on follow-up chat; wired into `LlmReviewService` and `ReviewChatOrchestrator`; verbose retry logging in `ReviewProgress`
+- Dogfood fix: trailing newlines on task-32 Java files (OpenRouter formatting nits); `ReviewOutputValidator` preamble parse crash fix
 
 ## 2026-07-08
 
