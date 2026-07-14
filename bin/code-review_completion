@@ -196,8 +196,8 @@ function _picocli_code-review_diff() {
   local prev_word=${COMP_WORDS[COMP_CWORD-1]}
 
   local commands=""
-  local flag_opts="--dry-run --staged --chat --no-chat --quiet --verbose -h --help -V --version"
-  local arg_opts="--config --base --output"
+  local flag_opts="--dry-run --staged --stdin --chat --no-chat --quiet --verbose -h --help -V --version"
+  local arg_opts="--config --base --diff-file --output"
 
   type compopt &>/dev/null && compopt +o default
 
@@ -210,6 +210,12 @@ function _picocli_code-review_diff() {
       ;;
     --base)
       return
+      ;;
+    --diff-file)
+      local IFS=$'\n'
+      type compopt &>/dev/null && compopt -o filenames
+      COMPREPLY=( $( compgen -f -- "${curr_word}" ) ) # files
+      return $?
       ;;
     --output)
       local IFS=$'\n'
