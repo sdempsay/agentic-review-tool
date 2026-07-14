@@ -42,6 +42,7 @@ When reviewing files whose paths end in `.java.ftl`:
 - Use Objects.isNull or Objects.nonNull when checking null
 - Formatting *ALWAYS* applies for test sources
 - Files should always end with an empty newline
+- In diff mode, flag a missing final newline only when the last `+` line in the file's hunk is a closing `}` (or `};`) and the chunk ends immediately after it with no following blank line, or when a new file is added and the hunk ends without a terminal newline after the last `+` line
 
 ## 2. Block formatting
 
@@ -76,7 +77,7 @@ When reviewing files whose paths end in `.java.ftl`:
 
 Flag when visible in the diff. Full enforcement runs via `mvn verify`, not in this review.
 
-- Space before opening parens on control keywords (`if (`, `for (`, `while (`)
+- Space before opening parens on control keywords (`if (`, `for (`, `while (`) — do not report a missing space when the cited line already contains `if (`, `for (`, or `while (`
 - Modifier order: `public protected private abstract static final transient volatile synchronized native strictfp`
 - Empty methods or constructors: `<ReturnType if needed> method(<parameters if needed) { }`
 - Nested `if` depth greater than 3
@@ -97,12 +98,14 @@ Flag when visible in the diff. Full enforcement runs via `mvn verify`, not in th
 
 - **must-fix** — correctness issues in §6; checkstyle `IllegalCatch`
 - **nit** — formatting, imports, naming, annotations, §6 style checks, §7 conventions
+- Never use **must-fix** for intentional product or API behavior changes visible in the diff (e.g. default flag changes, removing `System.console()` checks) — those are not formatting violations
 
 ## 9. Response format
 
 - One bullet per finding: `path:line — [must-fix|nit] — §N — brief description`
 - In diff mode, every bullet must correspond to a **`+` line**; otherwise output `## Clean`
 - In diff mode, do not emit a finding and later retract it — if it is not on a `+` line, omit the bullet on the first pass
+- Do not claim wildcard imports unless a `+` or context line in the hunk literally contains `import static ...*` or `import ...*`
 - **Clean** — `## Clean` only when there are zero findings; otherwise omit Clean or say `Clean: all other files in scope` — never enumerate every clean file
 - Do not restate the rules; only report violations
 - If the diff lacks context to judge a rule on a `+` line, omit the finding — do not guess or emit "insufficient context" bullets

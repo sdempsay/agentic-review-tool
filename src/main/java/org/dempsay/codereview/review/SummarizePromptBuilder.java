@@ -175,6 +175,25 @@ public final class SummarizePromptBuilder {
           "- Base Health Score, Recommendation, and Top Actions only on findings agents stood by"
       );
       prompt.append(System.lineSeparator());
+      prompt.append(
+          "- Treat agent must-fix as invalid unless the finding quotes a `+` line and matches"
+      );
+      prompt.append(" that agent's Severity rules");
+      prompt.append(System.lineSeparator());
+      prompt.append(
+          "- Drop findings that describe regressions when the diff shows intentional removals"
+      );
+      prompt.append(" or intentional default-behavior changes on `+` lines");
+      prompt.append(System.lineSeparator());
+      prompt.append(
+          "- When java-exceptional and java-javadoc are Clean, do not elevate java-formatting"
+      );
+      prompt.append(" nits to must-fix in the summary or Top Actions");
+      prompt.append(System.lineSeparator());
+      prompt.append(
+          "- When agents conflict, keep only findings with verbatim line quotes from the diff"
+      );
+      prompt.append(System.lineSeparator());
     }
 
     prompt.append(System.lineSeparator());

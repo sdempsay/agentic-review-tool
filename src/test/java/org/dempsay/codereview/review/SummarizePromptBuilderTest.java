@@ -34,6 +34,8 @@ public class SummarizePromptBuilderTest {
     assertTrue(prompt.contains("### Top Actions"));
     assertTrue(prompt.contains("Diff summarization rules"));
     assertTrue(prompt.contains("final verdict is `## Clean`"));
+    assertTrue(prompt.contains("Treat agent must-fix as invalid"));
+    assertTrue(prompt.contains("java-exceptional and java-javadoc are Clean"));
   }
 
   @Test

@@ -149,6 +149,7 @@ Use `ExceptionalResource.of(() -> open(), resource -> use(resource))` so cleanup
 ## 2. Severity
 
 - All findings in this ruleset are **must-fix**
+- `src/test/**` — only flag when a `+` line introduces a new I/O or external call path that uses `throws`, `throw`, or business `try/catch` instead of exceptional
 
 ## 3. Response format
 

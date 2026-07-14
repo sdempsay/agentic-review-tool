@@ -29,6 +29,7 @@ When the prompt contains unified diffs (fenced `diff` blocks below each file):
   - **OSGi / DI lifecycle** — `@Activate` / `@Deactivate` constructors, `@Reference` setters, and internal `@ObjectClassDefinition` / metatype `Config` nested interfaces (the annotation `name` / `description` attributes are sufficient documentation)
 - Do not infer a "new method" from context alone — the violation must attach to the **`+` line** that declares `public`/`protected` API.
 - **Verify before reporting** — if the finding claims `public` but the `+` line shows `private`, `protected`, or package-private, omit the finding. Do not misread field or method visibility.
+- Before reporting missing Javadoc, confirm no `/** ... */` block appears on context or `+` lines immediately above the declaration in the same hunk.
 
 ## FreeMarker Java templates (`*.java.ftl`)
 
