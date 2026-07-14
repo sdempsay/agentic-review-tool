@@ -36,6 +36,11 @@ public class ReviewChatLoopTest {
   }
 
   @Test
+  public void shouldEnableOffByDefault() {
+    assertFalse(ReviewChatLoop.shouldEnable(null, false));
+  }
+
+  @Test
   public void exitEndsChatWithoutExceptionalFailure() {
     final ReviewSessionContext session = new ReviewSessionContext(
         new AppConfig(

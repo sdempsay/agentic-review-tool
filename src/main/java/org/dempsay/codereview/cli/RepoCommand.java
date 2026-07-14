@@ -70,13 +70,13 @@ public class RepoCommand implements Runnable {
 
   @Option(
       names = "--chat",
-      description = "Enable follow-up chat after review (default when stdin is a TTY)"
+      description = "Enable follow-up chat after review (off by default)"
   )
   private Boolean chat;
 
   @Option(
       names = "--no-chat",
-      description = "Skip follow-up chat after review"
+      description = "Skip follow-up chat after review (default)"
   )
   private boolean noChat;
 

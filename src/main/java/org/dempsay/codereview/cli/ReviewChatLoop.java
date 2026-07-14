@@ -103,6 +103,6 @@ public final class ReviewChatLoop {
     if (chatFlag != null) {
       return chatFlag;
     }
-    return System.console() != null;
+    return false;
   }
 }
