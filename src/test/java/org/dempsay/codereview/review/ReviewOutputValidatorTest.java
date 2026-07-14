@@ -168,6 +168,18 @@ public class ReviewOutputValidatorTest {
     assertTrue(result.violations().stream().anyMatch(v -> v.contains("bogus spacing")));
   }
 
+  @Test
+  public void validateHandlesOpenRouterFormattingPreambleWithoutCrashing() {
+    final String output = """
+        Looking at the unified diffs, I'll review only the added (`+`) lines for Java formatting violations:
+
+        - `src/main/java/org/dempsay/codereview/review/AgentReviewRequest.java:23` — nit — §1 — missing final newline
+        - `src/test/java/org/dempsay/codereview/review/ReviewOutputValidatorTest.java:174` — nit — §1 — missing final newline
+        """;
+
+    ReviewOutputValidator.validate("java-formatting", scopedFiles(), output);
+  }
+
   private static List<ChangedFile> scopedFiles() {
     return List.of(ChangedFile.included("src/App.java", ChangeType.MODIFIED, DIFF));
   }

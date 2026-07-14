@@ -144,11 +144,10 @@ public final class ReviewOutputValidator {
       final String path = citation.substring(0, colon);
       final int lineNumber = Integer.parseInt(citation.substring(colon + 1));
       final String severity = matcher.group(2);
-      final int lineEnd = text.indexOf('\n', matcher.start());
-      final String line = lineEnd < 0
-          ? text.substring(matcher.start())
-          : text.substring(matcher.start(), lineEnd);
-      final String description = line.substring(matcher.end() - matcher.start()).trim();
+      final int descriptionEnd = text.indexOf('\n', matcher.end());
+      final String description = (descriptionEnd < 0
+          ? text.substring(matcher.end())
+          : text.substring(matcher.end(), descriptionEnd)).trim();
       bullets.add(new FindingBullet(path, lineNumber, severity, description));
     }
     return bullets;
