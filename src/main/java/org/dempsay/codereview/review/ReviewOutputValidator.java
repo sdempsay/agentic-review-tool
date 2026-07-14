@@ -95,6 +95,8 @@ public final class ReviewOutputValidator {
       validateBullet(bullet, scopedPaths, diffIndex, allowsMustFix, violations);
     }
 
+    appendMissedExceptionalDiffViolations(agentName, scopedFiles, trimmed, bullets, violations);
+
     return new ValidationResult(violations.isEmpty(), List.copyOf(violations));
   }
 
@@ -151,6 +153,40 @@ public final class ReviewOutputValidator {
       bullets.add(new FindingBullet(path, lineNumber, severity, description));
     }
     return bullets;
+  }
+
+  private static void appendMissedExceptionalDiffViolations(
+      final String agentName,
+      final List<ChangedFile> scopedFiles,
+      final String trimmed,
+      final List<FindingBullet> bullets,
+      final List<String> violations
+  ) {
+    if (!"java-exceptional".equals(baseRulesetId(agentName))) {
+      return;
+    }
+    final List<String> scanned = ExceptionalDiffScanner.scanMainJavaPlusLines(agentName, scopedFiles);
+    if (scanned.isEmpty()) {
+      return;
+    }
+    if (!bullets.isEmpty() && !endsWithCleanVerdict(trimmed)) {
+      return;
+    }
+    for (final String scannedViolation : scanned) {
+      violations.add("diff scan: " + scannedViolation);
+    }
+  }
+
+  private static boolean endsWithCleanVerdict(final String text) {
+    final String[] lines = text.split("\\R");
+    for (int index = lines.length - 1; index >= 0; index--) {
+      final String line = lines[index].trim();
+      if (line.isEmpty()) {
+        continue;
+      }
+      return "## Clean".equals(line);
+    }
+    return false;
   }
 
   private static String baseRulesetId(final String agentName) {

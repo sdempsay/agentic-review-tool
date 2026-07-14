@@ -27,15 +27,15 @@ public class FileReferenceMatcherTest {
 
   @Test
   public void findReferencedFileMatchesUniqueBasename() {
-    final ChangedFile file = ChangedFile.included("src/main/java/AetherBuilderProcessor.java", ChangeType.MODIFIED, "+a");
+    final ChangedFile file = ChangedFile.included("src/main/java/WidgetBuilderProcessor.java", ChangeType.MODIFIED, "+a");
 
     final Optional<ChangedFile> match = FileReferenceMatcher.findReferencedFile(
-        "Look closer at AetherBuilderProcessor.java",
+        "Look closer at WidgetBuilderProcessor.java",
         List.of(file)
     );
 
     assertTrue(match.isPresent());
-    assertEquals("src/main/java/AetherBuilderProcessor.java", match.get().path());
+    assertEquals("src/main/java/WidgetBuilderProcessor.java", match.get().path());
   }
 
   @Test
