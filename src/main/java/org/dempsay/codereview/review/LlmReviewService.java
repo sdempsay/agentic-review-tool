@@ -7,7 +7,7 @@ import org.dempsay.codereview.cli.ReviewProgress;
 import org.dempsay.codereview.config.AppConfig;
 import org.dempsay.codereview.ingest.ChangedFile;
 import org.dempsay.codereview.model.OllamaModelInspector;
-import org.dempsay.codereview.model.StreamingLlmClient;
+
 import org.dempsay.codereview.rules.Rule;
 import org.dempsay.codereview.rules.RulesClassifier;
 import org.dempsay.codereview.support.ExceptionalSupport;
@@ -161,12 +161,14 @@ public final class LlmReviewService {
       final String prompt = task.isGeneralFallback()
           ? ReviewPromptBuilder.buildGeneralFallback(task.files(), contentMode, supplements)
           : ReviewPromptBuilder.buildForRuleset(task.rule(), task.files(), contentMode, supplements);
-      final String findings = StreamingLlmClient.complete(
+      final String findings = GuardedLlmCompletion.completeAgentReview(
           config.model(),
           config.resolvedReviewMaxTokens(),
           prompt,
           progress,
-          task.agentName()
+          task.agentName(),
+          task.agentName(),
+          task.files()
       );
       results.add(new ReviewResult(task.agentName(), findings));
       progress.agentComplete(task.agentName(), agentStart);

@@ -52,6 +52,11 @@ public final class ReviewChatOrchestrator {
    * @since 1.0.0
  */
   public String respond(final String userMessage) {
+    final ChatInputGuard.GuardResult guard = ChatInputGuard.check(userMessage);
+    if (!guard.accepted()) {
+      return guard.message();
+    }
+
     final Optional<DelegationTarget> delegation = resolveDelegation(userMessage);
     if (delegation.isPresent()) {
       return delegate(delegation.get(), userMessage);

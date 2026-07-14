@@ -176,12 +176,54 @@ public final class ReviewProgress {
   }
 
   /**
+   * Logs an agent output validation retry in verbose mode.
+   *
+   * @param label the label
+   * @param violations the violations
+   * @since 1.0.0
+   */
+  public void validationRetry(final String label, final List<String> violations) {
+    if (!isVerbose()) {
+      return;
+    }
+    log(String.format(
+        "[Review] %s — validation failed, retrying (%d violation(s))",
+        label,
+        violations.size()
+    ));
+    for (final String violation : violations) {
+      log(String.format("  - %s", violation));
+    }
+  }
+
+  /**
+   * Logs that validation still failed after the single retry.
+   *
+   * @param label the label
+   * @param violations the violations
+   * @since 1.0.0
+   */
+  public void validationRetryFailed(final String label, final List<String> violations) {
+    if (!isVerbose()) {
+      return;
+    }
+    log(String.format(
+        "[Review] %s — validation still failed after retry (%d violation(s))",
+        label,
+        violations.size()
+    ));
+    for (final String violation : violations) {
+      log(String.format("  - %s", violation));
+    }
+  }
+
+  /**
    * Logs completion of an agent review.
    * 
    * @param agentName the agentName
    * @param startedAtMs the startedAtMs
    * @since 1.0.0
- */
+   */
   public void agentComplete(final String agentName, final long startedAtMs) {
     if (isQuiet()) {
       return;

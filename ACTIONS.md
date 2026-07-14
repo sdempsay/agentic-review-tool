@@ -1,5 +1,9 @@
 # ACTIONS.md
 
+## 2026-07-14
+
+- Task 32 (Fixes #1): hard output guardrails — `ReviewOutputValidator` (diff-line evidence, severity tiers, re-eval ban, wildcard-import and bogus-spacing checks), `GuardedLlmCompletion` (max 1 retry with format hint), `ChatInputGuard` on follow-up chat; wired into `LlmReviewService` and `ReviewChatOrchestrator`; verbose retry logging in `ReviewProgress`
+
 ## 2026-07-08
 
 - `bin/code-review` wrapper: resolve Java via `which java` first, then `JAVA_HOME/bin/java` fallback

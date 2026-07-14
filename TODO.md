@@ -47,7 +47,7 @@ Task tracker for the Code Review Pipeline MVP (`PRD.md`).
 | 29 | Parallel ruleset LLM calls (bounded executor) | pending | [#3](https://github.com/sdempsay/agentic-review-tool/issues/3) (blocked by #1) |
 | 30 | Doc alignment — workflow orchestration, not langchain4j-agentic | complete | — |
 | 31 | Rule frontmatter `description` for agent metadata | pending | [#4](https://github.com/sdempsay/agentic-review-tool/issues/4) |
-| 32 | Hard output guardrails (Java validators + one retry) | pending | [#1](https://github.com/sdempsay/agentic-review-tool/issues/1) — diff-line evidence, ban re-eval prose |
+| 32 | Hard output guardrails (Java validators + one retry) | complete | [#1](https://github.com/sdempsay/agentic-review-tool/issues/1) — `ReviewOutputValidator`, `GuardedLlmCompletion`, `ChatInputGuard` |
 | 33 | Document guardrail layers in AGENTS.md | pending | [#2](https://github.com/sdempsay/agentic-review-tool/issues/2) |
 | 35 | MCP stdio server for code review (Grok/Claude/OpenCode) | pending | [#5](https://github.com/sdempsay/agentic-review-tool/issues/5) (after #1; host resolves findings) |
 
