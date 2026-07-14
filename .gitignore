@@ -6,4 +6,5 @@ target/
 .settings/
 .DS_Store
 review-output/
+review-dogfood*.md
 bin/code-review.jar
