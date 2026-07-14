@@ -22,6 +22,15 @@ When the prompt contains unified diffs (fenced `diff` blocks below each file):
 - Allowed on `+` lines: JDK I/O inside `ExceptionalSupport.supply` / `ExceptionalResource` lambdas; `ExceptionalSupport.fail(listener, error)` for expected failures; record compact-constructor `throw` (out of scope).
 - Context lines showing old `throws`/`throw` patterns above new `+` exceptional code are **out of scope** — judge only what the `+` lines add.
 
+## Verification (mandatory before each bullet)
+
+- Quote the exact `+` line that introduces the violation (`throws`, `throw`, or `try`/`catch` on an I/O path).
+- If you cannot quote that line verbatim from the prompt, **omit** the bullet.
+- **One pass only** — do not emit a bullet, then retract or re-evaluate in the same response.
+- Scan **every** new or changed `src/main/java/**` method on `+` lines — including `private`, `package-private`, and internal helper types (`*Io`, `*Support`, `readPersisted`, `writePersisted`). **No boundary layer:** helpers cannot use `throws` while public API returns `ExceptionalResponse`.
+- A `+` line with `try {` whose `catch` handles `IOException` (or other checked I/O) and returns `ExceptionalResponse.failure()` / project `fail(...)` is still a **must-fix** — use `ExceptionalSupplier` / `ExceptionalResource` instead of hand-written catch.
+- Public store/service methods already returning `ExceptionalResponse` do **not** excuse `throws` or `try/catch` on helpers they call in the same class or package.
+
 ## FreeMarker Java templates (`*.java.ftl`)
 
 When reviewing files whose paths end in `.java.ftl`:
@@ -112,6 +121,33 @@ Unwrapping an `ExceptionalResponse` without checking `wasError()` — including 
 
 JDK calls such as `Files.readString(path)` may throw inside a supply/resource lambda; the library captures those. Do not add a separate `throw` for the same failure path.
 
+### No adapter boundary (filesystem / store internals)
+
+Internal I/O helpers are **not** exempt. The pattern below is **always** a must-fix on `+` lines — even when the public port already returns `ExceptionalResponse`:
+
+```java
+// BAD — private helper throws; public method try/catch converts to failure response
+private Persisted readPersisted(final Path path) throws IOException {
+  return documentIo.read(path);
+}
+
+public ExceptionalResponse<Persisted> read(final ExceptionalListener onError, final String id) {
+  try {
+    return ExceptionalResponse.success(readPersisted(path));
+  } catch (final IOException ex) {
+    return fail(onError, Internal, "Failed to read", ex);
+  }
+}
+
+// GOOD — exceptional through the stack
+private ExceptionalResponse<Persisted> readPersisted(final Path path) {
+  return documentIo.read(path)
+      .chain((listener, document) -> ExceptionalResponse.success(toPersisted(document)), listener);
+}
+```
+
+Flag **each** `+` line that adds: `throws IOException` (or any `throws` on I/O), a `try`/`catch` around filesystem/network work, or `throw new IllegalStateException` / `IllegalStateException` for I/O setup failures in `src/main` (use `ExceptionalSupplier` / defer work to a method that returns `ExceptionalResponse`).
+
 ### Out of scope (do not report)
 
 **Record compact constructors** — `throw new IllegalArgumentException(...)` (or similar unchecked exception) in a record's compact constructor to reject invalid field combinations is allowed. Records are immutable value types, not I/O orchestration; if the args are illegal, the object must not exist. This is invariant enforcement at construction time, not an operational failure that should flow as `ExceptionalResponse`.
@@ -131,13 +167,17 @@ public record OrderRequest(String customerId, int quantity) {
 
 Do **not** flag compact-constructor `throw` as a §1 violation. Do flag the same pattern inside `.chain()` callbacks or `ExceptionalSupplier` lambdas.
 
+**Third-party `@Override` contracts** — methods implementing framework interfaces that **require** checked exceptions in the signature (e.g. Gson `TypeAdapter.read` / `write` declaring `throws IOException`) are out of scope when the `+` line is only the mandated `@Override` signature. Still flag **new** `throws` on project-owned methods and any hand-written `try/catch` around Gson/file I/O in project code.
+
 ### Report as findings
 
 - Methods that declare `throws` instead of returning `ExceptionalResponse`
 - `throw` used for expected failure paths (I/O, network, parse errors, operational validation, external-process exit codes) — not record compact constructors
 - Explicit `throw` inside `.chain()` callbacks or `ExceptionalSupplier` lambdas (use `listener.onError` + `ExceptionalResponse.failure()` instead)
 - Unwrapping `ExceptionalResponse` without `wasError()` in production code (tests only)
-- Business `try/catch` where `ExceptionalResponse` should carry the failure
+- Business `try/catch` where `ExceptionalResponse` should carry the failure — including `catch (IOException)` (or similar) that returns a failure `ExceptionalResponse` / project `fail(...)`
+- Private or package-private helpers (`*Io`, `readPersisted`, `writePersisted`, etc.) that declare `throws` on filesystem or network work
+- `throw new IllegalStateException` (or similar) in `src/main` for I/O index rebuild / constructor setup that should be `ExceptionalSupplier` or lazy `ExceptionalResponse` initialization
 - Swallowed errors (`catch (...) { return default; }`) — use `wasError()` at the call site instead
 - Broad `catch (Exception)` — checkstyle `IllegalCatch` rejects this
 - Manual `try-with-resources` + catch where `ExceptionalResource` should be used
