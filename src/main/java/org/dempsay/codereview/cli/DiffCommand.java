@@ -6,6 +6,7 @@ import java.util.Map;
 import org.dempsay.codereview.config.AppConfig;
 import org.dempsay.codereview.config.ConfigLoader;
 import org.dempsay.codereview.ingest.ChangedFile;
+import org.dempsay.codereview.ingest.DiffIngestService;
 import org.dempsay.codereview.ingest.GitIngestService;
 import org.dempsay.codereview.ingest.IngestRequest;
 import org.dempsay.codereview.review.LlmReviewService;
@@ -16,12 +17,14 @@ import org.dempsay.codereview.rules.RulesEngine;
 import org.dempsay.codereview.support.FailureCapture;
 import org.dempsay.utils.exceptional.api.ExceptionalListener;
 import org.dempsay.utils.exceptional.api.ExceptionalResponse;
+import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
+import picocli.CommandLine.Spec;
 
 @Command(
     name = "diff",
-    description = "Review uncommitted changes (staged + unstaged)",
+    description = "Review git changes, or a unified diff from --stdin / --diff-file (no git required)",
     mixinStandardHelpOptions = true
 )
 /**
@@ -31,6 +34,9 @@ import picocli.CommandLine.Option;
  * @author Shawn Dempsay {@literal <shawn@dempsay.org>}
  */
 public class DiffCommand implements Runnable {
+
+  @Spec
+  private CommandLine.Model.CommandSpec spec;
 
   @Option(
       names = "--config",
@@ -55,6 +61,18 @@ public class DiffCommand implements Runnable {
       description = "Review changes against a base ref (git diff <base>...HEAD)"
   )
   private String baseRef;
+
+  @Option(
+      names = "--stdin",
+      description = "Read unified diff from stdin (for piping; use with --no-chat)"
+  )
+  private boolean stdin;
+
+  @Option(
+      names = "--diff-file",
+      description = "Read unified diff from file (repeatable; no git required)"
+  )
+  private List<Path> diffFiles;
 
   @Option(
       names = "--output",
@@ -93,9 +111,29 @@ public class DiffCommand implements Runnable {
    * @since 1.0.0
  */
   public void run() {
+    validateInputMode();
     final FailureCapture failures = new FailureCapture();
     final ExceptionalResponse<Boolean> outcome = dryRun ? runDryRun(failures) : runLlmReview(failures);
     failures.failIfError(outcome);
+  }
+
+  private void validateInputMode() {
+    final boolean externalDiff = stdin || hasDiffFiles();
+    if (!externalDiff) {
+      return;
+    }
+    if (staged || baseRef != null && !baseRef.isBlank()) {
+      throw new CommandLine.ParameterException(
+          spec.commandLine(),
+          "--stdin/--diff-file cannot be combined with --staged or --base"
+      );
+    }
+    if (Boolean.TRUE.equals(chat)) {
+      throw new CommandLine.ParameterException(
+          spec.commandLine(),
+          "Follow-up chat cannot read stdin when --stdin supplies the diff; use --no-chat"
+      );
+    }
   }
 
   private ExceptionalResponse<Boolean> runLlmReview(final FailureCapture failures) {
@@ -105,7 +143,7 @@ public class DiffCommand implements Runnable {
             .chain((rulesListener, rules) -> {
               final long ingestStageStart = System.currentTimeMillis();
               progress.stageStart("Ingest");
-              return GitIngestService.ingest(buildIngestRequest(config), rulesListener)
+              return ingestChangedFiles(config, rulesListener)
                   .chain((ingestListener, changedFiles) -> {
                     progress.stageComplete("Ingest", ingestStageStart);
                     final long classifyStageStart = System.currentTimeMillis();
@@ -139,7 +177,7 @@ public class DiffCommand implements Runnable {
             .chain((rulesListener, rules) -> {
               final long ingestStageStart = System.currentTimeMillis();
               progress.stageStart("Ingest");
-              return GitIngestService.ingest(buildIngestRequest(config), rulesListener)
+              return ingestChangedFiles(config, rulesListener)
                   .chain((ingestListener, changedFiles) -> {
                     progress.stageComplete("Ingest", ingestStageStart);
                     final long classifyStageStart = System.currentTimeMillis();
@@ -162,7 +200,7 @@ public class DiffCommand implements Runnable {
       final String reviewText,
       final ExceptionalListener listener
   ) {
-    if (!ReviewChatLoop.shouldEnable(chat, noChat)) {
+    if (!chatEnabled()) {
       return ExceptionalResponse.success(Boolean.TRUE);
     }
 
@@ -191,6 +229,27 @@ public class DiffCommand implements Runnable {
         }, listener);
   }
 
+  private ExceptionalResponse<List<ChangedFile>> ingestChangedFiles(
+      final AppConfig config,
+      final ExceptionalListener listener
+  ) {
+    if (stdin || hasDiffFiles()) {
+      return DiffIngestService.ingestExternal(stdin, diffFiles, config.maxDiffKb(), listener);
+    }
+    return GitIngestService.ingest(buildIngestRequest(config), listener);
+  }
+
+  private boolean hasDiffFiles() {
+    return diffFiles != null && !diffFiles.isEmpty();
+  }
+
+  private boolean chatEnabled() {
+    if (stdin || hasDiffFiles()) {
+      return false;
+    }
+    return ReviewChatLoop.shouldEnable(chat, noChat);
+  }
+
   private IngestRequest buildIngestRequest(final AppConfig config) {
     final Path repoRoot = Path.of("").toAbsolutePath();
     if (staged) {
@@ -203,6 +262,15 @@ public class DiffCommand implements Runnable {
   }
 
   private String describeScope() {
+    if (stdin && hasDiffFiles()) {
+      return "provided diff (stdin + " + diffFiles.size() + " file(s))";
+    }
+    if (stdin) {
+      return "provided diff (stdin)";
+    }
+    if (hasDiffFiles()) {
+      return "provided diff (" + diffFiles.size() + " file(s))";
+    }
     if (staged) {
       return "staged changes";
     }

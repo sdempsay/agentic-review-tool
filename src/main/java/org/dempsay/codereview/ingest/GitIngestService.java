@@ -147,12 +147,7 @@ public final class GitIngestService {
       final String rawDiff,
       final int maxDiffBytes
   ) {
-    for (final DiffParser.ParsedDiffEntry entry : DiffParser.parse(rawDiff)) {
-      if (IngestExtensionFilter.defaultExclusionReason(entry.path()).isPresent()) {
-        continue;
-      }
-      files.put(entry.path(), toChangedFile(entry, maxDiffBytes));
-    }
+    DiffIngestService.addParsedDiff(files, rawDiff, maxDiffBytes);
   }
 
   private static ExceptionalResponse<ChangedFile> ingestUntrackedFile(
@@ -206,10 +201,6 @@ public final class GitIngestService {
         reader -> reader.lines().collect(Collectors.joining(System.lineSeparator()))
     ).execute()
         .chain((readListener, content) -> ExceptionalResponse.success(content), listener);
-  }
-
-  private static ChangedFile toChangedFile(final DiffParser.ParsedDiffEntry entry, final int maxDiffBytes) {
-    return toIncludedOrSkipped(entry.path(), entry.changeType(), entry.diff(), maxDiffBytes, entry.binary());
   }
 
   private static ChangedFile toIncludedOrSkipped(
